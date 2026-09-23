@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>WYNTR — FIND THE SIGNAL</title>
+
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      background: #08090c;
+      color: #f5f5f5;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 22px 7%;
+      border-bottom: 1px solid #202229;
+    }
+
+    .logo {
+      font-size: 25px;
+      font-weight: 800;
+      letter-spacing: 3px;
+    }
+
+    .tagline {
+      color: #858b98;
+      font-size: 12px;
+      letter-spacing: 2px;
+    }
+
+    main {
+      max-width: 1200px;
+      margin: auto;
+      padding: 55px 7%;
+    }
+
+    .hero h1 {
+      font-size: clamp(42px, 8vw, 80px);
+      line-height: .95;
+      margin: 0 0 20px;
+      letter-spacing: -4px;
+    }
+
+    .hero p {
+      color: #9298a5;
+      max-width: 620px;
+      font-size: 18px;
+      line-height: 1.6;
+    }
+
+    .controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin: 35px 0;
+    }
+
+    select, button {
+      background: #12151b;
+      color: white;
+      border: 1px solid #2b303a;
+      border-radius: 10px;
+      padding: 13px 18px;
+      font-size: 14px;
+    }
+
+    button {
+      cursor: pointer;
+      background: white;
+      color: #08090c;
+      font-weight: 700;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+      gap: 14px;
+      margin-top: 35px;
+    }
+
+    .card {
+      background: #101217;
+      border: 1px solid #242832;
+      border-radius: 16px;
+      padding: 22px;
+    }
+
+    .card span {
+      color: #7e8592;
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+    }
+
+    .card strong {
+      display: block;
+      font-size: 30px;
+      margin-top: 10px;
+    }
+
+    .signal {
+      margin-top: 35px;
+      padding: 28px;
+      border: 1px solid #303641;
+      border-radius: 18px;
+      background: linear-gradient(135deg, #11141a, #0b0d11);
+    }
+
+    .signal h2 {
+      margin-top: 0;
+    }
+
+    .signal p {
+      color: #9ca3af;
+      line-height: 1.6;
+    }
+
+    .modules {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      gap: 12px;
+      margin-top: 35px;
+    }
+
+    .module {
+      padding: 20px;
+      border-radius: 12px;
+      background: #0e1015;
+      border: 1px solid #222630;
+      text-align: center;
+      color: #cbd0d9;
+    }
+
+    footer {
+      padding: 40px 7%;
+      color: #656b76;
+      text-align: center;
+      border-top: 1px solid #202229;
+      font-size: 12px;
+    }
+  </style>
+</head>
+
+<body>
+
+<header>
+  <div class="logo">WYNTR</div>
+  <div class="tagline">FIND THE SIGNAL</div>
+</header>
+
+<main>
+
+  <section class="hero">
+    <h1>Find the signal.</h1>
+    <p>
+      No te dice qué va a pasar.
+      Te muestra qué están diciendo los datos.
+    </p>
+  </section>
+
+  <section class="controls">
+    <select id="sport">
+      <option>NBA</option>
+      <option>Tenis</option>
+    </select>
+
+    <select id="model">
+      <option>Elo</option>
+      <option>Poisson</option>
+      <option>Gradient Boosting</option>
+    </select>
+
+    <button onclick="runAnalysis()">Run analysis</button>
+  </section>
+
+  <section class="grid">
+
+    <div class="card">
+      <span>Signal</span>
+      <strong id="signal">—</strong>
+    </div>
+
+    <div class="card">
+      <span>Confidence</span>
+      <strong id="confidence">—</strong>
+    </div>
+
+    <div class="card">
+      <span>Movement</span>
+      <strong id="movement">—</strong>
+    </div>
+
+    <div class="card">
+      <span>Shock</span>
+      <strong id="shock">—</strong>
+    </div>
+
+  </section>
+
+  <section class="signal">
+
+    <h2>Explain</h2>
+
+    <p id="explanation">
+      Ejecuta el análisis para generar una explicación basada en los datos.
+    </p>
+
+  </section>
+
+  <section class="modules">
+
+    <div class="module">SIGNAL</div>
+    <div class="module">SHOCK</div>
+    <div class="module">RADAR</div>
+    <div class="module">MOVEMENT</div>
+    <div class="module">EXPLAIN</div>
+    <div class="module">LAB</div>
+
+  </section>
+
+</main>
+
+<footer>
+  WYNTR — FIND THE SIGNAL
+</footer>
+
+<script>
+function runAnalysis() {
+
+  const signals = ["HIGH", "MEDIUM", "LOW"];
+  const movements = ["UP", "DOWN", "STABLE"];
+  const shocks = ["LOW", "MEDIUM", "HIGH"];
+
+  document.getElementById("signal").textContent =
+    signals[Math.floor(Math.random() * signals.length)];
+
+  document.getElementById("confidence").textContent =
+    Math.floor(55 + Math.random() * 40) + "%";
+
+  document.getElementById("movement").textContent =
+    movements[Math.floor(Math.random() * movements.length)];
+
+  document.getElementById("shock").textContent =
+    shocks[Math.floor(Math.random() * shocks.length)];
+
+  document.getElementById("explanation").textContent =
+    "Análisis preliminar generado a partir de las variables seleccionadas. " +
+    "La siguiente versión incorporará modelos Elo, Poisson y Gradient Boosting, " +
+    "junto con calibración y validación walk-forward.";
+}
+</script>
+
+</body>
+</html>
