@@ -1,0 +1,893 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#06080c">
+<title>WYNTR V8 — Calendario + Análisis NBA</title>
+
+<style>
+:root{
+--bg:#06080c;--p:#0d1118;--p2:#111722;--line:#202938;
+--t:#f5f7fb;--m:#8d99a9;--a:#67e8f9;--g:#65f0a2;--y:#ffd166
+}
+*{box-sizing:border-box}
+body{
+margin:0;
+background:radial-gradient(circle at 80% -5%,#17343d,#07090d 40%);
+color:var(--t);
+font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif
+}
+.wrap{max-width:1180px;margin:auto;padding:15px}
+.top{
+display:flex;justify-content:space-between;align-items:center;
+padding:8px 0 22px
+}
+.brand{font-weight:950;letter-spacing:.2em;font-size:21px}
+.sub,.label{font-size:9px;color:var(--m);letter-spacing:.14em}
+.status{
+font-size:10px;color:var(--g);
+border:1px solid #1b4d38;border-radius:999px;padding:7px 10px
+}
+.hero{padding:10px 0 20px}
+.ey{font-size:10px;color:var(--a);font-weight:850;letter-spacing:.18em}
+.hero h1{font-size:clamp(36px,8vw,68px);line-height:.94;margin:9px 0}
+.hero p{color:var(--m);line-height:1.55;max-width:820px;font-size:13px}
+.panel{
+background:linear-gradient(180deg,#0e131b,#090d13);
+border:1px solid var(--line);
+border-radius:20px;
+padding:17px;
+margin-bottom:13px
+}
+.filters{
+display:grid;
+grid-template-columns:1fr 1fr 1fr auto;
+gap:8px
+}
+select,button{
+width:100%;
+padding:12px;
+border-radius:11px;
+border:1px solid var(--line);
+background:var(--p2);
+color:var(--t);
+font-size:12px
+}
+button{
+background:var(--t);
+color:#06080c;
+font-weight:900;
+cursor:pointer
+}
+.layout{
+display:grid;
+grid-template-columns:1fr 1fr;
+gap:13px
+}
+.games{max-height:650px;overflow:auto}
+.game{
+border:1px solid var(--line);
+background:#0f151e;
+border-radius:15px;
+padding:13px;
+margin-bottom:8px;
+cursor:pointer;
+transition:.15s
+}
+.game:hover,.game.selected{
+border-color:#536473;
+transform:translateY(-1px)
+}
+.date{
+font-size:9px;
+color:var(--a);
+letter-spacing:.12em;
+margin-bottom:8px
+}
+.match{
+display:grid;
+grid-template-columns:1fr auto 1fr;
+gap:8px;
+align-items:center
+}
+.team{font-size:13px;font-weight:800}
+.away{text-align:right}
+.time{text-align:center;font-size:10px;color:var(--m)}
+.badge{
+display:inline-block;
+font-size:8px;
+border:1px solid var(--line);
+border-radius:999px;
+padding:4px 7px;
+color:var(--m);
+margin-top:7px
+}
+.analysis{position:sticky;top:10px}
+.heroMatch{text-align:center;padding:8px 0 16px}
+.heroMatch .teams{font-size:20px;font-weight:900}
+.prob{
+display:grid;
+grid-template-columns:1fr 1fr;
+gap:9px
+}
+.card{
+background:var(--p2);
+border:1px solid var(--line);
+border-radius:14px;
+padding:13px
+}
+.card small{color:var(--m);font-size:8px}
+.big{
+font-size:28px;
+font-weight:950;
+display:block;
+margin-top:4px
+}
+.bar{
+height:7px;
+background:#19212c;
+border-radius:99px;
+overflow:hidden;
+margin-top:7px
+}
+.fill{height:100%;background:var(--a)}
+.notice{color:var(--m);font-size:11px;line-height:1.55}
+.empty{text-align:center;color:var(--m);padding:40px 15px}
+.calendarNote{font-size:10px;color:var(--m);line-height:1.5}
+.loader{display:none;color:var(--a);font-size:11px;padding:8px 0}
+
+@media(max-width:800px){
+.layout{grid-template-columns:1fr}
+.analysis{position:static}
+.filters{grid-template-columns:1fr 1fr}
+.wrap{padding:12px}
+}
+</style>
+</head>
+
+<body>
+
+<div class="wrap">
+
+<header class="top">
+<div>
+<div class="brand">WYNTR</div>
+<div class="sub">NBA SCHEDULE · V8 ENGINE</div>
+</div>
+<div id="status" class="status">● CALENDARIO</div>
+</header>
+
+<section class="hero">
+<div class="ey">SELECTOR DE PARTIDOS</div>
+<h1>Elige tu partido.</h1>
+<p>
+WYNTR carga dinámicamente los próximos partidos NBA y permite seleccionar cualquiera para analizarlo con datos históricos recientes.
+</p>
+</section>
+
+<div class="panel">
+
+<div class="filters">
+
+<div>
+<div class="label">RANGO</div>
+<select id="range">
+<option value="14">Próximos 14 días</option>
+<option value="30" selected>Próximos 30 días</option>
+<option value="60">Próximos 60 días</option>
+<option value="120">Próximos 120 días</option>
+</select>
+</div>
+
+<div>
+<div class="label">EQUIPO</div>
+<select id="team">
+<option value="">Todos los equipos</option>
+</select>
+</div>
+
+<div>
+<div class="label">TIPO</div>
+<select id="type">
+<option value="all">Todos</option>
+<option value="pre">Pretemporada</option>
+<option value="reg">Temporada regular</option>
+</select>
+</div>
+
+<div style="display:flex;align-items:end">
+<button id="reload">ACTUALIZAR</button>
+</div>
+
+</div>
+
+<div id="loader" class="loader">
+Cargando calendario…
+</div>
+
+</div>
+
+<div class="layout">
+
+<section class="panel">
+
+<div class="ey">
+PRÓXIMOS PARTIDOS <span id="count"></span>
+</div>
+
+<div id="games" class="games">
+<div class="empty">Cargando…</div>
+</div>
+
+</section>
+
+<section class="panel analysis">
+
+<div class="ey">
+ANÁLISIS WYNTR
+</div>
+
+<div id="analysis">
+<div class="empty">
+Selecciona un partido para analizarlo.
+</div>
+</div>
+
+</section>
+
+</div>
+
+<div class="panel calendarNote">
+
+<b>Motor WYNTR:</b>
+el sistema combina forma reciente, diferencial de producción,
+ELO y una aproximación Poisson para generar una estimación estadística.
+Los resultados dependen de la disponibilidad de datos.
+
+</div>
+
+</div>
+
+<script>
+
+const API='https://site.api.espn.com/apis/site/v2/sports/basketball/nba/scoreboard';
+
+let games=[];
+let selected=null;
+
+const $=id=>document.getElementById(id);
+
+const fmtDate=d=>
+new Intl.DateTimeFormat('es-CO',{
+weekday:'short',
+day:'2-digit',
+month:'short'
+}).format(d);
+
+const fmtTime=d=>
+new Intl.DateTimeFormat('es-CO',{
+hour:'2-digit',
+minute:'2-digit',
+hour12:false,
+timeZone:'America/Bogota'
+}).format(d);
+
+function parse(data){
+
+return(data.events||[]).map(e=>{
+
+const c=e.competitions?.[0];
+const z=c?.competitors||[];
+
+const h=z.find(x=>x.homeAway==='home');
+const a=z.find(x=>x.homeAway==='away');
+
+if(!h||!a)return null;
+
+return{
+id:e.id,
+date:e.date,
+home:h.team.displayName,
+away:a.team.displayName,
+status:e.status?.type?.description||'Programado',
+completed:e.status?.type?.completed,
+pre:(e.season?.slug||'').includes('pre')||
+/preseason/i.test(e.name||''),
+homeScore:h.score,
+awayScore:a.score
+};
+
+}).filter(Boolean);
+
+}
+
+async function get(url){
+
+const r=await fetch(url);
+
+if(!r.ok)throw Error(r.status);
+
+return r.json();
+
+}
+
+async function load(){
+
+$('loader').style.display='block';
+
+$('status').textContent='● CARGANDO';
+
+games=[];
+
+const days=+$('range').value;
+const now=new Date();
+
+for(let i=0;i<=days;i++){
+
+let d=new Date(now);
+
+d.setDate(d.getDate()+i);
+
+let ds=d.toISOString()
+.slice(0,10)
+.replaceAll('-','');
+
+try{
+
+games.push(
+...parse(
+await get(API+'?dates='+ds)
+)
+);
+
+}catch(e){}
+
+}
+
+const seen=new Set();
+
+games=games.filter(g=>{
+
+if(seen.has(g.id))return false;
+
+seen.add(g.id);
+
+return new Date(g.date)>=now;
+
+});
+
+buildTeams();
+render();
+
+$('loader').style.display='none';
+
+$('status').textContent='● CALENDARIO ACTUALIZADO';
+
+}
+
+function buildTeams(){
+
+let teams=[
+...new Set(
+games.flatMap(g=>[g.home,g.away])
+)
+].sort();
+
+let s=$('team');
+let old=s.value;
+
+s.innerHTML=
+'<option value="">Todos los equipos</option>'+
+teams.map(t=>`<option>${t}</option>`).join('');
+
+s.value=teams.includes(old)?old:'';
+
+}
+
+function filtered(){
+
+let t=$('team').value;
+let ty=$('type').value;
+
+return games.filter(g=>
+(!t||g.home===t||g.away===t)&&
+(
+ty==='all'||
+(ty==='pre'&&g.pre)||
+(ty==='reg'&&!g.pre)
+)
+);
+
+}
+
+function render(){
+
+let arr=filtered();
+
+$('count').textContent=`· ${arr.length} partidos`;
+
+if(!arr.length){
+
+$('games').innerHTML=
+'<div class="empty">No hay partidos con esos filtros.</div>';
+
+return;
+
+}
+
+let last='';
+
+$('games').innerHTML=arr.map(g=>{
+
+let d=new Date(g.date);
+
+let ds=d.toISOString().slice(0,10);
+
+let head=
+ds!==last?
+(last=ds,
+`<div class="date">${fmtDate(d).toUpperCase()}</div>`)
+:'';
+
+return head+
+
+`<div class="game ${selected?.id===g.id?'selected':''}" data-id="${g.id}">
+
+<div class="match">
+
+<div class="team">
+${g.away}
+</div>
+
+<div class="time">
+${fmtTime(d)}
+<br>
+<span>${g.completed?'FINAL':g.status}</span>
+</div>
+
+<div class="team away">
+${g.home}
+</div>
+
+</div>
+
+<span class="badge">
+${g.pre?'PRETEMPORADA':'TEMPORADA REGULAR'}
+</span>
+
+</div>`;
+
+}).join('');
+
+document
+.querySelectorAll('.game')
+.forEach(x=>
+x.onclick=()=>select(x.dataset.id)
+);
+
+}
+
+async function select(id){
+
+selected=games.find(g=>g.id===id);
+
+render();
+
+if(!selected)return;
+
+$('analysis').innerHTML=`
+
+<div class="heroMatch">
+
+<div class="label">
+PARTIDO SELECCIONADO
+</div>
+
+<div class="teams">
+${selected.away} @ ${selected.home}
+</div>
+
+<div class="notice">
+${fmtDate(new Date(selected.date))}
+·
+${fmtTime(new Date(selected.date))}
+·
+${selected.pre?'Pretemporada':'Temporada regular'}
+</div>
+
+</div>
+
+<div class="prob">
+
+<div class="card">
+<small>LOCAL</small>
+<span class="big">…</span>
+</div>
+
+<div class="card">
+<small>VISITANTE</small>
+<span class="big">…</span>
+</div>
+
+</div>
+
+<div class="notice" style="margin-top:10px">
+Construyendo análisis con histórico reciente…
+</div>
+
+`;
+
+try{
+
+const r=await analyzeGame(selected);
+
+$('analysis').innerHTML=`
+
+<div class="heroMatch">
+
+<div class="label">
+SEÑAL WYNTR V8
+</div>
+
+<div class="teams">
+${selected.away} @ ${selected.home}
+</div>
+
+<div class="notice">
+${fmtDate(new Date(selected.date))}
+·
+${fmtTime(new Date(selected.date))}
+</div>
+
+</div>
+
+<div class="prob">
+
+<div class="card">
+
+<small>LOCAL</small>
+
+<span class="big">
+${r.home}%
+</span>
+
+<div class="bar">
+<div class="fill" style="width:${r.home}%"></div>
+</div>
+
+</div>
+
+<div class="card">
+
+<small>VISITANTE</small>
+
+<span class="big">
+${r.away}%
+</span>
+
+<div class="bar">
+<div class="fill" style="width:${r.away}%"></div>
+</div>
+
+</div>
+
+</div>
+
+<div class="card" style="margin-top:10px">
+
+<b>
+Señal estadística:
+</b>
+
+${r.home>=r.away?
+selected.home:
+selected.away}
+
+<div class="notice" style="margin-top:8px">
+
+Estimación basada en datos históricos disponibles.
+No constituye una garantía.
+
+</div>
+
+</div>
+
+<div class="card" style="margin-top:10px">
+
+<b>Factores</b>
+
+<div class="notice" style="margin-top:8px">
+
+ELO:
+${r.elo}% local
+
+·
+
+Poisson:
+${r.poisson}%
+
+·
+
+Forma:
+${r.form}%
+
+·
+
+Producción:
+${r.net}%
+
+·
+
+Muestra:
+${r.sample} partidos
+
+</div>
+
+</div>
+
+`;
+
+}catch(e){
+
+$('analysis').innerHTML=`
+
+<div class="empty">
+
+No se pudo completar el análisis.
+
+<br><br>
+
+${e.message}
+
+</div>
+
+`;
+
+}
+
+}
+
+async function analyzeGame(game){
+
+const rows=[];
+const now=new Date();
+const req=[];
+
+for(let i=1;i<=45;i++){
+
+const d=new Date(now);
+
+d.setDate(now.getDate()-i);
+
+const ds=d.toISOString()
+.slice(0,10)
+.replaceAll('-','');
+
+req.push(
+
+fetch(API+'?dates='+ds)
+
+.then(r=>r.ok?r.json():null)
+
+.catch(()=>null)
+
+);
+
+}
+
+const data=await Promise.all(req);
+
+data.forEach(j=>
+
+(j?.events||[]).forEach(ev=>{
+
+const c=ev.competitions?.[0];
+const z=c?.competitors||[];
+
+const h=z.find(x=>x.homeAway==='home');
+const a=z.find(x=>x.homeAway==='away');
+
+if(
+h?.score!=null&&
+a?.score!=null
+){
+
+rows.push({
+
+home:h.team?.displayName||'',
+away:a.team?.displayName||'',
+
+homeScore:+h.score,
+awayScore:+a.score
+
+});
+
+}
+
+})
+
+);
+
+const key=s=>
+String(s||'')
+.toLowerCase()
+.replace(/[^a-z0-9]/g,'');
+
+const stats=team=>{
+
+const k=key(team);
+
+const g=rows
+.filter(x=>
+key(x.home)===k||
+key(x.away)===k
+)
+.slice(-12);
+
+if(!g.length){
+
+return{
+n:0,
+w:.5,
+pf:110,
+pa:110
+};
+
+}
+
+let w=0;
+let pf=0;
+let pa=0;
+
+g.forEach(x=>{
+
+const ih=key(x.home)===k;
+
+const s=ih?
+x.homeScore:
+x.awayScore;
+
+const o=ih?
+x.awayScore:
+x.homeScore;
+
+pf+=s;
+pa+=o;
+
+if(s>o)w++;
+
+});
+
+return{
+
+n:g.length,
+w:w/g.length,
+pf:pf/g.length,
+pa:pa/g.length
+
+};
+
+};
+
+const hs=stats(game.home);
+const as=stats(game.away);
+
+const cl=(x,a,b)=>
+Math.max(a,Math.min(b,x));
+
+const elo=cl(
+
+50+
+(hs.w-as.w)*55+
+4.5+
+(
+((hs.pf-hs.pa)-
+(as.pf-as.pa))/5
+),
+
+5,
+95
+
+);
+
+const form=cl(
+
+50+
+(hs.w-as.w)*65,
+
+5,
+95
+
+);
+
+const poisson=cl(
+
+50+
+(
+(hs.pf*.52+
+as.pa*.48)
+-
+(as.pf*.52+
+hs.pa*.48)
+)*4,
+
+5,
+95
+
+);
+
+const net=cl(
+
+50+
+(
+((hs.pf-hs.pa)-
+(as.pf-as.pa))
+*1.8
+),
+
+5,
+95
+
+);
+
+const home=Math.round(
+
+cl(
+
+.45*elo+
+.20*poisson+
+.20*form+
+.15*net,
+
+5,
+95
+
+)
+
+);
+
+return{
+
+home,
+
+away:100-home,
+
+elo:Math.round(elo),
+
+poisson:Math.round(poisson),
+
+form:Math.round(form),
+
+net:Math.round(net),
+
+sample:hs.n+as.n
+
+};
+
+}
+
+$('reload').onclick=load;
+
+$('range').onchange=load;
+
+$('team').onchange=render;
+
+$('type').onchange=render;
+
+load().catch(e=>{
+
+$('status').textContent='● ERROR';
+
+$('games').innerHTML=
+'<div class="empty">'+
+'No fue posible cargar el calendario: '+
+e.message+
+'</div>';
+
+});
+
+</script>
+
+</body>
+</html>
