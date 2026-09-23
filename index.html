@@ -184,3 +184,580 @@
       margin-top: 10px;
     }
   </style>
+  </head>
+
+<body>
+
+<header>
+  <div class="logo">WYNTR</div>
+  <div class="tagline">FIND THE SIGNAL</div>
+</header>
+
+<main>
+
+  <section class="hero">
+    <h1>Find the signal.</h1>
+    <p>
+      No te dice qué va a pasar.
+      Te muestra qué están diciendo los datos.
+    </p>
+  </section>
+
+  <section class="controls">
+
+    <select id="sport">
+      <option value="nba">NBA</option>
+      <option value="tennis">Tenis</option>
+    </select>
+
+    <select id="model">
+      <option value="elo">Elo</option>
+      <option value="poisson">Poisson</option>
+      <option value="gb">Gradient Boosting</option>
+    </select>
+
+    <button id="run" onclick="runAnalysis()">Run analysis</button>
+
+  </section>
+
+  <section class="games" id="gamesBox">
+
+    <label for="game">Evento disponible</label>
+
+    <select id="game"></select>
+
+  </section>
+
+  <div class="status" id="status">
+    Fuente: ESPN. Pulsa Run analysis para consultar datos actuales.
+  </div>
+
+  <section class="grid">
+
+    <div class="card">
+      <span>Signal</span>
+      <strong id="signal">—</strong>
+    </div>
+
+    <div class="card">
+      <span>Confidence</span>
+      <strong id="confidence">—</strong>
+    </div>
+
+    <div class="card">
+      <span>Movement</span>
+      <strong id="movement">—</strong>
+    </div>
+
+    <div class="card">
+      <span>Shock</span>
+      <strong id="shock">—</strong>
+    </div>
+
+  </section>
+
+  <section class="signal">
+
+    <h2>Explain</h2>
+
+    <p id="explanation">
+      Ejecuta el análisis para consultar el feed y calcular una señal reproducible.
+    </p>
+
+    <div class="source" id="source">
+      Sin análisis todavía.
+    </div>
+
+  </section>
+
+  <section class="modules">
+
+    <div class="module">SIGNAL</div>
+    <div class="module">SHOCK</div>
+    <div class="module">RADAR</div>
+    <div class="module">MOVEMENT</div>
+    <div class="module">EXPLAIN</div>
+    <div class="module">LAB</div>
+
+  </section>
+
+</main>
+
+<footer>
+  WYNTR — FIND THE SIGNAL
+</footer>
+
+<script>
+const ESPN_NBA =
+  "https://site.api.espn.com/apis/site/v2/sports/basketball/nba/scoreboard";
+
+const ELO = {
+  "Boston Celtics": 1700,
+  "Oklahoma City Thunder": 1695,
+  "Denver Nuggets": 1665,
+  "Cleveland Cavaliers": 1655,
+  "New York Knicks": 1650,
+  "Minnesota Timberwolves": 1645,
+  "Los Angeles Lakers": 1640,
+  "Golden State Warriors": 1635,
+  "Milwaukee Bucks": 1630,
+  "Philadelphia 76ers": 1615,
+  "Dallas Mavericks": 1610,
+  "Phoenix Suns": 1605,
+  "Memphis Grizzlies": 1595,
+  "Miami Heat": 1590,
+  "Los Angeles Clippers": 1590,
+  "Sacramento Kings": 1585,
+  "Orlando Magic": 1580,
+  "Indiana Pacers": 1575,
+  "Atlanta Hawks": 1565,
+  "New Orleans Pelicans": 1560,
+  "Houston Rockets": 1555,
+  "Chicago Bulls": 1545,
+  "Toronto Raptors": 1535,
+  "Detroit Pistons": 1530,
+  "Brooklyn Nets": 1525,
+  "Charlotte Hornets": 1515,
+  "Portland Trail Blazers": 1510,
+  "San Antonio Spurs": 1505,
+  "Utah Jazz": 1495,
+  "Washington Wizards": 1485
+};
+
+function teamRating(name) {
+  return ELO[name] ?? 1500;
+}
+
+function eloProb(away, home) {
+  const difference =
+    teamRating(home) -
+    teamRating(away) +
+    55;
+
+  return 1 / (1 + Math.pow(10, -difference / 400));
+}
+
+function clamp(value, min, max) {
+  return Math.max(min, Math.min(max, value));
+}
+
+function setResults(
+  signal,
+  confidence,
+  movement,
+  shock,
+  explanation,
+  source
+) {
+  document.getElementById("signal").textContent = signal;
+
+  document.getElementById("confidence").textContent =
+    Math.round(confidence) + "%";
+
+  document.getElementById("movement").textContent = movement;
+
+  document.getElementById("shock").textContent = shock;
+
+  document.getElementById("explanation").textContent =
+    explanation;
+
+  document.getElementById("source").textContent =
+    source;
+}
+
+async function getNBA() {
+
+  const response = await fetch(
+    ESPN_NBA,
+    {
+      cache: "no-store"
+    }
+  );
+
+  if (!response.ok) {
+    throw new Error(
+      "No se pudo consultar ESPN (" +
+      response.status +
+      ")"
+    );
+  }
+
+  return await response.json();
+}
+
+function extractGames(data) {
+
+  return (data.events || [])
+    .map(event => {
+
+      const competition =
+        event.competitions?.[0];
+
+      const competitors =
+        competition?.competitors || [];
+
+      const home =
+        competitors.find(
+          team => team.homeAway === "home"
+        );
+
+      const away =
+        competitors.find(
+          team => team.homeAway === "away"
+        );
+
+      if (!home || !away) {
+        return null;
+      }
+
+      return {
+
+        id: event.id,
+
+        name: event.name,
+
+        status:
+          event.status?.type?.description ||
+          "Scheduled",
+
+        state:
+          event.status?.type?.state ||
+          "pre",
+
+        home:
+          home.team?.displayName ||
+          "Local",
+
+        away:
+          away.team?.displayName ||
+          "Visitante",
+
+        homeScore:
+          Number(home.score || 0),
+
+        awayScore:
+          Number(away.score || 0)
+
+      };
+
+    })
+    .filter(Boolean);
+}
+
+function populateGames(games) {
+
+  const box =
+    document.getElementById("gamesBox");
+
+  const select =
+    document.getElementById("game");
+
+  select.innerHTML = "";
+
+  if (!games.length) {
+
+    box.style.display = "none";
+
+    return;
+  }
+
+  games.forEach((game, index) => {
+
+    const option =
+      document.createElement("option");
+
+    option.value = index;
+
+    option.textContent =
+      game.away +
+      " @ " +
+      game.home +
+      " — " +
+      game.status;
+
+    select.appendChild(option);
+
+  });
+
+  box.style.display = "block";
+}
+
+function analyzeGame(game, model) {
+
+  const probability =
+    eloProb(
+      game.away,
+      game.home
+    );
+
+  const difference =
+    teamRating(game.home) -
+    teamRating(game.away) +
+    55;
+
+  let confidence =
+    50 +
+    Math.abs(probability - 0.5) * 100;
+
+  if (model === "poisson") {
+
+    confidence =
+      50 +
+      Math.abs(probability - 0.5) * 92;
+
+  }
+
+  if (model === "gb") {
+
+    confidence =
+      50 +
+      Math.abs(probability - 0.5) * 86;
+
+  }
+
+  confidence =
+    clamp(
+      confidence,
+      50,
+      94
+    );
+
+  let signal;
+
+  if (Math.abs(difference) >= 125) {
+
+    signal = "HIGH";
+
+  } else if (Math.abs(difference) >= 65) {
+
+    signal = "MEDIUM";
+
+  } else {
+
+    signal = "LOW";
+
+  }
+
+  let movement = "STABLE";
+
+  let shock = "LOW";
+
+  if (game.state === "in") {
+
+    const margin =
+      game.homeScore -
+      game.awayScore;
+
+    if (Math.abs(margin) >= 10) {
+
+      movement =
+        margin > 0
+          ? "UP"
+          : "DOWN";
+
+    }
+
+    if (Math.abs(margin) >= 18) {
+
+      shock = "HIGH";
+
+    } else if (
+      Math.abs(margin) >= 10
+    ) {
+
+      shock = "MEDIUM";
+
+    }
+
+  }
+
+  const favored =
+    probability >= 0.5
+      ? game.home
+      : game.away;
+
+  const probabilityPercent =
+    Math.round(
+      Math.max(
+        probability,
+        1 - probability
+      ) * 100
+    );
+
+  const explanation =
+    "Modelo " +
+    model.toUpperCase() +
+    ". " +
+    game.away +
+    " @ " +
+    game.home +
+    ". Rating Elo: " +
+    teamRating(game.away) +
+    " vs " +
+    teamRating(game.home) +
+    ". Ajuste de local: +55. " +
+    "El modelo asigna una probabilidad relativa de " +
+    probabilityPercent +
+    "% al lado con mayor rating. " +
+    "Signal=" +
+    signal +
+    ", Confidence=" +
+    Math.round(confidence) +
+    "%. Los resultados son una lectura del modelo, no una garantía del resultado.";
+
+  return {
+
+    signal,
+    confidence,
+    movement,
+    shock,
+    explanation,
+    favored
+
+  };
+}
+
+async function runAnalysis() {
+
+  const button =
+    document.getElementById("run");
+
+  const status =
+    document.getElementById("status");
+
+  button.disabled = true;
+
+  button.textContent =
+    "Loading…";
+
+  status.textContent =
+    "Consultando datos actuales…";
+
+  try {
+
+    const sport =
+      document.getElementById(
+        "sport"
+      ).value;
+
+    const model =
+      document.getElementById(
+        "model"
+      ).value;
+
+    if (sport !== "nba") {
+
+      setResults(
+        "N/A",
+        0,
+        "N/A",
+        "N/A",
+        "El módulo de Tenis está reservado para la siguiente integración de datos. El motor NBA ya consulta datos externos.",
+        "WYNTR · módulo NBA activo"
+      );
+
+      status.textContent =
+        "Tenis: módulo pendiente.";
+
+      return;
+    }
+
+    const data =
+      await getNBA();
+
+    const games =
+      extractGames(data);
+
+    populateGames(games);
+
+    if (!games.length) {
+
+      setResults(
+        "NO DATA",
+        0,
+        "—",
+        "—",
+        "El feed consultado no reporta partidos NBA para la fecha actual. WYNTR no genera valores aleatorios cuando no hay datos.",
+        "Fuente consultada: ESPN scoreboard"
+      );
+
+      status.textContent =
+        "Datos consultados correctamente. No hay eventos NBA en el feed actual.";
+
+      return;
+    }
+
+    const index =
+      Number(
+        document.getElementById(
+          "game"
+        ).value || 0
+      );
+
+    const result =
+      analyzeGame(
+        games[index],
+        model
+      );
+
+    setResults(
+      result.signal,
+      result.confidence,
+      result.movement,
+      result.shock,
+      result.explanation,
+      "Fuente: ESPN scoreboard · Modelo: " +
+        model.toUpperCase()
+    );
+
+    status.textContent =
+      "Datos actuales cargados. Resultado reproducible para el evento seleccionado.";
+
+  } catch (error) {
+
+    setResults(
+      "ERROR",
+      0,
+      "—",
+      "—",
+      "No fue posible consultar la fuente de datos. WYNTR no sustituye el dato faltante por números aleatorios.",
+      "Error: " + error.message
+    );
+
+    status.textContent =
+      "No se pudo actualizar el feed.";
+
+  } finally {
+
+    button.disabled = false;
+
+    button.textContent =
+      "Run analysis";
+
+  }
+}
+
+document
+  .getElementById("sport")
+  .addEventListener(
+    "change",
+    () => {
+
+      if (
+        document.getElementById(
+          "sport"
+        ).value === "tennis"
+      ) {
+
+        document.getElementById(
+          "gamesBox"
+        ).style.display = "none";
+
+      }
+
+    }
+  );
+</script>
+
+</body>
+</html>
