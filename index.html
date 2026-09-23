@@ -51,6 +51,109 @@ body{min-height:100vh}
   box-shadow:0 10px 30px rgba(0,0,0,.18)
 }
 
+/* =========================================================
+   HERO NBA
+   ========================================================= */
+
+.nba-hero{
+  position:relative;
+  overflow:hidden;
+  min-height:250px;
+  padding:0;
+  margin-bottom:16px;
+  border-radius:20px
+}
+
+.nba-hero img{
+  width:100%;
+  height:280px;
+  object-fit:cover;
+  display:block;
+  filter:brightness(.55)
+}
+
+.nba-hero-overlay{
+  position:absolute;
+  inset:0;
+  display:flex;
+  flex-direction:column;
+  justify-content:flex-end;
+  padding:24px;
+  background:linear-gradient(
+    transparent 25%,
+    rgba(0,0,0,.88)
+  )
+}
+
+.nba-brand{
+  display:flex;
+  align-items:center;
+  gap:12px;
+  margin-bottom:8px
+}
+
+.nba-brand img{
+  width:36px;
+  height:50px;
+  object-fit:contain;
+  filter:none
+}
+
+.nba-hero-title{
+  font-size:30px;
+  font-weight:900;
+  letter-spacing:1px;
+  color:#fff;
+  margin:4px 0
+}
+
+.nba-hero-subtitle{
+  color:#b9c3d0;
+  font-size:12px
+}
+
+/* =========================================================
+   PARTIDOS
+   ========================================================= */
+
+.game-team{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  min-width:105px;
+  font-weight:800
+}
+
+.game-team:last-child{
+  justify-content:flex-end;
+  text-align:right
+}
+
+.game-logo{
+  width:34px;
+  height:34px;
+  object-fit:contain;
+  flex:none
+}
+
+.offseason{
+  text-align:center;
+  padding:30px 15px
+}
+
+.offseason-logo{
+  width:72px;
+  height:72px;
+  object-fit:contain;
+  margin-bottom:12px
+}
+
+.offseason-title{
+  font-weight:900;
+  font-size:18px;
+  margin-bottom:8px
+}
+
 .section-title{
   color:#63e8ff;
   font-size:14px;
@@ -135,7 +238,8 @@ button.secondary{
   border:1px solid #263246;
   color:#fff;
   padding:14px;
-  border-radius:14px
+  border-radius:14px;
+  cursor:pointer
 }
 
 .game:hover{
@@ -146,13 +250,13 @@ button.secondary{
   color:#63e8ff;
   font-size:11px;
   font-weight:800;
-  margin-bottom:6px
+  margin-bottom:8px
 }
 
 .game-teams{
   display:flex;
   justify-content:space-between;
-  gap:8px;
+  gap:10px;
   align-items:center
 }
 
@@ -162,7 +266,8 @@ button.secondary{
 
 .vs{
   color:#697587;
-  font-size:11px
+  font-size:11px;
+  font-weight:900
 }
 
 .muted{
@@ -229,8 +334,7 @@ table{
   min-width:560px
 }
 
-th,
-td{
+th,td{
   padding:9px;
   border-bottom:1px solid #202b3b;
   text-align:left
@@ -311,6 +415,24 @@ h3{
     font-size:29px
   }
 
+  .nba-hero img{
+    height:245px
+  }
+
+  .nba-hero-title{
+    font-size:25px
+  }
+
+  .game-team{
+    min-width:90px;
+    font-size:12px
+  }
+
+  .game-logo{
+    width:30px;
+    height:30px
+  }
+
 }
 </style>
 </head>
@@ -326,6 +448,50 @@ h3{
   </div>
 </header>
 
+<!-- =======================================================
+     HERO NBA
+     ======================================================= -->
+
+<section class="card nba-hero">
+
+  <img
+    src="https://cdn.nba.com/manage/2026/09/brunson-hart-090126-scaled.jpg"
+    alt="NBA 2026-27"
+  >
+
+  <div class="nba-hero-overlay">
+
+    <div class="nba-brand">
+
+      <img
+        src="https://cdn.nba.com/logos/leagues/L/logo-nba-logoman.svg"
+        alt="NBA"
+      >
+
+      <div>
+        <div class="section-title" style="margin:0">
+          NBA 2026-27
+        </div>
+
+        <div class="nba-hero-subtitle">
+          Calendario · modelos · mercado
+        </div>
+      </div>
+
+    </div>
+
+    <div class="nba-hero-title">
+      FIND THE SIGNAL
+    </div>
+
+  </div>
+
+</section>
+
+
+<!-- =======================================================
+     CALENDARIO
+     ======================================================= -->
 
 <section class="card">
 
@@ -336,42 +502,84 @@ h3{
 <div class="controls">
 
   <div class="field">
-    <label>Deporte</label>
+
+    <label>
+      Deporte
+    </label>
 
     <select id="sport">
-      <option value="nba">NBA</option>
+      <option value="nba">
+        NBA
+      </option>
     </select>
+
   </div>
 
 
   <div class="field">
-    <label>Equipo</label>
+
+    <label>
+      Equipo
+    </label>
 
     <select id="team">
-      <option value="all">Todos</option>
+
+      <option value="all">
+        Todos
+      </option>
+
     </select>
+
   </div>
 
 
   <div class="field">
-    <label>Tipo</label>
+
+    <label>
+      Tipo
+    </label>
 
     <select id="type">
-      <option value="all">Todos</option>
-      <option value="upcoming">Próximos</option>
-      <option value="completed">Finalizados</option>
+
+      <option value="all">
+        Todos
+      </option>
+
+      <option value="upcoming">
+        Próximos
+      </option>
+
+      <option value="completed">
+        Finalizados
+      </option>
+
     </select>
+
   </div>
 
 
   <div class="field">
-    <label>Histórico</label>
+
+    <label>
+      Histórico
+    </label>
 
     <select id="range">
-      <option value="90">90 días</option>
-      <option value="180">180 días</option>
-      <option value="360" selected>360 días</option>
+
+      <option value="90">
+        90 días
+      </option>
+
+      <option value="180">
+        180 días
+      </option>
+
+      <option value="360" selected>
+        360 días
+      </option>
+
     </select>
+
   </div>
 
 </div>
@@ -393,6 +601,9 @@ h3{
 </section>
 
 
+<!-- =======================================================
+     CUOTAS
+     ======================================================= -->
 
 <section class="card">
 
@@ -400,11 +611,10 @@ h3{
   Mercado de cuotas
 </div>
 
-
 <div class="field">
 
 <label>
-API Key de The Odds API
+  API Key de The Odds API
 </label>
 
 <input
@@ -419,51 +629,57 @@ API Key de The Odds API
 <div class="actions">
 
 <button id="saveOdds">
-Guardar API Key
+  Guardar API Key
 </button>
 
-<button id="oddsRefresh" class="secondary">
-Actualizar cuotas
+<button
+  id="oddsRefresh"
+  class="secondary"
+>
+  Actualizar cuotas
 </button>
 
 </div>
 
 
 <div id="oddsStatus" class="status">
-Sin configurar.
+  Sin configurar.
 </div>
 
 
 <div id="oddsLast" class="status">
-Última actualización: —
+  Última actualización: —
 </div>
 
 
 <div id="oddsNext" class="status">
-Próxima consulta: —
+  Próxima consulta: —
 </div>
 
 
 <div
-id="oddsContent"
-style="margin-top:15px"
+  id="oddsContent"
+  style="margin-top:15px"
 ></div>
 
 </section>
 
 
+<!-- =======================================================
+     PARTIDOS
+     ======================================================= -->
 
 <section class="card">
 
 <div class="section-title">
-Partidos
+  Partidos
 </div>
 
 
 <div id="games" class="games">
 
 <div class="loading">
-Cargando calendario NBA...
+  Cargando calendario NBA...
 </div>
 
 </div>
@@ -471,18 +687,21 @@ Cargando calendario NBA...
 </section>
 
 
+<!-- =======================================================
+     ANÁLISIS
+     ======================================================= -->
 
 <section class="card">
 
 <div class="section-title">
-Análisis WYNTR
+  Análisis WYNTR
 </div>
 
 
 <div id="analysis">
 
 <div class="empty">
-Selecciona un partido.
+  Selecciona un partido.
 </div>
 
 </div>
@@ -490,11 +709,14 @@ Selecciona un partido.
 </section>
 
 
+<!-- =======================================================
+     MOTOR
+     ======================================================= -->
 
 <section class="card">
 
 <div class="section-title">
-Motor
+  Motor
 </div>
 
 
@@ -523,24 +745,23 @@ y no garantizan resultados.
 </div>
 
 
-
 <script>
 
 /* =========================================================
-   WYNTR — MOTOR COMPLETO
+   WYNTR — FIND THE SIGNAL
    ========================================================= */
 
 const ESPN =
 "https://site.api.espn.com/apis/site/v2/sports/basketball/nba/scoreboard";
 
-
 const ODDS =
 "https://api.the-odds-api.com/v4/sports/basketball_nba/odds/";
 
+const NBA_LOGO =
+"https://cdn.nba.com/logos/leagues/L/logo-nba-logoman.svg";
 
 const $ =
 id => document.getElementById(id);
-
 
 let games = [];
 
@@ -552,11 +773,8 @@ let countTimer = null;
 
 let count = 60;
 
-
 const state = {
-
   analysis:null
-
 };
 
 
@@ -564,12 +782,9 @@ const state = {
    UTILIDADES
    ========================================================= */
 
-function n(
-  x,
-  d = 0
-){
+function n(x,d=0){
 
-  x = Number(x);
+  x=Number(x);
 
   return Number.isFinite(x)
     ? x
@@ -578,11 +793,7 @@ function n(
 }
 
 
-function clamp(
-  x,
-  a,
-  b
-){
+function clamp(x,a,b){
 
   return Math.max(
     a,
@@ -641,13 +852,26 @@ function fmtDate(x){
 }
 
 
+function dateKey(date){
+
+  const d =
+    new Date(date);
+
+  return d
+    .toISOString()
+    .slice(0,10)
+    .replaceAll("-","");
+
+}
+
+
 /* =========================================================
-   FETCH CON TIMEOUT
+   FETCH
    ========================================================= */
 
 async function fetchJSON(
   url,
-  timeout = 15000
+  timeout=15000
 ){
 
   const controller =
@@ -715,6 +939,10 @@ function team(t){
 
     abbr:
       t?.abbreviation ||
+      "",
+
+    logo:
+      t?.logo ||
       ""
 
   };
@@ -723,7 +951,7 @@ function team(t){
 
 
 /* =========================================================
-   EVENTO NORMALIZADO
+   EVENTO
    ========================================================= */
 
 function normEvent(e){
@@ -734,18 +962,15 @@ function normEvent(e){
   const competitors =
     competition?.competitors || [];
 
-
   const home =
     competitors.find(
       x => x.homeAway === "home"
     );
 
-
   const away =
     competitors.find(
       x => x.homeAway === "away"
     );
-
 
   return {
 
@@ -776,10 +1001,6 @@ function normEvent(e){
 }
 
 
-/* =========================================================
-   EVENTO HISTÓRICO
-   ========================================================= */
-
 function normHistoryEvent(e){
 
   const g =
@@ -789,26 +1010,21 @@ function normHistoryEvent(e){
     e?.competitions?.[0]
       ?.competitors || [];
 
-
   const home =
     competitors.find(
       x => x.homeAway === "home"
     );
-
 
   const away =
     competitors.find(
       x => x.homeAway === "away"
     );
 
-
   g.homeScore =
     n(home?.score);
 
-
   g.awayScore =
     n(away?.score);
-
 
   return g;
 
@@ -832,7 +1048,6 @@ function dedupe(arr){
       )
   );
 
-
   return [
     ...map.values()
   ].sort(
@@ -853,69 +1068,43 @@ async function loadCalendar(){
   const status =
     $("calendarStatus");
 
-
   status.textContent =
     "Consultando calendario NBA...";
 
-
   try{
-
-    const days = [];
 
     const now =
       new Date();
 
+    const end =
+      new Date(now);
 
-    for(
-      let i = 0;
-      i < 8;
-      i++
-    ){
+    /*
+      Buscamos 45 días hacia adelante.
+      Esto permite detectar pretemporada
+      y el inicio de la temporada regular.
+    */
 
-      const date =
-        new Date(now);
+    end.setDate(
+      end.getDate()+45
+    );
 
+    const from =
+      dateKey(now);
 
-      date.setDate(
-        date.getDate() + i
+    const to =
+      dateKey(end);
+
+    const data =
+      await fetchJSON(
+        `${ESPN}?dates=${from}-${to}&limit=1000`,
+        20000
       );
-
-
-      days.push(
-        date
-          .toISOString()
-          .slice(0,10)
-          .replaceAll("-","")
-      );
-
-    }
-
-
-    const responses =
-      await Promise.all(
-        days.map(
-          date =>
-            fetchJSON(
-              `${ESPN}?dates=${date}&limit=100`,
-              10000
-            )
-            .catch(
-              () => ({
-                events:[]
-              })
-            )
-        )
-      );
-
 
     games =
       dedupe(
-        responses
-          .flatMap(
-            data =>
-              (data.events || [])
-                .map(normEvent)
-          )
+        (data.events || [])
+          .map(normEvent)
           .filter(
             game =>
               game.home.id &&
@@ -923,17 +1112,21 @@ async function loadCalendar(){
           )
       );
 
-
     updateTeams();
 
     render();
 
+    if(games.length){
 
-    status.textContent =
-      games.length
-      ? `${games.length} partido(s) encontrados.`
-      : "No hay partidos en los próximos días.";
+      status.textContent =
+        `${games.length} partido(s) encontrados · próximos 45 días.`;
 
+    }else{
+
+      status.textContent =
+        "No hay partidos publicados en los próximos 45 días.";
+
+    }
 
     return games;
 
@@ -944,12 +1137,9 @@ async function loadCalendar(){
       error
     );
 
-
-    games = [];
-
+    games=[];
 
     render();
-
 
     status.innerHTML = `
       <span class="error">
@@ -957,7 +1147,6 @@ async function loadCalendar(){
         Pulsa "Actualizar partidos" para intentar nuevamente.
       </span>
     `;
-
 
     return [];
 
@@ -975,10 +1164,8 @@ function updateTeams(){
   const select =
     $("team");
 
-
   const map =
     new Map();
-
 
   games.forEach(
     game => {
@@ -992,7 +1179,6 @@ function updateTeams(){
 
       }
 
-
       if(game.away.id){
 
         map.set(
@@ -1005,16 +1191,13 @@ function updateTeams(){
     }
   );
 
-
   const current =
     select.value;
-
 
   select.innerHTML =
     `<option value="all">
       Todos
     </option>`;
-
 
   [
     ...map.values()
@@ -1029,14 +1212,13 @@ function updateTeams(){
     team => {
 
       select.innerHTML += `
-        <option value="${team.id}">
+        <option value="${esc(team.id)}">
           ${esc(team.name)}
         </option>
       `;
 
     }
   );
-
 
   if(
     map.has(current)
@@ -1059,10 +1241,8 @@ function filtered(){
   const selectedTeam =
     $("team").value;
 
-
   const type =
     $("type").value;
-
 
   return games.filter(
     game => {
@@ -1071,7 +1251,6 @@ function filtered(){
         selectedTeam === "all" ||
         game.home.id === selectedTeam ||
         game.away.id === selectedTeam;
-
 
       const typeMatch =
         type === "all" ||
@@ -1083,7 +1262,6 @@ function filtered(){
           type === "upcoming" &&
           !game.completed
         );
-
 
       return (
         teamMatch &&
@@ -1105,31 +1283,44 @@ function render(){
   const container =
     $("games");
 
-
   const list =
     filtered();
-
 
   if(!list.length){
 
     container.innerHTML = `
-      <div class="empty">
 
-        No hay partidos disponibles
-        con estos filtros.
+      <div class="offseason">
 
-        <br><br>
+        <img
+          class="offseason-logo"
+          src="${NBA_LOGO}"
+          alt="NBA"
+        >
 
-        Si la NBA está fuera de calendario,
-        esto es normal.
+        <div class="offseason-title">
+          Calendario NBA
+        </div>
+
+        <div class="muted">
+          No hay partidos disponibles
+          con estos filtros.
+        </div>
+
+        <br>
+
+        <div class="muted">
+          WYNTR continuará buscando
+          automáticamente los próximos partidos.
+        </div>
 
       </div>
+
     `;
 
     return;
 
   }
-
 
   container.innerHTML =
     list.map(
@@ -1137,18 +1328,33 @@ function render(){
 
         <button
           class="game"
-          data-id="${game.id}"
+          data-id="${esc(game.id)}"
         >
 
           <div class="game-date">
             ${fmtDate(game.date)}
           </div>
 
-
           <div class="game-teams">
 
-            <span class="team">
-              ${esc(game.away.short)}
+            <span class="game-team">
+
+              ${
+                game.away.logo
+                  ? `
+                    <img
+                      class="game-logo"
+                      src="${esc(game.away.logo)}"
+                      alt="${esc(game.away.short)}"
+                    >
+                  `
+                  : ""
+              }
+
+              <span class="team">
+                ${esc(game.away.short)}
+              </span>
+
             </span>
 
 
@@ -1157,27 +1363,39 @@ function render(){
             </span>
 
 
-            <span class="team">
-              ${esc(game.home.short)}
+            <span class="game-team">
+
+              <span class="team">
+                ${esc(game.home.short)}
+              </span>
+
+              ${
+                game.home.logo
+                  ? `
+                    <img
+                      class="game-logo"
+                      src="${esc(game.home.logo)}"
+                      alt="${esc(game.home.short)}"
+                    >
+                  `
+                  : ""
+              }
+
             </span>
 
           </div>
 
-
           <div
             class="muted"
-            style="margin-top:6px;font-size:11px"
+            style="margin-top:7px;font-size:11px"
           >
-
             ${esc(game.status)}
-
           </div>
 
         </button>
 
       `
     ).join("");
-
 
   container
     .querySelectorAll(".game")
@@ -1212,12 +1430,10 @@ async function loadHistory(days){
   const key =
     cacheKey(days);
 
-
   const cached =
     localStorage.getItem(
       key
     );
-
 
   if(cached){
 
@@ -1227,7 +1443,6 @@ async function loadHistory(days){
         JSON.parse(
           cached
         );
-
 
       if(
         parsed.time &&
@@ -1248,23 +1463,18 @@ async function loadHistory(days){
 
   }
 
-
   const end =
     new Date();
 
-
   const start =
     new Date(end);
-
 
   start.setDate(
     start.getDate() -
     days
   );
 
-
-  let result = [];
-
+  let result=[];
 
   for(
     let cursor =
@@ -1277,43 +1487,30 @@ async function loadHistory(days){
     const fromDate =
       new Date(cursor);
 
-
     const toDate =
       new Date(cursor);
 
-
     toDate.setDate(
-      toDate.getDate() +
-      29
+      toDate.getDate()+29
     );
 
-
     const from =
-      fromDate
-        .toISOString()
-        .slice(0,10)
-        .replaceAll("-","");
-
+      dateKey(fromDate);
 
     const to =
-      (
+      dateKey(
         toDate > end
           ? end
           : toDate
-      )
-      .toISOString()
-      .slice(0,10)
-      .replaceAll("-","");
-
+      );
 
     try{
 
       const data =
         await fetchJSON(
           `${ESPN}?dates=${from}-${to}&limit=1000`,
-          15000
+          20000
         );
-
 
       result.push(
         ...(data.events || [])
@@ -1330,7 +1527,6 @@ async function loadHistory(days){
           )
       );
 
-
     }catch(error){
 
       console.warn(
@@ -1340,12 +1536,9 @@ async function loadHistory(days){
 
     }
 
-
     cursor.setDate(
-      cursor.getDate() +
-      30
+      cursor.getDate()+30
     );
-
 
     await new Promise(
       resolve =>
@@ -1357,12 +1550,8 @@ async function loadHistory(days){
 
   }
 
-
   result =
-    dedupe(
-      result
-    );
-
+    dedupe(result);
 
   localStorage.setItem(
     key,
@@ -1371,7 +1560,6 @@ async function loadHistory(days){
       games:result
     })
   );
-
 
   return result;
 
@@ -1390,13 +1578,11 @@ function buildFeatures(
 ){
 
   const prior =
-    history
-      .filter(
-        game =>
-          new Date(game.date) <
-          cutoff
-      );
-
+    history.filter(
+      game =>
+        new Date(game.date) <
+        cutoff
+    );
 
   const homeGames =
     prior
@@ -1411,7 +1597,6 @@ function buildFeatures(
           new Date(a.date)
       );
 
-
   const awayGames =
     prior
       .filter(
@@ -1425,7 +1610,6 @@ function buildFeatures(
           new Date(a.date)
       );
 
-
   const ordered =
     [...prior].sort(
       (a,b) =>
@@ -1433,10 +1617,8 @@ function buildFeatures(
         new Date(b.date)
     );
 
-
   const elo =
     new Map();
-
 
   function rating(id){
 
@@ -1445,7 +1627,6 @@ function buildFeatures(
       : 1500;
 
   }
-
 
   for(
     const game of ordered
@@ -1456,12 +1637,10 @@ function buildFeatures(
         game.home.id
       );
 
-
     const awayRating =
       rating(
         game.away.id
       );
-
 
     const expectedHome =
       1 /
@@ -1477,17 +1656,13 @@ function buildFeatures(
         )
       );
 
-
     const result =
       game.homeScore >
       game.awayScore
         ? 1
         : 0;
 
-
-    const K =
-      20;
-
+    const K=20;
 
     elo.set(
       game.home.id,
@@ -1498,7 +1673,6 @@ function buildFeatures(
         expectedHome
       )
     );
-
 
     elo.set(
       game.away.id,
@@ -1512,7 +1686,6 @@ function buildFeatures(
 
   }
 
-
   function statistics(
     games,
     id
@@ -1524,7 +1697,6 @@ function buildFeatures(
         20
       );
 
-
     const values =
       last.map(
         game => {
@@ -1532,23 +1704,19 @@ function buildFeatures(
           const isHome =
             game.home.id === id;
 
-
           const pointsFor =
             isHome
               ? game.homeScore
               : game.awayScore;
-
 
           const pointsAgainst =
             isHome
               ? game.awayScore
               : game.homeScore;
 
-
           const win =
             pointsFor >
             pointsAgainst;
-
 
           return {
 
@@ -1571,7 +1739,6 @@ function buildFeatures(
         }
       );
 
-
     const average =
       key =>
         values.length
@@ -1583,7 +1750,6 @@ function buildFeatures(
             values.length
           : 0;
 
-
     const wins =
       number =>
         values
@@ -1594,8 +1760,7 @@ function buildFeatures(
           .filter(
             item =>
               item.win
-          )
-          .length /
+          ).length /
         Math.max(
           1,
           Math.min(
@@ -1603,7 +1768,6 @@ function buildFeatures(
             values.length
           )
         );
-
 
     return {
 
@@ -1635,13 +1799,11 @@ function buildFeatures(
 
   }
 
-
   const homeStats =
     statistics(
       homeGames,
       homeId
     );
-
 
   const awayStats =
     statistics(
@@ -1649,28 +1811,23 @@ function buildFeatures(
       awayId
     );
 
-
   const homeHomeStats =
     statistics(
       homeGames.filter(
         game =>
-          game.home.id ===
-          homeId
+          game.home.id === homeId
       ),
       homeId
     );
-
 
   const awayRoadStats =
     statistics(
       awayGames.filter(
         game =>
-          game.away.id ===
-          awayId
+          game.away.id === awayId
       ),
       awayId
     );
-
 
   const h2h =
     prior
@@ -1695,7 +1852,6 @@ function buildFeatures(
         10
       );
 
-
   const h2hWins =
     h2h.filter(
       game =>
@@ -1711,14 +1867,11 @@ function buildFeatures(
         )
     ).length;
 
-
   const homeElo =
     rating(homeId);
 
-
   const awayElo =
     rating(awayId);
-
 
   const features = [
 
@@ -1755,7 +1908,6 @@ function buildFeatures(
       : 0
 
   ];
-
 
   return {
 
@@ -1812,19 +1964,17 @@ function sigmoid(x){
 
 function factorial(x){
 
-  let result = 1;
-
+  let result=1;
 
   for(
-    let i = 2;
-    i <= x;
+    let i=2;
+    i<=x;
     i++
   ){
 
-    result *= i;
+    result*=i;
 
   }
-
 
   return result;
 
@@ -1840,57 +1990,46 @@ function poissonHomeProbability(
   lambdaAway
 ){
 
-  let home = 0;
-
-  let away = 0;
-
+  let home=0;
+  let away=0;
 
   for(
-    let h = 0;
-    h <= 12;
+    let h=0;
+    h<=12;
     h++
   ){
 
     for(
-      let a = 0;
-      a <= 12;
+      let a=0;
+      a<=12;
       a++
     ){
 
       const probability =
-
         Math.exp(
           -lambdaHome
         ) *
-
         Math.pow(
           lambdaHome,
           h
         ) /
-
         factorial(h) *
-
         Math.exp(
           -lambdaAway
         ) *
-
         Math.pow(
           lambdaAway,
           a
         ) /
-
         factorial(a);
 
+      if(h>a){
 
-      if(h > a){
+        home+=probability;
 
-        home +=
-          probability;
+      }else if(a>h){
 
-      }else if(a > h){
-
-        away +=
-          probability;
+        away+=probability;
 
       }
 
@@ -1898,21 +2037,18 @@ function poissonHomeProbability(
 
   }
 
-
   if(
-    home + away === 0
+    home+away===0
   ){
 
     return .5;
 
   }
 
-
   return (
     home /
     (
-      home +
-      away
+      home+away
     )
   );
 
@@ -1928,23 +2064,20 @@ function trainGradientBoosting(
 ){
 
   if(
-    rows.length < 20
+    rows.length<20
   ){
 
     return null;
 
   }
 
-
   const split =
     Math.max(
       10,
       Math.floor(
-        rows.length *
-        .70
+        rows.length*.70
       )
     );
-
 
   const train =
     rows.slice(
@@ -1952,21 +2085,18 @@ function trainGradientBoosting(
       split
     );
 
-
   const test =
     rows.slice(
       split
     );
 
-
   const base =
     train.reduce(
       (sum,row) =>
-        sum + row.y,
+        sum+row.y,
       0
     ) /
     train.length;
-
 
   let predictions =
     train.map(
@@ -1974,40 +2104,31 @@ function trainGradientBoosting(
         base
     );
 
-
-  const stumps = [];
-
+  const stumps=[];
 
   for(
-    let round = 0;
-    round < 30;
+    let round=0;
+    round<30;
     round++
   ){
 
-    let best = {
+    let best={
 
-      error:
-        Infinity,
+      error:Infinity,
 
-      feature:
-        0,
+      feature:0,
 
-      threshold:
-        0,
+      threshold:0,
 
-      left:
-        0,
+      left:0,
 
-      right:
-        0
+      right:0
 
     };
 
-
     for(
-      let feature = 0;
-      feature <
-      train[0].x.length;
+      let feature=0;
+      feature<train[0].x.length;
       feature++
     ){
 
@@ -2022,49 +2143,41 @@ function trainGradientBoosting(
               a-b
           );
 
-
-      const thresholds = [
+      const thresholds=[
 
         values[
           Math.floor(
-            values.length *
-            .20
+            values.length*.20
           )
         ],
 
         values[
           Math.floor(
-            values.length *
-            .40
+            values.length*.40
           )
         ],
 
         values[
           Math.floor(
-            values.length *
-            .60
+            values.length*.60
           )
         ],
 
         values[
           Math.floor(
-            values.length *
-            .80
+            values.length*.80
           )
         ]
 
       ];
-
 
       for(
         const threshold
         of thresholds
       ){
 
-        const left = [];
-
-        const right = [];
-
+        const left=[];
+        const right=[];
 
         train.forEach(
           (
@@ -2075,7 +2188,6 @@ function trainGradientBoosting(
             const residual =
               row.y -
               predictions[index];
-
 
             if(
               row.x[feature] <=
@@ -2097,7 +2209,6 @@ function trainGradientBoosting(
           }
         );
 
-
         const leftMean =
           left.length
             ? left.reduce(
@@ -2107,7 +2218,6 @@ function trainGradientBoosting(
               ) /
               left.length
             : 0;
-
 
         const rightMean =
           right.length
@@ -2119,9 +2229,7 @@ function trainGradientBoosting(
               right.length
             : 0;
 
-
-        let error = 0;
-
+        let error=0;
 
         train.forEach(
           (
@@ -2134,7 +2242,6 @@ function trainGradientBoosting(
               threshold
                 ? leftMean
                 : rightMean;
-
 
             error +=
               Math.pow(
@@ -2149,13 +2256,12 @@ function trainGradientBoosting(
           }
         );
 
-
         if(
-          error <
+          error<
           best.error
         ){
 
-          best = {
+          best={
 
             error,
 
@@ -2175,11 +2281,9 @@ function trainGradientBoosting(
 
     }
 
-
     stumps.push(
       best
     );
-
 
     train.forEach(
       (
@@ -2189,8 +2293,8 @@ function trainGradientBoosting(
 
         predictions[index] =
           clamp(
-            predictions[index] +
-            .08 *
+            predictions[index]+
+            .08*
             (
               row.x[
                 best.feature
@@ -2208,7 +2312,6 @@ function trainGradientBoosting(
 
   }
 
-
   function predict(
     features
   ){
@@ -2216,12 +2319,11 @@ function trainGradientBoosting(
     let value =
       base;
 
-
     stumps.forEach(
       stump => {
 
         value +=
-          .08 *
+          .08*
           (
             features[
               stump.feature
@@ -2234,7 +2336,6 @@ function trainGradientBoosting(
       }
     );
 
-
     return clamp(
       value,
       .001,
@@ -2243,9 +2344,7 @@ function trainGradientBoosting(
 
   }
 
-
-  let correct = 0;
-
+  let correct=0;
 
   test.forEach(
     row => {
@@ -2255,13 +2354,12 @@ function trainGradientBoosting(
           row.x
         );
 
-
       if(
         (
-          prediction >= .5
+          prediction>=.5
         ) ===
         (
-          row.y === 1
+          row.y===1
         )
       ){
 
@@ -2271,7 +2369,6 @@ function trainGradientBoosting(
 
     }
   );
-
 
   return {
 
@@ -2285,7 +2382,7 @@ function trainGradientBoosting(
 
     accuracy:
       test.length
-        ? correct /
+        ? correct/
           test.length
         : null
 
@@ -2308,18 +2405,15 @@ async function analyzeGame(
       360
     );
 
-
   const history =
     await loadHistory(
       days
     );
 
-
   const cutoff =
     new Date(
       game.date
     );
-
 
   const features =
     buildFeatures(
@@ -2329,9 +2423,7 @@ async function analyzeGame(
       cutoff
     );
 
-
-  const rows = [];
-
+  const rows=[];
 
   for(
     const historical
@@ -2339,14 +2431,13 @@ async function analyzeGame(
   ){
 
     if(
-      historical.homeScore <= 0 ||
-      historical.awayScore <= 0
+      historical.homeScore<=0 ||
+      historical.awayScore<=0
     ){
 
       continue;
 
     }
-
 
     const historicalFeatures =
       buildFeatures(
@@ -2357,7 +2448,6 @@ async function analyzeGame(
           historical.date
         )
       );
-
 
     rows.push({
 
@@ -2375,15 +2465,12 @@ async function analyzeGame(
 
   }
 
-
   const gradientBoosting =
     trainGradientBoosting(
       rows
     );
 
-
   let gbProbability;
-
 
   if(
     gradientBoosting
@@ -2398,55 +2485,44 @@ async function analyzeGame(
 
     gbProbability =
       clamp(
-        .5 +
-        features.features[0] /
-        800 +
-        features.features[1] *
-        .18 +
-        features.features[2] /
-        50,
+        .5+
+        features.features[0]/800+
+        features.features[1]*.18+
+        features.features[2]/50,
         .15,
         .85
       );
 
   }
 
-
   const eloProbability =
     sigmoid(
       (
         features.homeElo -
-        features.awayElo +
+        features.awayElo+
         55
-      ) /
-      400
+      )/400
     );
-
 
   const lambdaHome =
     clamp(
       (
-        features.homeStats.pf +
+        features.homeStats.pf+
         features.awayStats.pa
-      ) /
-      2 +
-      3,
+      )/2+3,
       95,
       140
     );
 
-
   const lambdaAway =
     clamp(
       (
-        features.awayStats.pf +
+        features.awayStats.pf+
         features.homeStats.pa
-      ) /
-      2,
+      )/2,
       90,
       135
     );
-
 
   const poissonProbability =
     poissonHomeProbability(
@@ -2454,59 +2530,52 @@ async function analyzeGame(
       lambdaAway
     );
 
-
   const formProbability =
     clamp(
-      .5 +
+      .5+
       (
-        features.homeStats.w10 -
+        features.homeStats.w10-
         features.awayStats.w10
-      ) *
-      .55 +
+      )*.55+
       (
-        features.homeHomeStats.w10 -
+        features.homeHomeStats.w10-
         features.awayRoadStats.w10
-      ) *
-      .25,
+      )*.25,
       .15,
       .85
     );
-
 
   const productionProbability =
     clamp(
-      .5 +
+      .5+
       (
-        features.homeStats.margin -
+        features.homeStats.margin-
         features.awayStats.margin
-      ) /
-      25 +
+      )/25+
       (
-        features.homeHomeStats.margin -
+        features.homeHomeStats.margin-
         features.awayRoadStats.margin
-      ) /
-      30,
+      )/30,
       .15,
       .85
     );
-
 
   const finalProbability =
     clamp(
 
-      .45 *
-      gbProbability +
+      .45*
+      gbProbability+
 
-      .20 *
-      eloProbability +
+      .20*
+      eloProbability+
 
-      .15 *
-      poissonProbability +
+      .15*
+      poissonProbability+
 
-      .10 *
-      formProbability +
+      .10*
+      formProbability+
 
-      .10 *
+      .10*
       productionProbability,
 
       .05,
@@ -2514,84 +2583,64 @@ async function analyzeGame(
 
     );
 
-
   const disagreement =
-
     Math.abs(
-      gbProbability -
+      gbProbability-
       eloProbability
-    ) +
-
+    )+
     Math.abs(
-      gbProbability -
+      gbProbability-
       poissonProbability
-    ) +
-
+    )+
     Math.abs(
-      gbProbability -
+      gbProbability-
       formProbability
-    ) +
-
+    )+
     Math.abs(
-      gbProbability -
+      gbProbability-
       productionProbability
     );
-
 
   const confidenceScore =
     Math.max(
       0,
-      100 -
-      disagreement *
-      70
+      100-
+      disagreement*70
     );
 
-
-  let confidence =
-    "Baja";
-
+  let confidence="Baja";
 
   if(
-    confidenceScore >= 75
+    confidenceScore>=75
   ){
 
-    confidence =
-      "Alta";
+    confidence="Alta";
 
   }else if(
-    confidenceScore >= 55
+    confidenceScore>=55
   ){
 
-    confidence =
-      "Media";
+    confidence="Media";
 
   }
 
-
   const validation =
     gradientBoosting &&
-    gradientBoosting.accuracy !== null
+    gradientBoosting.accuracy!==null
 
       ? pct(
-          gradientBoosting.accuracy *
-          100
+          gradientBoosting.accuracy*100
         )
 
       : "N/D";
 
-
-  const result = {
+  const result={
 
     home:
-      finalProbability *
-      100,
+      finalProbability*100,
 
     away:
-      (
-        1 -
-        finalProbability
-      ) *
-      100,
+      (1-finalProbability)*100,
 
     gb:
       gbProbability,
@@ -2616,7 +2665,7 @@ async function analyzeGame(
     validation,
 
     eloDiff:
-      features.homeElo -
+      features.homeElo-
       features.awayElo,
 
     hs:
@@ -2638,37 +2687,31 @@ async function analyzeGame(
       features.h2hWins,
 
     pace:
-      lambdaHome +
+      lambdaHome+
       lambdaAway,
 
     margin:
-      lambdaHome -
+      lambdaHome-
       lambdaAway,
 
     gbTest:
       gradientBoosting
-        ?.test ||
+        ?.test||
       0
 
   };
 
-
   state.analysis =
     result;
-
 
   game.wyntrHomeProbability =
     finalProbability;
 
-
   game.wyntrAwayProbability =
-    1 -
-    finalProbability;
-
+    1-finalProbability;
 
   window.wyntrCurrentAnalysis =
     result;
-
 
   return result;
 
@@ -2686,7 +2729,6 @@ function renderAnalysis(
 
   const analysis =
     $("analysis");
-
 
   analysis.innerHTML = `
 
@@ -2775,7 +2817,7 @@ function renderAnalysis(
         <div class="metric-value">
 
           ${
-            result.eloDiff >= 0
+            result.eloDiff>=0
               ? "+"
               : ""
           }
@@ -2828,13 +2870,11 @@ function renderAnalysis(
             </td>
 
             <td>
-              ${pct(result.gb * 100)}
+              ${pct(result.gb*100)}
             </td>
 
             <td>
-              ${pct(
-                (1-result.gb)*100
-              )}
+              ${pct((1-result.gb)*100)}
             </td>
 
           </tr>
@@ -2851,9 +2891,7 @@ function renderAnalysis(
             </td>
 
             <td>
-              ${pct(
-                (1-result.elo)*100
-              )}
+              ${pct((1-result.elo)*100)}
             </td>
 
           </tr>
@@ -2866,15 +2904,11 @@ function renderAnalysis(
             </td>
 
             <td>
-              ${pct(
-                result.poisson*100
-              )}
+              ${pct(result.poisson*100)}
             </td>
 
             <td>
-              ${pct(
-                (1-result.poisson)*100
-              )}
+              ${pct((1-result.poisson)*100)}
             </td>
 
           </tr>
@@ -2887,15 +2921,11 @@ function renderAnalysis(
             </td>
 
             <td>
-              ${pct(
-                result.form*100
-              )}
+              ${pct(result.form*100)}
             </td>
 
             <td>
-              ${pct(
-                (1-result.form)*100
-              )}
+              ${pct((1-result.form)*100)}
             </td>
 
           </tr>
@@ -2908,15 +2938,11 @@ function renderAnalysis(
             </td>
 
             <td>
-              ${pct(
-                result.production*100
-              )}
+              ${pct(result.production*100)}
             </td>
 
             <td>
-              ${pct(
-                (1-result.production)*100
-              )}
+              ${pct((1-result.production)*100)}
             </td>
 
           </tr>
@@ -2942,9 +2968,7 @@ function renderAnalysis(
         </div>
 
         <div class="metric-value">
-          ${Math.round(
-            result.hs.w5*5
-          )}/5
+          ${Math.round(result.hs.w5*5)}/5
         </div>
 
       </div>
@@ -2957,9 +2981,7 @@ function renderAnalysis(
         </div>
 
         <div class="metric-value">
-          ${Math.round(
-            result.hs.w10*10
-          )}/10
+          ${Math.round(result.hs.w10*10)}/10
         </div>
 
       </div>
@@ -2972,9 +2994,7 @@ function renderAnalysis(
         </div>
 
         <div class="metric-value">
-          ${Math.round(
-            result.hs.w20*20
-          )}/20
+          ${Math.round(result.hs.w20*20)}/20
         </div>
 
       </div>
@@ -2987,9 +3007,7 @@ function renderAnalysis(
         </div>
 
         <div class="metric-value">
-          ${Math.round(
-            result.as.w5*5
-          )}/5
+          ${Math.round(result.as.w5*5)}/5
         </div>
 
       </div>
@@ -3002,9 +3020,7 @@ function renderAnalysis(
         </div>
 
         <div class="metric-value">
-          ${Math.round(
-            result.as.w10*10
-          )}/10
+          ${Math.round(result.as.w10*10)}/10
         </div>
 
       </div>
@@ -3017,9 +3033,7 @@ function renderAnalysis(
         </div>
 
         <div class="metric-value">
-          ${Math.round(
-            result.as.w20*20
-          )}/20
+          ${Math.round(result.as.w20*20)}/20
         </div>
 
       </div>
@@ -3106,9 +3120,7 @@ function renderAnalysis(
             </td>
 
             <td>
-              ${pct(
-                result.homeHome.w10*100
-              )}
+              ${pct(result.homeHome.w10*100)}
               últimos 10
             </td>
 
@@ -3127,9 +3139,7 @@ function renderAnalysis(
             </td>
 
             <td>
-              ${pct(
-                result.awayRoad.w10*100
-              )}
+              ${pct(result.awayRoad.w10*100)}
               últimos 10
             </td>
 
@@ -3223,23 +3233,19 @@ function renderAnalysis(
    SELECCIONAR PARTIDO
    ========================================================= */
 
-async function selectGame(
-  id
-){
+async function selectGame(id){
 
   selected =
     games.find(
       game =>
-        game.id === id
+        game.id===id
     );
-
 
   if(!selected){
 
     return;
 
   }
-
 
   $("analysis").innerHTML = `
 
@@ -3252,7 +3258,6 @@ async function selectGame(
 
   `;
 
-
   try{
 
     const result =
@@ -3260,24 +3265,20 @@ async function selectGame(
         selected
       );
 
-
     renderAnalysis(
       selected,
       result
     );
 
-
     startOddsRefresh(
       selected
     );
-
 
   }catch(error){
 
     console.error(
       error
     );
-
 
     $("analysis").innerHTML = `
 
@@ -3309,7 +3310,7 @@ function setOddsStatus(
 ){
 
   $("oddsStatus")
-    .textContent =
+    .textContent=
       message;
 
 }
@@ -3320,7 +3321,7 @@ function setNext(
 ){
 
   $("oddsNext")
-    .textContent =
+    .textContent=
       `Próxima consulta: ${seconds}s`;
 
 }
@@ -3336,7 +3337,6 @@ function stopOdds(){
 
   }
 
-
   if(countTimer){
 
     clearInterval(
@@ -3345,18 +3345,15 @@ function stopOdds(){
 
   }
 
+  oddsTimer=null;
 
-  oddsTimer =
-    null;
-
-  countTimer =
-    null;
+  countTimer=null;
 
 }
 
 
 /* =========================================================
-   AUTO ACTUALIZACIÓN CUOTAS
+   AUTO ACTUALIZACIÓN
    ========================================================= */
 
 function startOddsRefresh(
@@ -3365,35 +3362,26 @@ function startOddsRefresh(
 
   stopOdds();
 
-
   if(!game){
 
     return;
 
   }
 
+  count=60;
 
-  count =
-    60;
-
-
-  setNext(
-    count
-  );
-
+  setNext(count);
 
   loadOdds(
     game,
     true
   );
 
-
   oddsTimer =
     setInterval(
       () => {
 
-        count =
-          60;
+        count=60;
 
         loadOdds(
           game,
@@ -3403,7 +3391,6 @@ function startOddsRefresh(
       },
       60000
     );
-
 
   countTimer =
     setInterval(
@@ -3415,10 +3402,7 @@ function startOddsRefresh(
             count-1
           );
 
-
-        setNext(
-          count
-        );
+        setNext(count);
 
       },
       1000
@@ -3441,39 +3425,33 @@ function calculateEV(
       probability
     );
 
-
   const odd =
     Number(
       decimalOdd
     );
 
-
   if(
     !Number.isFinite(p) ||
     !Number.isFinite(odd) ||
-    p <= 0 ||
-    odd <= 1
+    p<=0 ||
+    odd<=1
   ){
 
     return null;
 
   }
 
-
   return (
-    p *
-    odd
-  ) - 1;
+    p*odd
+  )-1;
 
 }
 
 
-function formatEV(
-  ev
-){
+function formatEV(ev){
 
   if(
-    ev === null ||
+    ev===null ||
     !Number.isFinite(ev)
   ){
 
@@ -3481,9 +3459,8 @@ function formatEV(
 
   }
 
-
   return `${
-    ev >= 0
+    ev>=0
       ? "+"
       : ""
   }${
@@ -3494,7 +3471,7 @@ function formatEV(
 
 
 /* =========================================================
-   BUSCAR EVENTO EN THE ODDS API
+   BUSCAR EVENTO CUOTAS
    ========================================================= */
 
 function findOddsEvent(
@@ -3506,40 +3483,36 @@ function findOddsEvent(
     game.home.name
       .toLowerCase();
 
-
   const away =
     game.away.name
       .toLowerCase();
-
 
   return data.find(
     event => {
 
       const eventHome =
         (
-          event.home_team ||
+          event.home_team||
           ""
         ).toLowerCase();
-
 
       const eventAway =
         (
-          event.away_team ||
+          event.away_team||
           ""
         ).toLowerCase();
-
 
       return (
 
         (
-          eventHome.includes(home) ||
+          eventHome.includes(home)||
           home.includes(eventHome)
         )
 
         &&
 
         (
-          eventAway.includes(away) ||
+          eventAway.includes(away)||
           away.includes(eventAway)
         )
 
@@ -3557,14 +3530,13 @@ function findOddsEvent(
 
 async function loadOdds(
   game,
-  silent = false
+  silent=false
 ){
 
   const key =
     localStorage.getItem(
       "wyntr_odds_key"
     );
-
 
   if(!key){
 
@@ -3576,7 +3548,6 @@ async function loadOdds(
 
   }
 
-
   try{
 
     if(!silent){
@@ -3587,13 +3558,11 @@ async function loadOdds(
 
     }
 
-
     const url =
-      `${ODDS}?regions=us` +
-      `&markets=h2h,spreads,totals` +
-      `&oddsFormat=decimal` +
+      `${ODDS}?regions=us`+
+      `&markets=h2h,spreads,totals`+
+      `&oddsFormat=decimal`+
       `&apiKey=${encodeURIComponent(key)}`;
-
 
     const data =
       await fetchJSON(
@@ -3601,13 +3570,11 @@ async function loadOdds(
         15000
       );
 
-
     const event =
       findOddsEvent(
         data,
         game
       );
-
 
     if(!event){
 
@@ -3622,93 +3589,79 @@ async function loadOdds(
 
       `;
 
-
       setOddsStatus(
         "Sin cuotas disponibles."
       );
-
 
       return;
 
     }
 
-
-    const moneyline = [];
-
-    const spreads = [];
-
-    const totals = [];
-
+    const moneyline=[];
+    const spreads=[];
+    const totals=[];
 
     (
-      event.bookmakers ||
+      event.bookmakers||
       []
     ).forEach(
       bookmaker => {
 
         (
-          bookmaker.markets ||
+          bookmaker.markets||
           []
         ).forEach(
           market => {
 
             (
-              market.outcomes ||
+              market.outcomes||
               []
             ).forEach(
               outcome => {
 
                 const name =
                   String(
-                    outcome.name ||
+                    outcome.name||
                     ""
                   );
-
 
                 const homeName =
                   String(
-                    event.home_team ||
+                    event.home_team||
                     ""
                   );
-
 
                 const awayName =
                   String(
-                    event.away_team ||
+                    event.away_team||
                     ""
                   );
 
-
-                let side = "";
-
+                let side="";
 
                 if(
-                  name.toLowerCase() ===
+                  name.toLowerCase()===
                   homeName.toLowerCase()
                 ){
 
-                  side =
-                    "home";
+                  side="home";
 
                 }
 
-
                 if(
-                  name.toLowerCase() ===
+                  name.toLowerCase()===
                   awayName.toLowerCase()
                 ){
 
-                  side =
-                    "away";
+                  side="away";
 
                 }
 
-
-                const item = {
+                const item={
 
                   book:
-                    bookmaker.title ||
-                    bookmaker.key ||
+                    bookmaker.title||
+                    bookmaker.key||
                     "Casa",
 
                   name,
@@ -3725,10 +3678,8 @@ async function loadOdds(
 
                 };
 
-
                 if(
-                  market.key ===
-                  "h2h"
+                  market.key==="h2h"
                 ){
 
                   moneyline.push(
@@ -3737,10 +3688,8 @@ async function loadOdds(
 
                 }
 
-
                 if(
-                  market.key ===
-                  "spreads"
+                  market.key==="spreads"
                 ){
 
                   spreads.push(
@@ -3749,10 +3698,8 @@ async function loadOdds(
 
                 }
 
-
                 if(
-                  market.key ===
-                  "totals"
+                  market.key==="totals"
                 ){
 
                   totals.push(
@@ -3770,70 +3717,55 @@ async function loadOdds(
       }
     );
 
-
     const homeOdds =
       moneyline
         .filter(
           item =>
-            item.side ===
-            "home"
+            item.side==="home"
         )
         .sort(
           (a,b) =>
-            b.price -
-            a.price
+            b.price-a.price
         );
-
 
     const awayOdds =
       moneyline
         .filter(
           item =>
-            item.side ===
-            "away"
+            item.side==="away"
         )
         .sort(
           (a,b) =>
-            b.price -
-            a.price
+            b.price-a.price
         );
 
-
     const bestHome =
-      homeOdds[0] ||
+      homeOdds[0]||
       null;
-
 
     const bestAway =
-      awayOdds[0] ||
+      awayOdds[0]||
       null;
-
 
     const homeProbability =
       n(
         game.wyntrHomeProbability
       );
 
-
     const awayProbability =
       n(
         game.wyntrAwayProbability
       );
 
-
     const homeImplied =
       bestHome
-        ? 1 /
-          bestHome.price
+        ? 1/bestHome.price
         : null;
-
 
     const awayImplied =
       bestAway
-        ? 1 /
-          bestAway.price
+        ? 1/bestAway.price
         : null;
-
 
     const homeEV =
       bestHome
@@ -3843,7 +3775,6 @@ async function loadOdds(
           )
         : null;
 
-
     const awayEV =
       bestAway
         ? calculateEV(
@@ -3852,8 +3783,7 @@ async function loadOdds(
           )
         : null;
 
-
-    let html = `
+    let html=`
 
       <div class="two">
 
@@ -3946,14 +3876,11 @@ async function loadOdds(
 
           </thead>
 
-
           <tbody>
 
     `;
 
-
-    const books = {};
-
+    const books={};
 
     moneyline.forEach(
       item => {
@@ -3962,11 +3889,9 @@ async function loadOdds(
           !books[item.book]
         ){
 
-          books[item.book] =
-            {};
+          books[item.book]={};
 
         }
-
 
         if(
           item.side
@@ -3974,14 +3899,13 @@ async function loadOdds(
 
           books[item.book][
             item.side
-          ] =
+          ]=
             item.price;
 
         }
 
       }
     );
-
 
     Object.entries(
       books
@@ -3993,7 +3917,7 @@ async function loadOdds(
         ]
       ) => {
 
-        html += `
+        html+=`
 
           <tr>
 
@@ -4024,8 +3948,7 @@ async function loadOdds(
       }
     );
 
-
-    html += `
+    html+=`
 
           </tbody>
 
@@ -4081,18 +4004,14 @@ async function loadOdds(
               </td>
 
               <td>
-                ${pct(
-                  homeProbability*100
-                )}
+                ${pct(homeProbability*100)}
               </td>
 
               <td>
 
                 ${
                   homeImplied
-                    ? pct(
-                        homeImplied*100
-                      )
+                    ? pct(homeImplied*100)
                     : "—"
                 }
 
@@ -4104,11 +4023,10 @@ async function loadOdds(
                   homeImplied
                     ? (
                         (
-                          homeProbability -
+                          homeProbability-
                           homeImplied
-                        ) *
-                        100
-                      ).toFixed(1) +
+                        )*100
+                      ).toFixed(1)+
                       " pp"
                     : "—"
                 }
@@ -4129,18 +4047,14 @@ async function loadOdds(
               </td>
 
               <td>
-                ${pct(
-                  awayProbability*100
-                )}
+                ${pct(awayProbability*100)}
               </td>
 
               <td>
 
                 ${
                   awayImplied
-                    ? pct(
-                        awayImplied*100
-                      )
+                    ? pct(awayImplied*100)
                     : "—"
                 }
 
@@ -4152,11 +4066,10 @@ async function loadOdds(
                   awayImplied
                     ? (
                         (
-                          awayProbability -
+                          awayProbability-
                           awayImplied
-                        ) *
-                        100
-                      ).toFixed(1) +
+                        )*100
+                      ).toFixed(1)+
                       " pp"
                     : "—"
                 }
@@ -4177,12 +4090,11 @@ async function loadOdds(
 
     `;
 
-
     if(
       spreads.length
     ){
 
-      html += `
+      html+=`
 
         <h3>
           Spread
@@ -4216,16 +4128,14 @@ async function loadOdds(
 
             </thead>
 
-
             <tbody>
 
       `;
 
-
       spreads.forEach(
         item => {
 
-          html += `
+          html+=`
 
             <tr>
 
@@ -4238,17 +4148,11 @@ async function loadOdds(
               </td>
 
               <td>
-                ${
-                  item.point ??
-                  "—"
-                }
+                ${item.point??"—"}
               </td>
 
               <td>
-                ${
-                  item.price
-                    .toFixed(2)
-                }
+                ${item.price.toFixed(2)}
               </td>
 
             </tr>
@@ -4258,8 +4162,7 @@ async function loadOdds(
         }
       );
 
-
-      html += `
+      html+=`
 
             </tbody>
 
@@ -4271,12 +4174,11 @@ async function loadOdds(
 
     }
 
-
     if(
       totals.length
     ){
 
-      html += `
+      html+=`
 
         <h3>
           Totales
@@ -4310,16 +4212,14 @@ async function loadOdds(
 
             </thead>
 
-
             <tbody>
 
       `;
 
-
       totals.forEach(
         item => {
 
-          html += `
+          html+=`
 
             <tr>
 
@@ -4332,17 +4232,11 @@ async function loadOdds(
               </td>
 
               <td>
-                ${
-                  item.point ??
-                  "—"
-                }
+                ${item.point??"—"}
               </td>
 
               <td>
-                ${
-                  item.price
-                    .toFixed(2)
-                }
+                ${item.price.toFixed(2)}
               </td>
 
             </tr>
@@ -4352,8 +4246,7 @@ async function loadOdds(
         }
       );
 
-
-      html += `
+      html+=`
 
             </tbody>
 
@@ -4365,8 +4258,7 @@ async function loadOdds(
 
     }
 
-
-    html += `
+    html+=`
 
       <div
         class="muted"
@@ -4376,7 +4268,7 @@ async function loadOdds(
         Mercado actualizado:
         ${
           fmtDate(
-            event.bookmakers?.[0]?.last_update ||
+            event.bookmakers?.[0]?.last_update||
             new Date()
           )
         }
@@ -4391,14 +4283,12 @@ async function loadOdds(
 
     `;
 
-
     $("oddsContent")
-      .innerHTML =
+      .innerHTML=
         html;
 
-
     $("oddsLast")
-      .textContent =
+      .textContent=
         `Última actualización:
          ${
            new Date()
@@ -4407,13 +4297,11 @@ async function loadOdds(
              )
          }`;
 
-
     setOddsStatus(
       `Cuotas actualizadas ·
        ${moneyline.length}
        precios`
     );
-
 
   }catch(error){
 
@@ -4422,15 +4310,13 @@ async function loadOdds(
       error
     );
 
-
     setOddsStatus(
-      error.message ||
+      error.message||
       "Error consultando cuotas."
     );
 
-
     $("oddsContent")
-      .innerHTML = `
+      .innerHTML=`
 
         <div class="empty error">
 
@@ -4452,7 +4338,7 @@ async function loadOdds(
 
 
 /* =========================================================
-   GUARDAR API KEY
+   API KEY
    ========================================================= */
 
 $("saveOdds").onclick =
@@ -4462,7 +4348,6 @@ $("saveOdds").onclick =
       $("oddsKey")
         .value
         .trim();
-
 
     if(!key){
 
@@ -4474,17 +4359,14 @@ $("saveOdds").onclick =
 
     }
 
-
     localStorage.setItem(
       "wyntr_odds_key",
       key
     );
 
-
     setOddsStatus(
       "API Key guardada."
     );
-
 
     if(selected){
 
@@ -4496,10 +4378,6 @@ $("saveOdds").onclick =
 
   };
 
-
-/* =========================================================
-   BOTÓN CUOTAS
-   ========================================================= */
 
 $("oddsRefresh").onclick =
   () => {
@@ -4530,13 +4408,12 @@ const savedOddsKey =
     "wyntr_odds_key"
   );
 
-
 if(
   savedOddsKey
 ){
 
   $("oddsKey")
-    .value =
+    .value=
       savedOddsKey;
 
 }
@@ -4549,14 +4426,11 @@ if(
 $("reload").onclick =
   loadCalendar;
 
-
 $("team").onchange =
   render;
 
-
 $("type").onchange =
   render;
-
 
 $("range").onchange =
   async () => {
@@ -4567,15 +4441,13 @@ $("range").onchange =
         360
       );
 
-
     localStorage.removeItem(
       cacheKey(days)
     );
 
-
     if(selected){
 
-      $("analysis").innerHTML = `
+      $("analysis").innerHTML=`
 
         <div class="loading">
 
@@ -4585,7 +4457,6 @@ $("range").onchange =
 
       `;
 
-
       try{
 
         const result =
@@ -4593,12 +4464,10 @@ $("range").onchange =
             selected
           );
 
-
         renderAnalysis(
           selected,
           result
         );
-
 
         startOddsRefresh(
           selected
@@ -4619,6 +4488,14 @@ $("range").onchange =
     }
 
   };
+
+
+/* =========================================================
+   FORZAR 360 DÍAS
+   ========================================================= */
+
+$("range").value =
+  "360";
 
 
 /* =========================================================
@@ -4650,7 +4527,7 @@ document.addEventListener(
 
 
 /* =========================================================
-   LIMPIAR TEMPORIZADORES
+   LIMPIAR
    ========================================================= */
 
 window.addEventListener(
