@@ -1,0 +1,4292 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#06080c">
+<title>WYNTR V10.2 — Motor Predictivo + Cuotas Automáticas</title>
+
+<style>
+:root{
+--bg:#06080c;
+--p:#0d1118;
+--p2:#111722;
+--line:#202938;
+--t:#f5f7fb;
+--m:#8d99a9;
+--a:#67e8f9;
+--g:#65f0a2;
+--y:#ffd166;
+--r:#ff6b6b
+}
+
+*{box-sizing:border-box}
+
+body{
+margin:0;
+background:
+radial-gradient(circle at 80% -5%,#17343d,#07090d 40%);
+color:var(--t);
+font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif
+}
+
+.wrap{
+max-width:1180px;
+margin:auto;
+padding:15px
+}
+
+.top{
+display:flex;
+justify-content:space-between;
+align-items:center;
+padding:8px 0 22px
+}
+
+.brand{
+font-weight:950;
+letter-spacing:.2em;
+font-size:21px
+}
+
+.sub,.label{
+font-size:9px;
+color:var(--m);
+letter-spacing:.14em
+}
+
+.status{
+font-size:10px;
+color:var(--g);
+border:1px solid #1b4d38;
+border-radius:999px;
+padding:7px 10px
+}
+
+.hero{
+padding:10px 0 20px
+}
+
+.ey{
+font-size:10px;
+color:var(--a);
+font-weight:850;
+letter-spacing:.18em
+}
+
+.hero h1{
+font-size:clamp(36px,8vw,68px);
+line-height:.94;
+margin:9px 0
+}
+
+.hero p{
+color:var(--m);
+line-height:1.55;
+max-width:820px;
+font-size:13px
+}
+
+.panel{
+background:linear-gradient(180deg,#0e131b,#090d13);
+border:1px solid var(--line);
+border-radius:20px;
+padding:17px;
+margin-bottom:13px
+}
+
+.filters{
+display:grid;
+grid-template-columns:1fr 1fr 1fr auto;
+gap:8px
+}
+
+select,
+button,
+input{
+width:100%;
+padding:12px;
+border-radius:11px;
+border:1px solid var(--line);
+background:var(--p2);
+color:var(--t);
+font-size:12px
+}
+
+button{
+background:var(--t);
+color:#06080c;
+font-weight:900;
+cursor:pointer
+}
+
+button:hover{
+opacity:.9
+}
+
+.layout{
+display:grid;
+grid-template-columns:1fr 1fr;
+gap:13px
+}
+
+.games{
+max-height:650px;
+overflow:auto
+}
+
+.game{
+border:1px solid var(--line);
+background:#0f151e;
+border-radius:15px;
+padding:13px;
+margin-bottom:8px;
+cursor:pointer;
+transition:.15s
+}
+
+.game:hover,
+.game.selected{
+border-color:#536473;
+transform:translateY(-1px)
+}
+
+.date{
+font-size:9px;
+color:var(--a);
+letter-spacing:.12em;
+margin-bottom:8px
+}
+
+.match{
+display:grid;
+grid-template-columns:1fr auto 1fr;
+gap:8px;
+align-items:center
+}
+
+.team{
+font-size:13px;
+font-weight:800
+}
+
+.away{
+text-align:right
+}
+
+.time{
+text-align:center;
+font-size:10px;
+color:var(--m)
+}
+
+.badge{
+display:inline-block;
+font-size:8px;
+border:1px solid var(--line);
+border-radius:999px;
+padding:4px 7px;
+color:var(--m);
+margin-top:7px
+}
+
+.analysis{
+position:sticky;
+top:10px
+}
+
+.heroMatch{
+text-align:center;
+padding:8px 0 16px
+}
+
+.heroMatch .teams{
+font-size:20px;
+font-weight:900
+}
+
+.prob{
+display:grid;
+grid-template-columns:1fr 1fr;
+gap:9px
+}
+
+.card{
+background:var(--p2);
+border:1px solid var(--line);
+border-radius:14px;
+padding:13px
+}
+
+.card small{
+color:var(--m);
+font-size:8px
+}
+
+.big{
+font-size:28px;
+font-weight:950;
+display:block;
+margin-top:4px
+}
+
+.bar{
+height:7px;
+background:#19212c;
+border-radius:99px;
+overflow:hidden;
+margin-top:7px
+}
+
+.fill{
+height:100%;
+background:var(--a)
+}
+
+.notice{
+color:var(--m);
+font-size:11px;
+line-height:1.55
+}
+
+.empty{
+text-align:center;
+color:var(--m);
+padding:40px 15px
+}
+
+.loader{
+display:none;
+color:var(--a);
+font-size:11px;
+padding:8px 0
+}
+
+.metricGrid{
+display:grid;
+grid-template-columns:repeat(3,1fr);
+gap:8px;
+margin-top:10px
+}
+
+.metric{
+background:#0b1017;
+border:1px solid var(--line);
+border-radius:11px;
+padding:10px
+}
+
+.metric b{
+display:block;
+font-size:16px;
+margin-top:3px
+}
+
+.oddsTable{
+width:100%;
+border-collapse:collapse;
+font-size:11px;
+margin-top:8px
+}
+
+.oddsTable th,
+.oddsTable td{
+padding:8px 6px;
+border-bottom:1px solid var(--line);
+text-align:center
+}
+
+.oddsTable th:first-child,
+.oddsTable td:first-child{
+text-align:left
+}
+
+.best{
+color:var(--g);
+font-weight:900
+}
+
+.changed{
+color:var(--y);
+font-weight:900
+}
+
+.good{
+color:var(--g)
+}
+
+.warn{
+color:var(--y)
+}
+
+.bad{
+color:var(--r)
+}
+
+.refreshRow{
+display:flex;
+gap:8px;
+align-items:center;
+flex-wrap:wrap;
+margin-top:10px
+}
+
+.refreshRow button{
+width:auto;
+min-width:170px
+}
+
+@media(max-width:800px){
+
+.layout{
+grid-template-columns:1fr
+}
+
+.analysis{
+position:static
+}
+
+.filters{
+grid-template-columns:1fr 1fr
+}
+
+.metricGrid{
+grid-template-columns:1fr 1fr
+}
+
+.wrap{
+padding:12px
+}
+
+}
+
+@media(max-width:480px){
+
+.filters{
+grid-template-columns:1fr
+}
+
+.metricGrid{
+grid-template-columns:1fr
+}
+
+.heroMatch .teams{
+font-size:17px
+}
+
+}
+</style>
+</head>
+
+<body>
+
+<div class="wrap">
+
+<header class="top">
+
+<div>
+<div class="brand">WYNTR</div>
+<div class="sub">NBA INTELLIGENCE ENGINE · V10.2</div>
+</div>
+
+<div id="status" class="status">
+● CALENDARIO
+</div>
+
+</header>
+
+<section class="hero">
+
+<div class="ey">
+PREDICCIÓN · MERCADO · VALOR
+</div>
+
+<h1>
+Find the signal.
+</h1>
+
+<p>
+WYNTR combina modelos estadísticos, histórico NBA, forma reciente,
+rendimiento local/visitante y mercado de cuotas para construir una
+señal cuantitativa transparente.
+</p>
+
+</section>
+
+<div class="panel">
+
+<div class="filters">
+
+<div>
+
+<div class="label">
+RANGO
+</div>
+
+<select id="range">
+
+<option value="14">
+Próximos 14 días
+</option>
+
+<option value="30" selected>
+Próximos 30 días
+</option>
+
+<option value="60">
+Próximos 60 días
+</option>
+
+<option value="120">
+Próximos 120 días
+</option>
+
+</select>
+
+</div>
+
+<div>
+
+<div class="label">
+EQUIPO
+</div>
+
+<select id="team">
+
+<option value="">
+Todos los equipos
+</option>
+
+</select>
+
+</div>
+
+<div>
+
+<div class="label">
+TIPO
+</div>
+
+<select id="type">
+
+<option value="all">
+Todos
+</option>
+
+<option value="pre">
+Pretemporada
+</option>
+
+<option value="reg">
+Temporada regular
+</option>
+
+</select>
+
+</div>
+
+<div style="display:flex;align-items:end">
+
+<button id="reload">
+ACTUALIZAR
+</button>
+
+</div>
+
+</div>
+
+<div id="loader" class="loader">
+Cargando calendario NBA…
+</div>
+
+</div>
+
+<!-- CONFIGURACIÓN DE CUOTAS -->
+
+<div class="panel">
+
+<div class="ey">
+MERCADO Y CUOTAS EN TIEMPO CASI REAL
+</div>
+
+<div class="filters">
+
+<div>
+
+<div class="label">
+API DE CUOTAS
+</div>
+
+<input
+id="oddsKey"
+type="password"
+placeholder="Pega aquí tu API key"
+/>
+
+</div>
+
+<div>
+
+<div class="label">
+REGIÓN
+</div>
+
+<select id="oddsRegion">
+
+<option value="us">
+US
+</option>
+
+<option value="eu">
+Europa
+</option>
+
+<option value="uk">
+Reino Unido
+</option>
+
+<option value="au">
+Australia
+</option>
+
+</select>
+
+</div>
+
+<div>
+
+<div class="label">
+MERCADOS
+</div>
+
+<select id="oddsMarkets">
+
+<option value="h2h,spreads,totals">
+Moneyline + Hándicap + Totales
+</option>
+
+<option value="h2h">
+Moneyline
+</option>
+
+<option value="spreads">
+Hándicap
+</option>
+
+<option value="totals">
+Totales
+</option>
+
+</select>
+
+</div>
+
+<div style="display:flex;align-items:end">
+
+<button id="saveOdds">
+GUARDAR
+</button>
+
+</div>
+
+</div>
+
+<div class="refreshRow">
+
+<button id="oddsRefresh">
+ACTUALIZAR CUOTAS
+</button>
+
+<span
+id="oddsLastUpdate"
+class="notice"
+>
+Última actualización: —
+</span>
+
+<span
+id="oddsCountdown"
+class="notice"
+>
+Próxima consulta: —
+</span>
+
+</div>
+
+<div class="notice" style="margin-top:9px">
+
+WYNTR consulta automáticamente el proveedor de cuotas.
+Las cuotas mostradas dependen de la disponibilidad de cada mercado
+y de la API configurada.
+
+</div>
+
+</div>
+
+<div class="layout">
+
+<section class="panel">
+
+<div class="ey">
+PRÓXIMOS PARTIDOS
+<span id="count"></span>
+</div>
+
+<div
+id="games"
+class="games"
+>
+
+<div class="empty">
+Cargando…
+</div>
+
+</div>
+
+</section>
+
+<section class="panel analysis">
+
+<div class="ey">
+ANÁLISIS WYNTR
+</div>
+
+<div id="analysis">
+
+<div class="empty">
+Selecciona un partido para analizarlo.
+</div>
+
+</div>
+
+</section>
+
+</div>
+
+<div class="panel">
+
+<div class="ey">
+MOTOR
+</div>
+
+<div class="notice">
+
+Gradient Boosting · ELO · Poisson · Forma · Producción ·
+Local/visitante · Histórico · Mercado.
+
+<br><br>
+
+Las probabilidades son estimaciones estadísticas y no garantizan
+el resultado de un evento.
+
+</div>
+
+</div>
+
+</div>
+
+<script>
+
+const API =
+'https://site.api.espn.com/apis/site/v2/sports/basketball/nba/scoreboard';
+
+let games = [];
+let selected = null;
+
+let oddsTimer = null;
+let oddsCountdownTimer = null;
+let oddsNextAt = 0;
+
+const $ = id =>
+document.getElementById(id);
+
+const fmtDate = d =>
+new Intl.DateTimeFormat(
+'es-CO',
+{
+weekday:'short',
+day:'2-digit',
+month:'short'
+}
+).format(d);
+
+const fmtTime = d =>
+new Intl.DateTimeFormat(
+'es-CO',
+{
+hour:'2-digit',
+minute:'2-digit',
+hour12:false,
+timeZone:'America/Bogota'
+}
+).format(d);
+
+function parse(data){
+
+return (data.events || [])
+.map(e=>{
+
+const c =
+e.competitions?.[0];
+
+const z =
+c?.competitors || [];
+
+const h =
+z.find(x=>x.homeAway==='home');
+
+const a =
+z.find(x=>x.homeAway==='away');
+
+if(!h || !a)
+return null;
+
+return {
+
+id:e.id,
+
+date:e.date,
+
+home:h.team.displayName,
+
+away:a.team.displayName,
+
+status:
+e.status?.type?.description ||
+'Programado',
+
+completed:
+e.status?.type?.completed,
+
+pre:
+(e.season?.slug || '')
+.includes('pre') ||
+/preseason/i.test(e.name || ''),
+
+homeScore:h.score,
+
+awayScore:a.score
+
+};
+
+})
+.filter(Boolean);
+
+}
+
+async function get(url){
+
+const r =
+await fetch(url);
+
+if(!r.ok)
+throw Error(r.status);
+
+return r.json();
+
+}
+
+async function load(){
+
+$('loader').style.display =
+'block';
+
+$('status').textContent =
+'● CARGANDO';
+
+games = [];
+
+const days =
++$('range').value;
+
+const now =
+new Date();
+
+for(
+let i=0;
+i<=days;
+i++
+){
+
+let d =
+new Date(now);
+
+d.setDate(
+d.getDate()+i
+);
+
+let ds =
+d.toISOString()
+.slice(0,10)
+.replaceAll('-','');
+
+try{
+
+games.push(
+...parse(
+await get(
+API+'?dates='+ds
+)
+)
+);
+
+}catch(e){}
+
+}
+
+const seen =
+new Set();
+
+games =
+games.filter(g=>{
+
+if(seen.has(g.id))
+return false;
+
+seen.add(g.id);
+
+return new Date(g.date)>=now;
+
+});
+
+buildTeams();
+
+render();
+
+$('loader').style.display =
+'none';
+
+$('status').textContent =
+'● CALENDARIO ACTUALIZADO';
+
+}
+
+function buildTeams(){
+
+const teams =
+[
+...new Set(
+games.flatMap(
+g=>[
+g.home,
+g.away
+]
+)
+)
+].sort();
+
+const s =
+$('team');
+
+const old =
+s.value;
+
+s.innerHTML =
+'<option value="">Todos los equipos</option>'+
+teams
+.map(
+t=>`<option>${t}</option>`
+)
+.join('');
+
+s.value =
+teams.includes(old)
+?old
+:'';
+
+}
+
+function filtered(){
+
+const t =
+$('team').value;
+
+const ty =
+$('type').value;
+
+return games.filter(g=>
+
+(!t ||
+g.home===t ||
+g.away===t)
+
+&&
+
+(
+ty==='all' ||
+
+(ty==='pre' &&
+g.pre) ||
+
+(ty==='reg' &&
+!g.pre)
+)
+
+);
+
+}
+
+function render(){
+
+const arr =
+filtered();
+
+$('count').textContent =
+`· ${arr.length} partidos`;
+
+if(!arr.length){
+
+$('games').innerHTML =
+'<div class="empty">No hay partidos con esos filtros.</div>';
+
+return;
+
+}
+
+let last = '';
+
+$('games').innerHTML =
+arr.map(g=>{
+
+const d =
+new Date(g.date);
+
+const ds =
+d.toISOString()
+.slice(0,10);
+
+const head =
+ds!==last
+?
+(
+last=ds,
+`<div class="date">
+${fmtDate(d).toUpperCase()}
+</div>`
+)
+:
+'';
+
+return head + `
+
+<div
+class="game ${selected?.id===g.id?'selected':''}"
+data-id="${g.id}"
+>
+
+<div class="match">
+
+<div class="team">
+${g.away}
+</div>
+
+<div class="time">
+
+${fmtTime(d)}
+
+<br>
+
+<span>
+${g.completed?'FINAL':g.status}
+</span>
+
+</div>
+
+<div class="team away">
+${g.home}
+</div>
+
+</div>
+
+<span class="badge">
+${g.pre?'PRETEMPORADA':'TEMPORADA REGULAR'}
+</span>
+
+</div>
+
+`;
+
+})
+.join('');
+
+document
+.querySelectorAll('.game')
+.forEach(x=>
+
+x.onclick =
+()=>select(
+x.dataset.id
+)
+
+);
+
+}
+
+async function select(id){
+
+selected =
+games.find(
+g=>g.id===id
+);
+
+render();
+
+if(!selected)
+return;
+
+startOddsRefresh(
+selected
+);
+
+$('analysis').innerHTML = `
+
+<div class="heroMatch">
+
+<div class="label">
+PARTIDO SELECCIONADO
+</div>
+
+<div class="teams">
+
+${selected.away}
+@
+${selected.home}
+
+</div>
+
+<div class="notice">
+
+${fmtDate(
+new Date(selected.date)
+)}
+
+·
+
+${fmtTime(
+new Date(selected.date)
+)}
+
+·
+
+${selected.pre
+?'Pretemporada'
+:'Temporada regular'}
+
+</div>
+
+</div>
+
+<div class="prob">
+
+<div class="card">
+
+<small>
+LOCAL
+</small>
+
+<span class="big">
+…
+</span>
+
+</div>
+
+<div class="card">
+
+<small>
+VISITANTE
+</small>
+
+<span class="big">
+…
+</span>
+
+</div>
+
+</div>
+
+<div class="notice"
+style="margin-top:10px">
+
+Construyendo análisis con histórico NBA…
+
+</div>
+
+<div
+class="card"
+style="margin-top:10px"
+id="oddsPanel"
+>
+
+<b>
+Comparador de cuotas
+</b>
+
+<div
+class="notice"
+style="margin-top:8px"
+>
+
+Consultando mercado…
+
+</div>
+
+</div>
+
+`;
+
+try{
+
+const r =
+await analyzeGame(
+selected
+);
+
+$('analysis').innerHTML = `
+
+<div class="heroMatch">
+
+<div class="label">
+SEÑAL WYNTR V10.2
+</div>
+
+<div class="teams">
+
+${selected.away}
+@
+${selected.home}
+
+</div>
+
+<div class="notice">
+
+${fmtDate(
+new Date(selected.date)
+)}
+
+·
+
+${fmtTime(
+new Date(selected.date)
+)}
+
+</div>
+
+</div>
+
+<div class="prob">
+
+<div class="card">
+
+<small>
+LOCAL
+</small>
+
+<span class="big">
+${r.home}%
+</span>
+
+<div class="bar">
+
+<div
+class="fill"
+style="width:${r.home}%"
+></div>
+
+</div>
+
+</div>
+
+<div class="card">
+
+<small>
+VISITANTE
+</small>
+
+<span class="big">
+${r.away}%
+</span>
+
+<div class="bar">
+
+<div
+class="fill"
+style="width:${r.away}%"
+></div>
+
+</div>
+
+</div>
+
+</div>
+
+<div
+class="card"
+style="margin-top:10px"
+>
+
+<b>
+Señal estadística
+</b>
+
+<div
+style="margin-top:6px;font-size:17px;font-weight:900"
+>
+
+${r.home>=r.away
+?selected.home
+:selected.away}
+
+</div>
+
+<div
+class="notice"
+style="margin-top:8px"
+>
+
+Estimación estadística. No representa una garantía
+del resultado.
+
+</div>
+
+</div>
+
+<div class="metricGrid">
+
+<div class="metric">
+
+<div class="label">
+GRADIENT BOOSTING
+</div>
+
+<b>
+${r.gb}%
+</b>
+
+</div>
+
+<div class="metric">
+
+<div class="label">
+ELO
+</div>
+
+<b>
+${r.elo}%
+</b>
+
+</div>
+
+<div class="metric">
+
+<div class="label">
+POISSON
+</div>
+
+<b>
+${r.poisson}%
+</b>
+
+</div>
+
+<div class="metric">
+
+<div class="label">
+FORMA
+</div>
+
+<b>
+${r.form}%
+</b>
+
+</div>
+
+<div class="metric">
+
+<div class="label">
+PRODUCCIÓN
+</div>
+
+<b>
+${r.net}%
+</b>
+
+</div>
+
+<div class="metric">
+
+<div class="label">
+MUESTRA
+</div>
+
+<b>
+${r.sample}
+</b>
+
+</div>
+
+</div>
+
+<div
+class="card"
+style="margin-top:10px"
+>
+
+<b>
+Validación histórica
+</b>
+
+<div
+class="notice"
+style="margin-top:8px"
+>
+
+Precisión:
+${r.accuracy??'—'}%
+
+·
+
+Brier:
+${r.brier??'—'}
+
+·
+
+Log Loss:
+${r.logloss??'—'}
+
+</div>
+
+</div>
+
+<div
+class="card"
+style="margin-top:10px"
+>
+
+<b>
+Comparador de cuotas
+</b>
+
+<div
+class="notice"
+style="margin-top:8px"
+>
+
+Consultando las casas disponibles…
+
+</div>
+
+</div>
+
+`;
+
+await loadOdds(
+selected,
+false
+);
+
+}catch(e){
+
+$('analysis').innerHTML = `
+
+<div class="empty">
+
+No se pudo completar el análisis.
+
+<br><br>
+
+${e.message}
+
+</div>
+
+`;
+
+}
+
+}
+async function analyzeGame(game){
+
+const cacheKey='wyntr_v102_hist_360';
+
+let rows=[];
+
+try{
+
+rows=
+JSON.parse(
+localStorage.getItem(cacheKey)||'null'
+)||[];
+
+}catch(e){
+
+rows=[];
+
+}
+
+function parseHistorical(data){
+
+return(data?.events||[])
+.map(ev=>{
+
+const z=
+ev.competitions?.[0]?.competitors||[];
+
+const h=
+z.find(x=>x.homeAway==='home');
+
+const a=
+z.find(x=>x.homeAway==='away');
+
+if(
+!h||
+!a||
+h.score==null||
+a.score==null
+)return null;
+
+return{
+
+id:ev.id,
+
+date:ev.date,
+
+home:
+h.team?.displayName||'',
+
+away:
+a.team?.displayName||'',
+
+homeScore:
++h.score,
+
+awayScore:
++a.score
+
+};
+
+})
+.filter(Boolean);
+
+}
+
+if(!rows.length){
+
+const now=
+new Date();
+
+const end=
+new Date(now);
+
+end.setDate(
+end.getDate()-1
+);
+
+const start=
+new Date(end);
+
+start.setDate(
+start.getDate()-359
+);
+
+const iso=d=>
+d.toISOString()
+.slice(0,10)
+.replaceAll('-','');
+
+let candidate=[];
+
+const ranges=[];
+
+for(
+let d=new Date(start);
+d<=end;
+){
+
+const a=
+new Date(d);
+
+const b=
+new Date(d);
+
+b.setDate(
+b.getDate()+29
+);
+
+if(b>end)
+b.setTime(
+end.getTime()
+);
+
+ranges.push(
+iso(a)+'-'+iso(b)
+);
+
+d.setDate(
+d.getDate()+30
+);
+
+}
+
+try{
+
+const results=
+await Promise.all(
+
+ranges.map(
+r=>
+
+fetch(
+API+
+'?dates='+
+r+
+'&limit=2000'
+)
+.then(
+x=>x.ok
+?x.json()
+:null
+)
+.catch(
+()=>null
+)
+
+)
+
+);
+
+candidate.push(
+...results.flatMap(
+parseHistorical
+)
+);
+
+}catch(e){}
+
+if(candidate.length<20){
+
+candidate=[];
+
+const dates=[];
+
+for(
+let d=new Date(start);
+d<=end;
+d.setDate(
+d.getDate()+1
+)
+){
+
+dates.push(
+new Date(d)
+);
+
+}
+
+for(
+let i=0;
+i<dates.length;
+i+=15
+){
+
+const batch=
+dates.slice(
+i,
+i+15
+);
+
+const results=
+await Promise.all(
+
+batch.map(
+d=>
+
+fetch(
+API+
+'?dates='+
+iso(d)
+)
+.then(
+x=>x.ok
+?x.json()
+:null
+)
+.catch(
+()=>null
+)
+
+)
+
+);
+
+candidate.push(
+...results.flatMap(
+parseHistorical
+)
+);
+
+}
+
+}
+
+const seen=
+new Set();
+
+rows=
+candidate
+.filter(x=>{
+
+if(seen.has(x.id))
+return false;
+
+seen.add(x.id);
+
+return true;
+
+})
+.sort(
+(a,b)=>
+new Date(a.date)-
+new Date(b.date)
+);
+
+if(rows.length){
+
+try{
+
+localStorage.setItem(
+cacheKey,
+JSON.stringify(rows)
+);
+
+}catch(e){}
+
+}
+
+}
+
+if(rows.length<20){
+
+throw Error(
+'No hay suficiente histórico NBA disponible para construir el modelo.'
+);
+
+}
+
+const key=s=>
+String(s||'')
+.toLowerCase()
+.replace(
+/[^a-z0-9]/g,
+''
+);
+
+const clamp=(x,a,b)=>
+Math.max(
+a,
+Math.min(b,x)
+);
+
+const sigmoid=x=>
+1/
+(
+1+
+Math.exp(
+-Math.max(
+-30,
+Math.min(
+30,
+x
+)
+)
+)
+);
+
+const avg=(a,f,d)=>
+a.length
+?
+a.reduce(
+(s,x)=>s+f(x),
+0
+)/
+a.length
+:
+d;
+
+const teams={};
+
+function getTeam(name){
+
+const k=
+key(name);
+
+if(!teams[k]){
+
+teams[k]={
+
+name:name,
+
+elo:1500,
+
+g:[]
+
+};
+
+}
+
+return teams[k];
+
+}
+
+function getFeatures(home,away){
+
+const H=
+getTeam(home);
+
+const A=
+getTeam(away);
+
+const hg=
+H.g.slice(-12);
+
+const ag=
+A.g.slice(-12);
+
+const hw=
+avg(
+hg,
+x=>x.win?1:0,
+.5
+);
+
+const aw=
+avg(
+ag,
+x=>x.win?1:0,
+.5
+);
+
+const hpf=
+avg(
+hg,
+x=>x.pf,
+110
+);
+
+const apf=
+avg(
+ag,
+x=>x.pf,
+110
+);
+
+const hpa=
+avg(
+hg,
+x=>x.pa,
+110
+);
+
+const apa=
+avg(
+ag,
+x=>x.pa,
+110
+);
+
+const hNet=
+hpf-hpa;
+
+const aNet=
+apf-apa;
+
+return [
+
+(H.elo+55-A.elo)/400,
+
+hw-aw,
+
+(hNet-aNet)/30,
+
+(hpf-apf)/30,
+
+(hpa-apa)/30
+
+];
+
+}
+
+function updateTeam(
+home,
+away,
+hs,
+as
+){
+
+const H=
+getTeam(home);
+
+const A=
+getTeam(away);
+
+const expected=
+sigmoid(
+(
+(H.elo+55-A.elo)/
+400
+)*
+Math.LN10
+);
+
+const actual=
+hs>as
+?1
+:0;
+
+const k=18;
+
+H.elo +=
+k*
+(
+actual-
+expected
+);
+
+A.elo -=
+k*
+(
+actual-
+expected
+);
+
+H.g.push({
+
+win:hs>as,
+
+pf:hs,
+
+pa:as
+
+});
+
+A.g.push({
+
+win:as>hs,
+
+pf:as,
+
+pa:hs
+
+});
+
+}
+
+const dataset=[];
+
+for(const r of rows){
+
+const x=
+getFeatures(
+r.home,
+r.away
+);
+
+const y=
+r.homeScore>
+r.awayScore
+?1
+:0;
+
+dataset.push({
+x,
+y
+});
+
+updateTeam(
+r.home,
+r.away,
+r.homeScore,
+r.awayScore
+);
+
+}
+
+const cut=
+Math.max(
+20,
+Math.floor(
+dataset.length*.70
+)
+);
+
+const train=
+dataset.slice(
+0,
+cut
+);
+
+const test=
+dataset.slice(
+cut
+);
+
+const p0=
+clamp(
+train.reduce(
+(s,d)=>s+d.y,
+0
+)/
+train.length,
+.02,
+.98
+);
+
+const base=
+Math.log(
+p0/
+(1-p0)
+);
+
+const lr=.08;
+
+const rounds=36;
+
+const trees=[];
+
+let scores=
+train.map(
+()=>base
+);
+
+for(
+let m=0;
+m<rounds;
+m++
+){
+
+let best=null;
+
+for(
+let j=0;
+j<5;
+j++
+){
+
+const vals=[
+...new Set(
+train
+.map(
+d=>d.x[j]
+)
+.sort(
+(a,b)=>a-b
+)
+)
+];
+
+const steps=
+vals.length>12
+?
+vals.filter(
+(_,i)=>
+i%
+Math.ceil(
+vals.length/12
+)===0
+)
+:
+vals;
+
+for(
+const threshold of steps
+){
+
+let leftSum=0;
+let leftN=0;
+let rightSum=0;
+let rightN=0;
+
+for(
+let i=0;
+i<train.length;
+i++
+){
+
+const residual=
+train[i].y-
+sigmoid(
+scores[i]
+);
+
+if(
+train[i].x[j]<=
+threshold
+){
+
+leftSum+=
+residual;
+
+leftN++;
+
+}else{
+
+rightSum+=
+residual;
+
+rightN++;
+
+}
+
+}
+
+const lv=
+leftN
+?
+leftSum/leftN
+:
+0;
+
+const rv=
+rightN
+?
+rightSum/rightN
+:
+0;
+
+let loss=0;
+
+for(
+let i=0;
+i<train.length;
+i++
+){
+
+const update=
+train[i].x[j]<=
+threshold
+?
+lv
+:
+rv;
+
+const p=
+sigmoid(
+scores[i]+
+lr*update
+);
+
+loss -=
+train[i].y*
+Math.log(
+Math.max(
+p,
+1e-9
+)
+)+
+(1-train[i].y)*
+Math.log(
+Math.max(
+1-p,
+1e-9
+)
+);
+
+}
+
+if(
+!best||
+loss<best.loss
+){
+
+best={
+
+j,
+
+threshold,
+
+lv,
+
+rv,
+
+loss
+
+};
+
+}
+
+}
+
+}
+
+if(!best)
+break;
+
+trees.push(
+best
+);
+
+for(
+let i=0;
+i<train.length;
+i++
+){
+
+scores[i]+=
+lr*
+(
+train[i].x[
+best.j
+]<=
+best.threshold
+?
+best.lv
+:
+best.rv
+);
+
+}
+
+}
+
+function gbPredict(x){
+
+let s=base;
+
+for(
+const t of trees
+){
+
+s+=
+lr*
+(
+x[t.j]<=
+t.threshold
+?
+t.lv
+:
+t.rv
+);
+
+}
+
+return sigmoid(s);
+
+}
+
+let correct=0;
+let brier=0;
+let logloss=0;
+
+for(
+const d of test
+){
+
+const p=
+gbPredict(
+d.x
+);
+
+if(
+(p>=.5?1:0)===
+d.y
+){
+
+correct++;
+
+}
+
+brier +=
+(p-d.y)**2;
+
+logloss -=
+d.y*
+Math.log(
+Math.max(
+p,
+1e-9
+)
+)+
+(1-d.y)*
+Math.log(
+Math.max(
+1-p,
+1e-9
+)
+);
+
+}
+
+const finalX=
+getFeatures(
+game.home,
+game.away
+);
+
+const gb=
+gbPredict(
+finalX
+);
+
+const H=
+getTeam(
+game.home
+);
+
+const A=
+getTeam(
+game.away
+);
+
+const hg=
+H.g.slice(-12);
+
+const ag=
+A.g.slice(-12);
+
+const homeWinRate=
+avg(
+hg,
+x=>x.win?1:0,
+.5
+);
+
+const awayWinRate=
+avg(
+ag,
+x=>x.win?1:0,
+.5
+);
+
+const hpf=
+avg(
+hg,
+x=>x.pf,
+110
+);
+
+const apf=
+avg(
+ag,
+x=>x.pf,
+110
+);
+
+const hpa=
+avg(
+hg,
+x=>x.pa,
+110
+);
+
+const apa=
+avg(
+ag,
+x=>x.pa,
+110
+);
+
+const elo=
+clamp(
+50+
+(
+H.elo+
+55-
+A.elo-
+1500
+)/
+8,
+5,
+95
+);
+
+const form=
+clamp(
+50+
+(
+homeWinRate-
+awayWinRate
+)*
+65,
+5,
+95
+);
+
+const poisson=
+clamp(
+50+
+(
+(
+hpf*.52+
+apa*.48
+)
+-
+(
+apf*.52+
+hpa*.48
+)
+)*
+4,
+5,
+95
+);
+
+const net=
+clamp(
+50+
+(
+(
+hpf-hpa
+)-
+(
+apf-apa
+)
+)*
+1.8,
+5,
+95
+);
+
+/* 
+Componente de rendimiento local/visitante.
+*/
+
+const homeLocal=
+clamp(
+50+
+(
+homeWinRate-
+.5
+)*
+70,
+5,
+95
+);
+
+const awayRoad=
+clamp(
+50+
+(
+awayWinRate-
+.5
+)*
+70,
+5,
+95
+);
+
+const venue=
+clamp(
+50+
+(
+homeLocal-
+awayRoad
+)*
+.45,
+5,
+95
+);
+
+/*
+Ensamble final.
+*/
+
+const probability=
+clamp(
+
+.45*
+gb*100+
+
+.20*
+elo+
+
+.15*
+poisson+
+
+.10*
+form+
+
+.10*
+net,
+
+5,
+95
+);
+
+const home=
+Math.round(
+probability
+);
+
+const away=
+100-home;
+
+/*
+H2H reciente.
+*/
+
+const h2h=
+rows
+.filter(
+r=>
+(
+key(r.home)===
+key(game.home)&&
+key(r.away)===
+key(game.away)
+)
+||
+(
+key(r.home)===
+key(game.away)&&
+key(r.away)===
+key(game.home)
+)
+)
+.slice(-10);
+
+let h2hHome=0;
+
+if(h2h.length){
+
+let wins=0;
+
+for(
+const r of h2h
+){
+
+if(
+key(r.home)===
+key(game.home)
+){
+
+if(
+r.homeScore>
+r.awayScore
+)
+wins++;
+
+}else{
+
+if(
+r.awayScore>
+r.homeScore
+)
+wins++;
+
+}
+
+}
+
+h2hHome=
+Math.round(
+wins/
+h2h.length*
+100
+);
+
+}
+
+/*
+Confianza:
+combina tamaño de muestra,
+diferencia de modelos y validación.
+*/
+
+const disagreement=
+Math.abs(
+gb*100-
+elo
+)+
+Math.abs(
+gb*100-
+poisson
+);
+
+const sampleScore=
+clamp(
+Math.min(
+100,
+(
+hg.length+
+ag.length
+)/
+24*
+100
+),
+0,
+100
+);
+
+const confidence=
+Math.round(
+clamp(
+100-
+disagreement*.65+
+sampleScore*.15,
+15,
+95
+)
+);
+
+return{
+
+home,
+
+away,
+
+gb:
+Math.round(
+gb*100
+),
+
+elo:
+Math.round(
+elo
+),
+
+poisson:
+Math.round(
+poisson
+),
+
+form:
+Math.round(
+form
+),
+
+net:
+Math.round(
+net
+),
+
+venue:
+Math.round(
+venue
+),
+
+homeLocal:
+Math.round(
+homeLocal
+),
+
+awayRoad:
+Math.round(
+awayRoad
+),
+
+h2hHome,
+
+confidence,
+
+sample:
+hg.length+
+ag.length,
+
+total:
+rows.length,
+
+accuracy:
+test.length
+?
+Math.round(
+correct/
+test.length*
+100
+)
+:
+null,
+
+brier:
+test.length
+?
+(
+brier/
+test.length
+).toFixed(3)
+:
+null,
+
+logloss:
+test.length
+?
+(
+logloss/
+test.length
+).toFixed(3)
+:
+null
+
+};
+
+}
+
+/* =========================
+   CUOTAS AUTOMÁTICAS
+   ========================= */
+
+function setOddsStatus(){
+
+const el=
+$('oddsCountdown');
+
+if(!el)
+return;
+
+if(!oddsNextAt){
+
+el.textContent=
+'Próxima consulta: —';
+
+return;
+
+}
+
+const sec=
+Math.max(
+0,
+Math.ceil(
+(
+oddsNextAt-
+Date.now()
+)/
+1000
+)
+);
+
+el.textContent=
+'Próxima consulta: '+
+sec+
+' s';
+
+}
+
+function setLastOddsTime(){
+
+const el=
+$('oddsLastUpdate');
+
+if(!el)
+return;
+
+el.textContent=
+'Última actualización: '+
+new Date()
+.toLocaleTimeString(
+'es-CO',
+{
+hour:'2-digit',
+minute:'2-digit',
+second:'2-digit'
+}
+);
+
+}
+
+function stopOddsRefresh(){
+
+if(oddsTimer)
+clearInterval(
+oddsTimer
+);
+
+if(oddsCountdownTimer)
+clearInterval(
+oddsCountdownTimer
+);
+
+oddsTimer=null;
+
+oddsCountdownTimer=null;
+
+oddsNextAt=0;
+
+setOddsStatus();
+
+}
+
+function startOddsRefresh(game){
+
+stopOddsRefresh();
+
+loadOdds(
+game,
+false
+);
+
+oddsTimer=
+setInterval(
+()=>{
+
+if(selected?.id===
+game.id){
+
+loadOdds(
+game,
+true
+);
+
+}
+
+},
+60000
+);
+
+oddsCountdownTimer=
+setInterval(
+setOddsStatus,
+1000
+);
+
+}
+
+function impliedProbability(decimal){
+
+if(
+!decimal||
+decimal<=1
+)
+return null;
+
+return 1/
+decimal;
+
+}
+
+function calculateEV(
+probability,
+decimal
+){
+
+if(
+decimal==null||
+decimal<=1
+)
+return null;
+
+return (
+probability*
+decimal
+)-1;
+
+}
+
+function formatEV(ev){
+
+if(ev==null)
+return '—';
+
+const pct=
+(ev*100).toFixed(1);
+
+return(
+ev>=0?'+':''
+)+
+pct+
+'%';
+
+}
+
+function formatOdd(value){
+
+if(
+value==null||
+!Number.isFinite(
+Number(value)
+)
+)
+return '—';
+
+return Number(value)
+.toFixed(2);
+
+}
+
+function findBest(rows,side){
+
+const valid=
+rows.filter(
+x=>
+x[side]!=null
+);
+
+if(!valid.length)
+return null;
+
+return valid.reduce(
+(a,b)=>
+!a||
+b[side]>
+a[side]
+?
+b
+:
+a,
+null
+);
+
+}
+
+async function loadOdds(
+game,
+silent=false
+){
+
+const key=
+(
+localStorage.getItem(
+'wyntr_odds_key'
+)
+||
+$('oddsKey')?.value
+||
+''
+).trim();
+
+const box=
+$('oddsPanel');
+
+if(!box)
+return;
+
+if(!key){
+
+box.innerHTML=`
+
+<b>
+Comparador de cuotas
+</b>
+
+<div
+class="notice"
+style="margin-top:8px"
+>
+
+Añade una API key para consultar cuotas reales.
+
+</div>
+
+`;
+
+return;
+
+}
+
+if(!silent){
+
+box.innerHTML=`
+
+<b>
+Comparador de cuotas
+</b>
+
+<div
+class="notice"
+style="margin-top:8px"
+>
+
+Consultando mercados…
+
+</div>
+
+`;
+
+}
+
+try{
+
+const region=
+$('oddsRegion')?.value||
+'us';
+
+const markets=
+$('oddsMarkets')?.value||
+'h2h,spreads,totals';
+
+const url=
+'https://api.the-odds-api.com/v4/sports/basketball_nba/odds/?regions='+
+encodeURIComponent(region)+
+'&markets='+
+encodeURIComponent(markets)+
+'&oddsFormat=decimal&apiKey='+
+encodeURIComponent(key);
+
+const response=
+await fetch(
+url,
+{
+cache:'no-store'
+}
+);
+
+if(!response.ok){
+
+throw Error(
+'API de cuotas: '+
+response.status
+);
+
+}
+
+const data=
+await response.json();
+
+const norm=s=>
+String(s||'')
+.toLowerCase()
+.replace(
+/[^a-z0-9]/g,
+''
+);
+
+const event=
+data.find(
+x=>{
+
+const h=
+norm(x.home_team);
+
+const a=
+norm(x.away_team);
+
+return(
+
+(
+h===norm(game.home)||
+a===norm(game.home)
+)
+
+&&
+
+(
+h===norm(game.away)||
+a===norm(game.away)
+)
+
+);
+
+}
+);
+
+if(!event){
+
+box.innerHTML=`
+
+<b>
+Comparador de cuotas
+</b>
+
+<div
+class="notice"
+style="margin-top:8px"
+>
+
+No se encontró una línea actual para este partido.
+
+</div>
+
+`;
+
+oddsNextAt=
+Date.now()+60000;
+
+setOddsStatus();
+
+return;
+
+}
+
+const books=[];
+
+(event.bookmakers||[])
+.forEach(
+book=>{
+
+(book.markets||[])
+.forEach(
+market=>{
+
+const outcomes=
+market.outcomes||[];
+
+if(
+market.key==='h2h'
+){
+
+const homeOutcome=
+outcomes.find(
+o=>
+norm(o.name)===
+norm(game.home)
+);
+
+const awayOutcome=
+outcomes.find(
+o=>
+norm(o.name)===
+norm(game.away)
+);
+
+if(
+homeOutcome||
+awayOutcome
+){
+
+books.push({
+
+book:
+book.title,
+
+market:
+'Moneyline',
+
+home:
+homeOutcome?.price,
+
+away:
+awayOutcome?.price,
+
+last:
+market.last_update||
+book.last_update||
+null
+
+});
+
+}
+
+}
+
+}
+);
+
+}
+);
+
+const bestHome=
+findBest(
+books,
+'home'
+);
+
+const bestAway=
+findBest(
+books,
+'away'
+);
+
+let html=`
+
+<b>
+Comparador de cuotas · Moneyline
+</b>
+
+`;
+
+if(books.length){
+
+html+=`
+
+<div
+style="overflow:auto;margin-top:8px"
+>
+
+<table
+class="oddsTable"
+>
+
+<tr>
+
+<th>
+Casa
+</th>
+
+<th>
+${game.home}
+</th>
+
+<th>
+${game.away}
+</th>
+
+<th>
+Actualizada
+</th>
+
+</tr>
+
+`;
+
+books.forEach(
+x=>{
+
+const stamp=
+x.last
+?
+new Date(
+x.last
+).toLocaleTimeString(
+'es-CO',
+{
+hour:'2-digit',
+minute:'2-digit',
+second:'2-digit'
+}
+)
+:
+'—';
+
+const homeBest=
+bestHome&&
+x.book===
+bestHome.book&&
+x.home===
+bestHome.home;
+
+const awayBest=
+bestAway&&
+x.book===
+bestAway.book&&
+x.away===
+bestAway.away;
+
+html+=`
+
+<tr>
+
+<td>
+${x.book}
+</td>
+
+<td
+class="${homeBest?'best':''}"
+>
+
+${formatOdd(x.home)}
+
+</td>
+
+<td
+class="${awayBest?'best':''}"
+>
+
+${formatOdd(x.away)}
+
+</td>
+
+<td>
+${stamp}
+</td>
+
+</tr>
+
+`;
+
+}
+);
+
+html+=`
+
+</table>
+
+</div>
+
+`;
+
+const bestHomeEV=
+bestHome
+?
+calculateEV(
+Number(
+(
+selected?.home||
+game.home
+)
+&&
+selected?.wyntrHomeProbability
+?
+selected.wyntrHomeProbability
+:
+0,
+bestHome.home
+)
+:
+null;
+
+const bestAwayEV=
+bestAway
+?
+calculateEV(
+selected?.wyntrAwayProbability
+?
+selected.wyntrAwayProbability
+:
+0,
+bestAway.away
+)
+:
+null;
+
+html+=`
+
+<div
+class="metricGrid"
+style="margin-top:10px"
+>
+
+<div class="metric">
+
+<div class="label">
+MEJOR LOCAL
+</div>
+
+<b>
+${bestHome
+?
+formatOdd(
+bestHome.home
+)
+:
+'—'}
+</b>
+
+<div class="notice">
+
+${bestHome?.book||'—'}
+
+</div>
+
+</div>
+
+<div class="metric">
+
+<div class="label">
+MEJOR VISITANTE
+</div>
+
+<b>
+${bestAway
+?
+formatOdd(
+bestAway.away
+)
+:
+'—'}
+</b>
+
+<div class="notice">
+
+${bestAway?.book||'—'}
+
+</div>
+
+</div>
+
+<div class="metric">
+
+<div class="label">
+CASAS
+</div>
+
+<b>
+${books.length}
+</b>
+
+<div class="notice">
+comparadas
+</div>
+
+</div>
+
+</div>
+
+`;
+
+}else{
+
+html+=`
+
+<div
+class="notice"
+style="margin-top:8px"
+>
+
+La API respondió, pero no devolvió cuotas moneyline para este partido.
+
+</div>
+
+`;
+
+}
+
+html+=`
+
+<div
+class="notice"
+style="margin-top:9px"
+>
+
+Las cuotas se consultan automáticamente cada 60 segundos.
+La disponibilidad puede variar según región, mercado y operador.
+
+</div>
+
+`;
+
+box.innerHTML=
+html;
+
+setLastOddsTime();
+
+oddsNextAt=
+Date.now()+60000;
+
+setOddsStatus();
+
+}catch(e){
+
+box.innerHTML=`
+
+<b>
+Comparador de cuotas
+</b>
+
+<div
+class="notice"
+style="margin-top:8px"
+>
+
+No se pudo consultar la API:
+
+${e.message}
+
+</div>
+
+`;
+
+oddsNextAt=
+Date.now()+60000;
+
+setOddsStatus();
+
+
+}
+<script>
+/* =========================================================
+   WYNTR V10.2 — BLOQUE 3/3
+   CIERRE, CUOTAS, EV, AUTO-REFRESH Y ARRANQUE
+   ========================================================= */
+
+/* ---------- ESTADO GLOBAL DEL ANÁLISIS ---------- */
+
+window.wyntrCurrentAnalysis = null;
+
+/*
+  Envolvemos analyzeGame para conservar el resultado
+  y permitir que el módulo de cuotas utilice la probabilidad
+  calculada por WYNTR.
+*/
+const wyntrOriginalAnalyzeGame = analyzeGame;
+
+analyzeGame = async function(game){
+  const result = await wyntrOriginalAnalyzeGame(game);
+
+  window.wyntrCurrentAnalysis = result;
+
+  if(game){
+    game.wyntrHomeProbability = Number(result.home || 0) / 100;
+    game.wyntrAwayProbability = Number(result.away || 0) / 100;
+  }
+
+  return result;
+};
+
+
+/* =========================================================
+   CUOTAS — VERSIÓN CORREGIDA
+   ========================================================= */
+
+loadOdds = async function(game, silent = false){
+
+  const key = localStorage.getItem("wyntr_odds_key");
+
+  if(!key){
+    setOddsStatus("Configura primero tu API Key de cuotas.");
+    setLastOddsTime("Sin conexión");
+    return;
+  }
+
+  if(!game){
+    setOddsStatus("Selecciona un partido.");
+    return;
+  }
+
+  const oddsBox = $("oddsContent");
+
+  if(!silent){
+    setOddsStatus("Actualizando cuotas...");
+  }
+
+  if(oddsBox){
+    oddsBox.innerHTML = `
+      <div class="muted">
+        Consultando casas de apuestas...
+      </div>
+    `;
+  }
+
+  try{
+
+    const url =
+      "https://api.the-odds-api.com/v4/sports/basketball_nba/odds/" +
+      "?regions=us" +
+      "&markets=h2h,spreads,totals" +
+      "&oddsFormat=decimal" +
+      "&apiKey=" +
+      encodeURIComponent(key);
+
+    const response = await fetch(url);
+
+    if(!response.ok){
+
+      let message = "Error consultando cuotas.";
+
+      if(response.status === 401){
+        message = "API Key inválida.";
+      }
+
+      if(response.status === 429){
+        message = "Límite de consultas alcanzado.";
+      }
+
+      throw new Error(message);
+    }
+
+    const data = await response.json();
+
+    /*
+      Intentamos identificar el evento por los nombres
+      de los equipos.
+    */
+
+    const homeName = String(
+      game.home?.name ||
+      game.homeTeam?.name ||
+      ""
+    ).toLowerCase();
+
+    const awayName = String(
+      game.away?.name ||
+      game.awayTeam?.name ||
+      ""
+    ).toLowerCase();
+
+    let event = data.find(ev => {
+
+      const h = String(ev.home_team || "").toLowerCase();
+      const a = String(ev.away_team || "").toLowerCase();
+
+      return (
+        (h.includes(homeName) || homeName.includes(h)) &&
+        (a.includes(awayName) || awayName.includes(a))
+      );
+
+    });
+
+    /*
+      Segundo intento utilizando abreviaturas/nombres cortos.
+    */
+
+    if(!event){
+
+      const homeShort = String(
+        game.home?.abbreviation ||
+        game.home?.shortName ||
+        ""
+      ).toLowerCase();
+
+      const awayShort = String(
+        game.away?.abbreviation ||
+        game.away?.shortName ||
+        ""
+      ).toLowerCase();
+
+      event = data.find(ev => {
+
+        const h = String(ev.home_team || "").toLowerCase();
+        const a = String(ev.away_team || "").toLowerCase();
+
+        return (
+          (homeShort && (h.includes(homeShort) || homeShort.includes(h))) &&
+          (awayShort && (a.includes(awayShort) || awayShort.includes(a)))
+        );
+
+      });
+
+    }
+
+    if(!event){
+
+      if(oddsBox){
+
+        oddsBox.innerHTML = `
+          <div class="muted">
+            No se encontraron cuotas para este partido
+            en las casas consultadas.
+          </div>
+        `;
+
+      }
+
+      setOddsStatus("Sin cuotas disponibles para este partido.");
+      setLastOddsTime(new Date().toLocaleTimeString("es-CO"));
+
+      return;
+    }
+
+
+    /* =====================================================
+       RECOPILAR MONEYLINE
+       ===================================================== */
+
+    const moneylines = [];
+
+    const spreads = [];
+
+    const totals = [];
+
+    (event.bookmakers || []).forEach(bookmaker => {
+
+      const bookmakerName =
+        bookmaker.title ||
+        bookmaker.key ||
+        "Casa";
+
+      (bookmaker.markets || []).forEach(market => {
+
+        if(market.key === "h2h"){
+
+          const outcomes = market.outcomes || [];
+
+          const homeOutcome =
+            outcomes.find(o =>
+              String(o.name).toLowerCase() ===
+              String(event.home_team).toLowerCase()
+            );
+
+          const awayOutcome =
+            outcomes.find(o =>
+              String(o.name).toLowerCase() ===
+              String(event.away_team).toLowerCase()
+            );
+
+          if(homeOutcome){
+
+            moneylines.push({
+              bookmaker: bookmakerName,
+              side: "home",
+              name: event.home_team,
+              price: Number(homeOutcome.price),
+              updated: market.last_update || bookmaker.last_update
+            });
+
+          }
+
+          if(awayOutcome){
+
+            moneylines.push({
+              bookmaker: bookmakerName,
+              side: "away",
+              name: event.away_team,
+              price: Number(awayOutcome.price),
+              updated: market.last_update || bookmaker.last_update
+            });
+
+          }
+
+        }
+
+
+        /* =================================================
+           SPREADS
+           ================================================= */
+
+        if(market.key === "spreads"){
+
+          (market.outcomes || []).forEach(outcome => {
+
+            spreads.push({
+              bookmaker: bookmakerName,
+              name: outcome.name,
+              point: outcome.point,
+              price: Number(outcome.price),
+              updated: market.last_update || bookmaker.last_update
+            });
+
+          });
+
+        }
+
+
+        /* =================================================
+           TOTALES
+           ================================================= */
+
+        if(market.key === "totals"){
+
+          (market.outcomes || []).forEach(outcome => {
+
+            totals.push({
+              bookmaker: bookmakerName,
+              name: outcome.name,
+              point: outcome.point,
+              price: Number(outcome.price),
+              updated: market.last_update || bookmaker.last_update
+            });
+
+          });
+
+        }
+
+      });
+
+    });
+
+
+    /* =====================================================
+       MEJORES CUOTAS MONEYLINE
+       ===================================================== */
+
+    const homeOdds =
+      moneylines
+      .filter(x => x.side === "home")
+      .sort((a,b) => b.price - a.price);
+
+    const awayOdds =
+      moneylines
+      .filter(x => x.side === "away")
+      .sort((a,b) => b.price - a.price);
+
+    const bestHome = homeOdds[0] || null;
+
+    const bestAway = awayOdds[0] || null;
+
+
+    /* =====================================================
+       PROBABILIDAD WYNTR
+       ===================================================== */
+
+    const analysis = window.wyntrCurrentAnalysis || {};
+
+    const wyntrHome =
+      Number(analysis.home || game.wyntrHomeProbability * 100 || 0) / 100;
+
+    const wyntrAway =
+      Number(analysis.away || game.wyntrAwayProbability * 100 || 0) / 100;
+
+
+    /* =====================================================
+       PROBABILIDAD IMPLÍCITA
+       ===================================================== */
+
+    const homeImplied =
+      bestHome ? impliedProbability(bestHome.price) : null;
+
+    const awayImplied =
+      bestAway ? impliedProbability(bestAway.price) : null;
+
+
+    /* =====================================================
+       VALOR ESPERADO
+       EV = (probabilidad * cuota) - 1
+       ===================================================== */
+
+    const homeEV =
+      bestHome && wyntrHome
+      ? calculateEV(wyntrHome, bestHome.price)
+      : null;
+
+    const awayEV =
+      bestAway && wyntrAway
+      ? calculateEV(wyntrAway, bestAway.price)
+      : null;
+
+
+    /* =====================================================
+       MEJOR CUOTA GENERAL
+       ===================================================== */
+
+    const bestHomeText =
+      bestHome
+      ? `${bestHome.price.toFixed(2)} — ${bestHome.bookmaker}`
+      : "N/D";
+
+    const bestAwayText =
+      bestAway
+      ? `${bestAway.price.toFixed(2)} — ${bestAway.bookmaker}`
+      : "N/D";
+
+
+    /* =====================================================
+       RENDER MONEYLINE
+       ===================================================== */
+
+    let html = `
+      <div class="odds-grid">
+
+        <div class="card">
+
+          <div class="muted">
+            MEJOR CUOTA — LOCAL
+          </div>
+
+          <div class="big">
+            ${bestHome ? bestHome.price.toFixed(2) : "N/D"}
+          </div>
+
+          <div>
+            ${bestHome ? bestHome.bookmaker : ""}
+          </div>
+
+        </div>
+
+
+        <div class="card">
+
+          <div class="muted">
+            MEJOR CUOTA — VISITANTE
+          </div>
+
+          <div class="big">
+            ${bestAway ? bestAway.price.toFixed(2) : "N/D"}
+          </div>
+
+          <div>
+            ${bestAway ? bestAway.bookmaker : ""}
+          </div>
+
+        </div>
+
+      </div>
+
+
+      <h3>Moneyline</h3>
+
+      <div class="table-wrap">
+
+        <table>
+
+          <thead>
+            <tr>
+              <th>Casa</th>
+              <th>Local</th>
+              <th>Visitante</th>
+            </tr>
+          </thead>
+
+          <tbody>
+    `;
+
+
+    const bookmakers = {};
+
+    moneylines.forEach(item => {
+
+      if(!bookmakers[item.bookmaker]){
+        bookmakers[item.bookmaker] = {};
+      }
+
+      bookmakers[item.bookmaker][item.side] = item.price;
+
+    });
+
+
+    Object.entries(bookmakers).forEach(([bookmaker, values]) => {
+
+      html += `
+        <tr>
+          <td>${bookmaker}</td>
+          <td>${values.home ? values.home.toFixed(2) : "—"}</td>
+          <td>${values.away ? values.away.toFixed(2) : "—"}</td>
+        </tr>
+      `;
+
+    });
+
+
+    html += `
+          </tbody>
+
+        </table>
+
+      </div>
+
+
+      <h3>WYNTR vs mercado</h3>
+
+      <div class="table-wrap">
+
+        <table>
+
+          <thead>
+
+            <tr>
+              <th>Resultado</th>
+              <th>WYNTR</th>
+              <th>Implícita</th>
+              <th>Diferencia</th>
+              <th>EV</th>
+            </tr>
+
+          </thead>
+
+          <tbody>
+
+            <tr>
+              <td>${event.home_team}</td>
+
+              <td>
+                ${wyntrHome
+                  ? (wyntrHome * 100).toFixed(1) + "%"
+                  : "N/D"}
+              </td>
+
+              <td>
+                ${homeImplied !== null
+                  ? (homeImplied * 100).toFixed(1) + "%"
+                  : "N/D"}
+              </td>
+
+              <td>
+                ${homeImplied !== null
+                  ? ((wyntrHome - homeImplied) * 100).toFixed(1) + " pp"
+                  : "N/D"}
+              </td>
+
+              <td>
+                ${homeEV !== null
+                  ? formatEV(homeEV)
+                  : "N/D"}
+              </td>
+
+            </tr>
+
+
+            <tr>
+              <td>${event.away_team}</td>
+
+              <td>
+                ${wyntrAway
+                  ? (wyntrAway * 100).toFixed(1) + "%"
+                  : "N/D"}
+              </td>
+
+              <td>
+                ${awayImplied !== null
+                  ? (awayImplied * 100).toFixed(1) + "%"
+                  : "N/D"}
+              </td>
+
+              <td>
+                ${awayImplied !== null
+                  ? ((wyntrAway - awayImplied) * 100).toFixed(1) + " pp"
+                  : "N/D"}
+              </td>
+
+              <td>
+                ${awayEV !== null
+                  ? formatEV(awayEV)
+                  : "N/D"}
+              </td>
+
+            </tr>
+
+          </tbody>
+
+        </table>
+
+      </div>
+    `;
+
+
+    /* =====================================================
+       SPREADS
+       ===================================================== */
+
+    if(spreads.length){
+
+      html += `
+        <h3>Spread</h3>
+
+        <div class="table-wrap">
+
+          <table>
+
+            <thead>
+              <tr>
+                <th>Casa</th>
+                <th>Equipo</th>
+                <th>Línea</th>
+                <th>Cuota</th>
+              </tr>
+            </thead>
+
+            <tbody>
+      `;
+
+      spreads.forEach(item => {
+
+        html += `
+          <tr>
+            <td>${item.bookmaker}</td>
+            <td>${item.name}</td>
+            <td>${item.point ?? "—"}</td>
+            <td>${item.price.toFixed(2)}</td>
+          </tr>
+        `;
+
+      });
+
+      html += `
+            </tbody>
+
+          </table>
+
+        </div>
+      `;
+
+    }
+
+
+    /* =====================================================
+       TOTALES
+       ===================================================== */
+
+    if(totals.length){
+
+      html += `
+        <h3>Totales</h3>
+
+        <div class="table-wrap">
+
+          <table>
+
+            <thead>
+              <tr>
+                <th>Casa</th>
+                <th>Mercado</th>
+                <th>Línea</th>
+                <th>Cuota</th>
+              </tr>
+            </thead>
+
+            <tbody>
+      `;
+
+      totals.forEach(item => {
+
+        html += `
+          <tr>
+            <td>${item.bookmaker}</td>
+            <td>${item.name}</td>
+            <td>${item.point ?? "—"}</td>
+            <td>${item.price.toFixed(2)}</td>
+          </tr>
+        `;
+
+      });
+
+      html += `
+            </tbody>
+
+          </table>
+
+        </div>
+      `;
+
+    }
+
+
+    /* =====================================================
+       INFORMACIÓN SOBRE ACTUALIZACIÓN
+       ===================================================== */
+
+    const marketUpdate =
+      event.bookmakers?.[0]?.last_update ||
+      event.commence_time ||
+      new Date().toISOString();
+
+
+    html += `
+
+      <div class="muted" style="margin-top:14px">
+
+        Última actualización del mercado:
+        ${new Date(marketUpdate).toLocaleString("es-CO")}
+
+        <br>
+
+        Actualización automática WYNTR:
+        cada 60 segundos.
+
+      </div>
+
+      <div class="muted" style="margin-top:8px">
+
+        Nota: WYNTR no inventa lesiones, cuotas ni movimientos.
+        Solo muestra datos recibidos de las fuentes conectadas.
+
+      </div>
+
+    `;
+
+
+    if(oddsBox){
+      oddsBox.innerHTML = html;
+    }
+
+    setOddsStatus(
+      `Cuotas actualizadas · ${moneylines.length} precios`
+    );
+
+    setLastOddsTime(
+      new Date().toLocaleTimeString("es-CO")
+    );
+
+  }catch(error){
+
+    console.error(error);
+
+    setOddsStatus(
+      error.message || "No fue posible actualizar las cuotas."
+    );
+
+    if(oddsBox){
+
+      oddsBox.innerHTML = `
+        <div class="muted">
+          No se pudieron cargar las cuotas.
+          Revisa tu API Key y la conexión.
+        </div>
+      `;
+
+    }
+
+  }
+
+};
+
+
+/* =========================================================
+   ENVOLVER SELECT PARA ACTIVAR AUTO-REFRESH
+   ========================================================= */
+
+const wyntrOriginalSelect = select;
+
+select = async function(id){
+
+  await wyntrOriginalSelect(id);
+
+  if(selected){
+
+    startOddsRefresh(selected);
+
+  }
+
+};
+
+
+/* =========================================================
+   CONFIGURACIÓN DE API KEY
+   ========================================================= */
+
+const savedOddsKey =
+  localStorage.getItem("wyntr_odds_key");
+
+if(savedOddsKey && $("oddsKey")){
+
+  $("oddsKey").value = savedOddsKey;
+
+}
+
+
+$("saveOdds")?.addEventListener("click", () => {
+
+  const value =
+    ($("oddsKey")?.value || "").trim();
+
+  if(!value){
+
+    setOddsStatus("Introduce una API Key.");
+
+    return;
+
+  }
+
+  localStorage.setItem(
+    "wyntr_odds_key",
+    value
+  );
+
+  setOddsStatus(
+    "API Key guardada correctamente."
+  );
+
+  if(selected){
+
+    loadOdds(selected,false);
+
+  }
+
+});
+
+
+/* =========================================================
+   BOTÓN ACTUALIZAR CUOTAS
+   ========================================================= */
+
+$("oddsRefresh")?.addEventListener("click", async () => {
+
+  if(!selected){
+
+    setOddsStatus(
+      "Selecciona primero un partido."
+    );
+
+    return;
+
+  }
+
+  await loadOdds(selected,false);
+
+  startOddsRefresh(selected);
+
+});
+
+
+/* =========================================================
+   FILTROS
+   ========================================================= */
+
+$("team")?.addEventListener("change", () => {
+
+  render();
+
+});
+
+
+$("type")?.addEventListener("change", () => {
+
+  render();
+
+});
+
+
+/* =========================================================
+   CAMBIO DE RANGO HISTÓRICO
+   ========================================================= */
+
+$("range")?.addEventListener("change", () => {
+
+  load();
+
+});
+
+
+/* =========================================================
+   RECARGAR CALENDARIO
+   ========================================================= */
+
+$("reload")?.addEventListener("click", () => {
+
+  load();
+
+});
+
+
+/* =========================================================
+   VISIBILIDAD DE LA PÁGINA
+   ========================================================= */
+
+document.addEventListener(
+  "visibilitychange",
+  () => {
+
+    if(document.hidden){
+
+      stopOddsRefresh();
+
+    }else{
+
+      if(selected){
+
+        startOddsRefresh(selected);
+
+      }
+
+    }
+
+  }
+);
+
+
+/* =========================================================
+   DETENER REFRESH AL CERRAR / CAMBIAR PÁGINA
+   ========================================================= */
+
+window.addEventListener(
+  "beforeunload",
+  () => {
+
+    stopOddsRefresh();
+
+  }
+);
+
+
+/* =========================================================
+   ARRANQUE DE WYNTR
+   ========================================================= */
+
+(async function(){
+
+  try{
+
+    setOddsStatus(
+      "WYNTR iniciando..."
+    );
+
+    await load();
+
+  }catch(error){
+
+    console.error(error);
+
+    const app =
+      $("app");
+
+    if(app){
+
+      app.innerHTML = `
+        <div class="card">
+
+          <h2>Error iniciando WYNTR</h2>
+
+          <p class="muted">
+            ${error.message || "Error desconocido"}
+          </p>
+
+          <button onclick="location.reload()">
+            Recargar
+          </button>
+
+        </div>
+      `;
+
+    }
+
+  }
+
+})();
+
+</script>
+
+</body>
+</html>
