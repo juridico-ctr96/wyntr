@@ -5,7 +5,7 @@ export default async function handler(req, res) {
   }
 
   const upstream =
-    "https://cdn.nba.com/static/json/staticData/scheduleLeagueV2_1.json";
+    "https://cdn.nba.com/static/json/staticData/scheduleLeagueV2.json";
 
   try {
     const response = await fetch(upstream, {
