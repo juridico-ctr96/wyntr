@@ -1535,7 +1535,44 @@ async function fetchBDLGames(
    ========================================================= */
 
 function normalizeTeamCode(value){
-  return String(value||"").toUpperCase().replace(/[^A-Z]/g,"").trim();
+  const raw=String(value||"").toUpperCase().replace(/[^A-Z]/g,"").trim();
+
+  const aliases={
+    ATLANTAHAWKS:"ATL",
+    BOSTONCELTICS:"BOS",
+    BROOKLYNNETS:"BKN",
+    CHARLOTTEHORNETS:"CHA",
+    CHICAGOBULLS:"CHI",
+    CLEVELANDCAVALIERS:"CLE",
+    DALLASMAVERICKS:"DAL",
+    DENVERNUGGETS:"DEN",
+    DETROITPISTONS:"DET",
+    GOLDENSTATEWARRIORS:"GSW",
+    HOUSTONROCKETS:"HOU",
+    INDIANAPACERS:"IND",
+    LACLIPPERS:"LAC",
+    LOSANGELESCLIPPERS:"LAC",
+    LOSANGELESLAKERS:"LAL",
+    MEMPHISGRIZZLIES:"MEM",
+    MIAMIHEAT:"MIA",
+    MILWAUKEEBUCKS:"MIL",
+    MINNESOTATIMBERWOLVES:"MIN",
+    NEWORLEANPELICANS:"NOP",
+    NEWORLEANPELICANS:"NOP",
+    NEWYORKKNICKS:"NYK",
+    OKLAHOMACITYTHUNDER:"OKC",
+    ORLANDOMAGIC:"ORL",
+    PHILADELPHIA76ERS:"PHI",
+    PHOENIXSUNS:"PHX",
+    PORTLANDTRAILBLAZERS:"POR",
+    SACRAMENTOKINGS:"SAC",
+    SANANTONIOSPURS:"SAS",
+    TORONTORAPTORS:"TOR",
+    UTAHJAZZ:"UTA",
+    WASHINGTONWIZARDS:"WAS"
+  };
+
+  return aliases[raw] || raw;
 }
 
 const BDL_TEAM_IDS={
@@ -1954,6 +1991,64 @@ async function loadCalendar(force=false){
     calendarLoadPromise=null;
   }
 }
+
+/* =========================================================
+   EQUIPOS
+   ========================================================= */
+
+function updateTeams(){
+
+  const select=$("team");
+  if(!select)return;
+
+  const map=new Map();
+
+  games.forEach(game=>{
+    if(game?.home?.id)map.set(String(game.home.id),game.home);
+    if(game?.away?.id)map.set(String(game.away.id),game.away);
+  });
+
+  const current=select.value;
+
+  select.innerHTML=`<option value="all">Todos</option>`;
+
+  [...map.values()]
+    .sort((a,b)=>String(a.name||"").localeCompare(String(b.name||""),"es"))
+    .forEach(team=>{
+      select.innerHTML+=`
+        <option value="${esc(team.id)}">${esc(team.name||team.abbr||"Equipo")}</option>
+      `;
+    });
+
+  if(map.has(current))select.value=current;
+}
+
+
+/* =========================================================
+   FILTROS
+   ========================================================= */
+
+function filtered(){
+
+  const selectedTeam=$("team")?.value||"all";
+  const type=$("type")?.value||"all";
+
+  return games.filter(game=>{
+
+    const teamMatch=
+      selectedTeam==="all" ||
+      String(game?.home?.id)===String(selectedTeam) ||
+      String(game?.away?.id)===String(selectedTeam);
+
+    const typeMatch=
+      type==="all" ||
+      (type==="completed" && game.completed) ||
+      (type==="upcoming" && !game.completed);
+
+    return teamMatch && typeMatch;
+  });
+}
+
 
 /* =========================================================
    RENDER PARTIDOS
