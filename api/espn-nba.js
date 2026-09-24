@@ -19,68 +19,61 @@ export default async function handler(req, res) {
     return res.status(400).json({ error: "Invalid date range" });
   }
 
-  // ESPN deprecated YYYYMMDD-YYYYMMDD range queries in September 2026.
-  // Query each calendar month instead, then filter the returned events to
-  // the exact window requested by WYNTR. This keeps the upstream calls low
-  // while avoiding the broken date-range endpoint.
-  const months = [];
-  const cursor = new Date(Date.UTC(start.getUTCFullYear(), start.getUTCMonth(), 1));
-  const lastMonth = new Date(Date.UTC(end.getUTCFullYear(), end.getUTCMonth(), 1));
-
-  while (cursor <= lastMonth) {
-    const year = cursor.getUTCFullYear();
-    const month = String(cursor.getUTCMonth() + 1).padStart(2, "0");
-    months.push(`${year}${month}`);
-    cursor.setUTCMonth(cursor.getUTCMonth() + 1);
+  // ESPN's reliable scoreboard contract is one calendar date per request.
+  // Query the requested window in small concurrent batches and stitch the
+  // real events together server-side.
+  const dates = [];
+  for (let cursor = new Date(start); cursor <= end; cursor.setUTCDate(cursor.getUTCDate() + 1)) {
+    dates.push(cursor.toISOString().slice(0, 10).replaceAll("-", ""));
   }
 
+  const fetchDate = async date => {
+    const upstream =
+      `https://site.api.espn.com/apis/site/v2/sports/basketball/nba/scoreboard?dates=${date}&limit=100`;
+
+    const response = await fetch(upstream, {
+      headers: {
+        Accept: "application/json",
+        "User-Agent": "WYNTR/1.0"
+      }
+    });
+
+    const body = await response.text();
+
+    if (!response.ok) {
+      throw new Error(
+        `ESPN ${date} failed (HTTP ${response.status}): ${body.slice(0, 240)}`
+      );
+    }
+
+    const payload = JSON.parse(body);
+    return Array.isArray(payload?.events) ? payload.events : [];
+  };
+
   try {
-    const responses = await Promise.all(
-      months.map(async month => {
-        const upstream =
-          `https://site.web.api.espn.com/apis/site/v2/sports/basketball/nba/scoreboard?dates=${month}&limit=300`;
+    const events = [];
 
-        const response = await fetch(upstream, {
-          headers: {
-            Accept: "application/json",
-            "User-Agent": "WYNTR/1.0"
-          }
-        });
+    // Keep concurrency bounded so one calendar refresh does not hammer ESPN.
+    for (let i = 0; i < dates.length; i += 10) {
+      const batch = dates.slice(i, i + 10);
+      const results = await Promise.all(batch.map(fetchDate));
+      results.forEach(rows => events.push(...rows));
+    }
 
-        const body = await response.text();
+    const filtered = events.filter(event => {
+      const date = new Date(event?.date);
+      return Number.isFinite(date.getTime()) && date >= start && date <= end;
+    });
 
-        if (!response.ok) {
-          throw new Error(
-            `ESPN month ${month} failed (HTTP ${response.status}): ${body.slice(0, 240)}`
-          );
-        }
+    const unique = [];
+    const seen = new Set();
 
-        let payload;
-        try {
-          payload = JSON.parse(body);
-        } catch {
-          throw new Error(`ESPN month ${month} returned invalid JSON`);
-        }
-
-        return Array.isArray(payload?.events) ? payload.events : [];
-      })
-    );
-
-    const events = responses
-      .flat()
-      .filter(event => {
-        const date = new Date(event?.date);
-        return Number.isFinite(date.getTime()) &&
-          date >= start &&
-          date <= end;
-      });
-
-    const payload = {
-      source: "ESPN",
-      start_date: startRaw,
-      end_date: endRaw,
-      events
-    };
+    for (const event of filtered) {
+      const id = String(event?.id || "");
+      if (!id || seen.has(id)) continue;
+      seen.add(id);
+      unique.push(event);
+    }
 
     res.setHeader(
       "Cache-Control",
@@ -88,7 +81,12 @@ export default async function handler(req, res) {
     );
     res.setHeader("Content-Type", "application/json");
 
-    return res.status(200).json(payload);
+    return res.status(200).json({
+      source: "ESPN",
+      start_date: startRaw,
+      end_date: endRaw,
+      events: unique
+    });
   } catch (error) {
     console.error("WYNTR ESPN NBA proxy error:", error);
     return res.status(502).json({
