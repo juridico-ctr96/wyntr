@@ -43,7 +43,11 @@ export default async function handler(req, res) {
 
     res.setHeader(
       "Cache-Control",
-      "s-maxage=30, stale-while-revalidate=120"
+      "s-maxage=300, stale-while-revalidate=900"
+    );
+    res.setHeader(
+      "Vercel-CDN-Cache-Control",
+      "public, s-maxage=300, stale-while-revalidate=900"
     );
 
     res.setHeader(
