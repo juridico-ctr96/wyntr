@@ -1,5 +1,15 @@
-const CACHE = "wyntr-shell-v1";
-const SHELL = ["/", "/index.html", "/manifest.webmanifest", "/offline.html", "/app/config.js", "/app/store.js", "/app/api.js", "/app/entitlements.js", "/icons/icon.svg"];
+const CACHE = "wyntr-shell-v2";
+const SHELL = [
+  "/",
+  "/index.html",
+  "/manifest.webmanifest",
+  "/offline.html",
+  "/app/config.js",
+  "/app/store.js",
+  "/app/api.js",
+  "/app/entitlements.js",
+  "/icons/icon.svg"
+];
 
 self.addEventListener("install", event => {
   event.waitUntil(
@@ -22,17 +32,34 @@ self.addEventListener("activate", event => {
 self.addEventListener("fetch", event => {
   const request = event.request;
   if (request.method !== "GET") return;
+
   const url = new URL(request.url);
   if (url.origin !== self.location.origin) return;
 
   if (url.pathname.startsWith("/api/")) {
+    event.respondWith(fetch(request));
+    return;
+  }
+
+  if (request.mode === "navigate") {
     event.respondWith(
-      fetch(request).catch(() => caches.match("/offline.html"))
+      fetch(request)
+        .then(response => {
+          const copy = response.clone();
+          caches.open(CACHE).then(cache => cache.put("/index.html", copy));
+          return response;
+        })
+        .catch(() => caches.match("/index.html").then(cached => cached || caches.match("/offline.html")))
     );
     return;
   }
 
   event.respondWith(
-    caches.match(request).then(cached => cached || fetch(request).catch(() => caches.match("/offline.html")))
+    caches.match(request)
+      .then(cached => cached || fetch(request).then(response => {
+        const copy = response.clone();
+        caches.open(CACHE).then(cache => cache.put(request, copy));
+        return response;
+      }))
   );
 });
