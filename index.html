@@ -2922,7 +2922,7 @@ function normalCurveSvg(mean, sd, label, accent="#18d7b0"){
       (baseY-topY);
 
     points.push(
-      \`\${x.toFixed(1)},\${y.toFixed(1)}\`
+      `${x.toFixed(1)},${y.toFixed(1)}`
     );
 
   }
@@ -2930,25 +2930,25 @@ function normalCurveSvg(mean, sd, label, accent="#18d7b0"){
   const line = points.join(" ");
 
   const area =
-    \`M \${padX},\${baseY} L \${line} L \${width-padX},\${baseY} Z\`;
+    `M ${padX},${baseY} L ${line} L ${width-padX},${baseY} Z`;
 
   const meanX =
     padX +
     (3.2/6.4)*
     (width-padX*2);
 
-  return \`
+  return `
     <div class="distribution">
-      <div class="metric-label">\${esc(label)}</div>
-      <svg viewBox="0 0 \${width} \${height}" role="img" aria-label="Distribución estimada de puntos">
-        <path d="\${area}" fill="\${accent}" fill-opacity=".12"/>
-        <polyline points="\${line}" fill="none" stroke="\${accent}" stroke-width="3" stroke-linecap="round"/>
-        <line x1="\${meanX}" x2="\${meanX}" y1="22" y2="\${baseY}" stroke="#aab5c5" stroke-dasharray="4 4" opacity=".65"/>
-        <text x="\${meanX+6}" y="30" fill="#e9eef6" font-size="11" font-weight="800">μ \${n(mean).toFixed(1)}</text>
-        <text x="\${width/2}" y="145" text-anchor="middle" fill="#7f8da2" font-size="10">desv. est. \${n(sd).toFixed(1)}</text>
+      <div class="metric-label">${esc(label)}</div>
+      <svg viewBox="0 0 ${width} ${height}" role="img" aria-label="Distribución estimada de puntos">
+        <path d="${area}" fill="${accent}" fill-opacity=".12"/>
+        <polyline points="${line}" fill="none" stroke="${accent}" stroke-width="3" stroke-linecap="round"/>
+        <line x1="${meanX}" x2="${meanX}" y1="22" y2="${baseY}" stroke="#aab5c5" stroke-dasharray="4 4" opacity=".65"/>
+        <text x="${meanX+6}" y="30" fill="#e9eef6" font-size="11" font-weight="800">μ ${n(mean).toFixed(1)}</text>
+        <text x="${width/2}" y="145" text-anchor="middle" fill="#7f8da2" font-size="10">desv. est. ${n(sd).toFixed(1)}</text>
       </svg>
     </div>
-  \`;
+  `;
 
 }
 
@@ -2978,31 +2978,31 @@ function renderAnalysis(
       value:Math.abs(formDiff),
       text:
         formDiff >= 0
-          ? \`\${esc(game.home.short)} presenta mejor W10\`
-          : \`\${esc(game.away.short)} presenta mejor W10\`
+          ? `${esc(game.home.short)} presenta mejor W10`
+          : `${esc(game.away.short)} presenta mejor W10`
     },
     {
       title:"Localía / carretera",
       value:Math.abs(venueDiff),
       text:
         venueDiff >= 0
-          ? \`\${esc(game.home.short)} tiene mejor rendimiento en casa\`
-          : \`\${esc(game.away.short)} tiene mejor rendimiento fuera\`
+          ? `${esc(game.home.short)} tiene mejor rendimiento en casa`
+          : `${esc(game.away.short)} tiene mejor rendimiento fuera`
     },
     {
       title:"Margen de puntos",
       value:Math.abs(marginDiff)/10,
       text:
         marginDiff >= 0
-          ? \`\${esc(game.home.short)} tiene mejor margen histórico\`
-          : \`\${esc(game.away.short)} tiene mejor margen histórico\`
+          ? `${esc(game.home.short)} tiene mejor margen histórico`
+          : `${esc(game.away.short)} tiene mejor margen histórico`
     },
     {
       title:"H2H",
       value:Math.abs(h2hSignal),
       text:
         result.h2h.length
-          ? \`\${result.h2h.length} enfrentamientos disponibles\`
+          ? `${result.h2h.length} enfrentamientos disponibles`
           : "Sin enfrentamientos recientes suficientes"
     }
   ];
@@ -3011,80 +3011,80 @@ function renderAnalysis(
     Math.max(.01,...signals.map(signal=>signal.value));
 
   const keyPointsHtml =
-    signals.map(signal => \`
+    signals.map(signal => `
       <div class="signal-card">
         <div class="signal-head">
-          <span>\${signal.title}</span>
-          <span class="muted">\${Math.round(signal.value/maxSignal*100)}%</span>
+          <span>${signal.title}</span>
+          <span class="muted">${Math.round(signal.value/maxSignal*100)}%</span>
         </div>
-        <div class="signal-desc">\${signal.text}</div>
+        <div class="signal-desc">${signal.text}</div>
         <div class="signal-track">
-          <span style="width:\${Math.max(8,signal.value/maxSignal*100)}%"></span>
+          <span style="width:${Math.max(8,signal.value/maxSignal*100)}%"></span>
         </div>
       </div>
-    \`).join("");
+    `).join("");
 
-  const marketCards = \`
+  const marketCards = `
     <div class="market-chip active">
-      <strong>Ganador \${esc(game.home.short)}</strong>
-      <span>\${pct(result.home)}</span>
+      <strong>Ganador ${esc(game.home.short)}</strong>
+      <span>${pct(result.home)}</span>
     </div>
     <div class="market-chip">
-      <strong>Ganador \${esc(game.away.short)}</strong>
-      <span>\${pct(result.away)}</span>
+      <strong>Ganador ${esc(game.away.short)}</strong>
+      <span>${pct(result.away)}</span>
     </div>
     <div class="market-chip">
       <strong>Hándicap</strong>
-      <span>\${esc(game.home.short)} \${result.margin>=0?"+":"-"}\${Math.abs(result.margin).toFixed(1)}</span>
+      <span>${esc(game.home.short)} ${result.margin>=0?"+":"-"}${Math.abs(result.margin).toFixed(1)}</span>
     </div>
     <div class="market-chip">
       <strong>Total proyectado</strong>
-      <span>\${result.pace.toFixed(1)} puntos</span>
+      <span>${result.pace.toFixed(1)} puntos</span>
     </div>
-  \`;
+  `;
 
   const homeLogo = game.home.logo || teamLogoUrl(game.home.abbr);
   const awayLogo = game.away.logo || teamLogoUrl(game.away.abbr);
 
-  analysis.innerHTML = \`
+  analysis.innerHTML = `
 
     <div class="card match-hero">
 
       <div class="match-topline">
         <span>WYNTR · Ficha inteligente</span>
-        <span>\${esc(fmtDate(game.date))}</span>
+        <span>${esc(fmtDate(game.date))}</span>
       </div>
 
       <div class="match-visual">
 
         <div class="match-side">
           <div class="team-portrait">
-            \${
+            ${
               homeLogo
-                ? \`<img src="\${esc(homeLogo)}" alt="\${esc(game.home.name)}" onerror="this.style.display='none';this.nextElementSibling.style.display='block'"><span class="team-initials" style="display:none">\${esc(game.home.abbr)}</span>\`
-                : \`<span class="team-initials">\${esc(game.home.abbr || game.home.short.slice(0,3))}</span>\`
+                ? `<img src="${esc(homeLogo)}" alt="${esc(game.home.name)}" onerror="this.style.display='none';this.nextElementSibling.style.display='block'"><span class="team-initials" style="display:none">${esc(game.home.abbr)}</span>`
+                : `<span class="team-initials">${esc(game.home.abbr || game.home.short.slice(0,3))}</span>`
             }
           </div>
-          <div class="match-team-name">\${esc(game.home.name)}</div>
-          <div class="match-record">W10 \${Math.round(result.hs.w10*10)}/10</div>
+          <div class="match-team-name">${esc(game.home.name)}</div>
+          <div class="match-record">W10 ${Math.round(result.hs.w10*10)}/10</div>
         </div>
 
         <div class="match-vs">
           <div class="match-vs-label">VS</div>
-          <div class="match-score">\${homeScore} - \${awayScore}</div>
-          <div class="match-time">\${esc(game.status)}</div>
+          <div class="match-score">${homeScore} - ${awayScore}</div>
+          <div class="match-time">${esc(game.status)}</div>
         </div>
 
         <div class="match-side">
           <div class="team-portrait">
-            \${
+            ${
               awayLogo
-                ? \`<img src="\${esc(awayLogo)}" alt="\${esc(game.away.name)}" onerror="this.style.display='none';this.nextElementSibling.style.display='block'"><span class="team-initials" style="display:none">\${esc(game.away.abbr)}</span>\`
-                : \`<span class="team-initials">\${esc(game.away.abbr || game.away.short.slice(0,3))}</span>\`
+                ? `<img src="${esc(awayLogo)}" alt="${esc(game.away.name)}" onerror="this.style.display='none';this.nextElementSibling.style.display='block'"><span class="team-initials" style="display:none">${esc(game.away.abbr)}</span>`
+                : `<span class="team-initials">${esc(game.away.abbr || game.away.short.slice(0,3))}</span>`
             }
           </div>
-          <div class="match-team-name">\${esc(game.away.name)}</div>
-          <div class="match-record">W10 \${Math.round(result.as.w10*10)}/10</div>
+          <div class="match-team-name">${esc(game.away.name)}</div>
+          <div class="match-record">W10 ${Math.round(result.as.w10*10)}/10</div>
         </div>
 
       </div>
@@ -3092,21 +3092,21 @@ function renderAnalysis(
       <div class="probability-panel">
 
         <div class="prob-card">
-          <div class="prob-label">\${esc(game.home.short)}</div>
-          <div class="prob-value">\${pct(result.home)}</div>
-          <div class="prob-bar"><div class="prob-fill" style="width:\${result.home}%"></div></div>
+          <div class="prob-label">${esc(game.home.short)}</div>
+          <div class="prob-value">${pct(result.home)}</div>
+          <div class="prob-bar"><div class="prob-fill" style="width:${result.home}%"></div></div>
         </div>
 
         <div class="prob-card">
           <div class="prob-label">Modelo</div>
-          <div class="prob-value">\${esc(result.confidence)}</div>
-          <div class="prob-bar"><div class="prob-fill" style="width:\${result.confidenceScore || 0}%"></div></div>
+          <div class="prob-value">${esc(result.confidence)}</div>
+          <div class="prob-bar"><div class="prob-fill" style="width:${result.confidenceScore || 0}%"></div></div>
         </div>
 
         <div class="prob-card">
-          <div class="prob-label">\${esc(game.away.short)}</div>
-          <div class="prob-value">\${pct(result.away)}</div>
-          <div class="prob-bar"><div class="prob-fill" style="width:\${result.away}%"></div></div>
+          <div class="prob-label">${esc(game.away.short)}</div>
+          <div class="prob-value">${pct(result.away)}</div>
+          <div class="prob-bar"><div class="prob-fill" style="width:${result.away}%"></div></div>
         </div>
 
       </div>
@@ -3117,14 +3117,14 @@ function renderAnalysis(
       <div class="section-title">Predicción de marcador</div>
       <div class="score-prediction">
         <div class="score-card">
-          <div class="metric-label">\${esc(game.home.name)}</div>
-          <div class="score-big">\${homeScore} puntos</div>
-          <div class="muted">Media proyectada: \${result.lambdaHome.toFixed(1)}</div>
+          <div class="metric-label">${esc(game.home.name)}</div>
+          <div class="score-big">${homeScore} puntos</div>
+          <div class="muted">Media proyectada: ${result.lambdaHome.toFixed(1)}</div>
         </div>
         <div class="score-card">
-          <div class="metric-label">\${esc(game.away.name)}</div>
-          <div class="score-big">\${awayScore} puntos</div>
-          <div class="muted">Media proyectada: \${result.lambdaAway.toFixed(1)}</div>
+          <div class="metric-label">${esc(game.away.name)}</div>
+          <div class="score-big">${awayScore} puntos</div>
+          <div class="muted">Media proyectada: ${result.lambdaAway.toFixed(1)}</div>
         </div>
       </div>
     </div>
@@ -3132,14 +3132,14 @@ function renderAnalysis(
     <div class="card">
       <div class="section-title">Distribución de puntos · cónicas</div>
       <div class="distribution-grid">
-        \${normalCurveSvg(result.lambdaHome,result.scoreStd,game.home.short,"#ff9b4a")}
-        \${normalCurveSvg(result.lambdaAway,result.scoreStd,game.away.short,"#63e8ff")}
+        ${normalCurveSvg(result.lambdaHome,result.scoreStd,game.home.short,"#ff9b4a")}
+        ${normalCurveSvg(result.lambdaAway,result.scoreStd,game.away.short,"#63e8ff")}
       </div>
     </div>
 
     <div class="card">
       <div class="section-title">Puntos clave</div>
-      <div class="signal-grid">\${keyPointsHtml}</div>
+      <div class="signal-grid">${keyPointsHtml}</div>
       <div class="muted" style="margin-top:10px">
         Las barras representan la fuerza relativa de cada señal disponible; no son porcentajes de probabilidad independientes.
       </div>
@@ -3148,16 +3148,16 @@ function renderAnalysis(
     <div class="card">
       <div class="section-title">Componentes que alimentan la probabilidad</div>
       <div class="grid">
-        <div class="metric"><div class="metric-label">Gradient Boosting</div><div class="metric-value">\${pct(result.gb*100)}</div></div>
-        <div class="metric"><div class="metric-label">ELO</div><div class="metric-value">\${pct(result.elo*100)}</div></div>
-        <div class="metric"><div class="metric-label">Margen</div><div class="metric-value">\${pct(result.scoreDistribution*100)}</div></div>
-        <div class="metric"><div class="metric-label">Forma</div><div class="metric-value">\${pct(result.form*100)}</div></div>
+        <div class="metric"><div class="metric-label">Gradient Boosting</div><div class="metric-value">${pct(result.gb*100)}</div></div>
+        <div class="metric"><div class="metric-label">ELO</div><div class="metric-value">${pct(result.elo*100)}</div></div>
+        <div class="metric"><div class="metric-label">Margen</div><div class="metric-value">${pct(result.scoreDistribution*100)}</div></div>
+        <div class="metric"><div class="metric-label">Forma</div><div class="metric-value">${pct(result.form*100)}</div></div>
       </div>
     </div>
 
     <div class="card">
       <div class="section-title">Selección de mercado</div>
-      <div class="market-select">\${marketCards}</div>
+      <div class="market-select">${marketCards}</div>
       <div class="muted" style="margin-top:10px">
         Son salidas estadísticas de WYNTR. Las cuotas reales se muestran cuando The Odds API está configurada.
       </div>
@@ -3166,17 +3166,17 @@ function renderAnalysis(
     <div class="card">
       <div class="section-title">Calidad del modelo</div>
       <div class="grid">
-        <div class="metric"><div class="metric-label">Señal</div><div class="metric-value">\${esc(result.confidence)}</div></div>
-        <div class="metric"><div class="metric-label">Muestra</div><div class="metric-value">\${result.sample}</div></div>
-        <div class="metric"><div class="metric-label">Validación</div><div class="metric-value">\${result.validation}</div></div>
-        <div class="metric"><div class="metric-label">ELO diferencial</div><div class="metric-value">\${result.eloDiff>=0?"+":""}\${result.eloDiff.toFixed(0)}</div></div>
+        <div class="metric"><div class="metric-label">Señal</div><div class="metric-value">${esc(result.confidence)}</div></div>
+        <div class="metric"><div class="metric-label">Muestra</div><div class="metric-value">${result.sample}</div></div>
+        <div class="metric"><div class="metric-label">Validación</div><div class="metric-value">${result.validation}</div></div>
+        <div class="metric"><div class="metric-label">ELO diferencial</div><div class="metric-value">${result.eloDiff>=0?"+":""}${result.eloDiff.toFixed(0)}</div></div>
       </div>
       <div class="muted" style="margin-top:12px">
         Histórico: BALLDONTLIE. Lesiones y ausencias no se muestran como confirmadas hasta conectar una fuente específica.
       </div>
     </div>
 
-  \`;
+  `;
 
 }
 
