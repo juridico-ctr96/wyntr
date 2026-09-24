@@ -521,12 +521,110 @@ h3{
     padding:7px 4px;
   }
 }
+
+/* =========================================================
+   WYNTR VISUAL SYSTEM v2 · mobile sports intelligence
+   ========================================================= */
+:root{
+  --wyntr-bg:#050912;
+  --wyntr-panel:#0b1220;
+  --wyntr-panel-2:#101a2b;
+  --wyntr-line:#26344a;
+  --wyntr-cyan:#63e8ff;
+  --wyntr-green:#18d7b0;
+  --wyntr-orange:#ff9b4a;
+  --wyntr-red:#ff6262;
+}
+body{background:
+  radial-gradient(circle at 50% -10%,rgba(99,232,255,.08),transparent 30%),
+  var(--wyntr-bg);
+}
+.container{width:min(1180px,94%);padding-bottom:86px}
+.header{padding:10px 0 12px}
+.logo{font-size:27px;letter-spacing:4px;color:#fff;line-height:1}
+.subtitle{font-size:9px;letter-spacing:1.8px;text-transform:uppercase;color:#74839a}
+.app-nav{margin-top:10px}
+.app-nav a{background:rgba(16,26,43,.78);border-color:#1d2a3d;padding:7px 10px}
+.app-nav a:first-child{border-color:rgba(24,215,176,.38);color:#fff}
+.nba-hero{min-height:430px;border-color:#1d2b40;background:#080e18}
+.nba-hero img{height:430px;filter:brightness(.42) saturate(.9)}
+.nba-hero-overlay{padding:28px;background:linear-gradient(180deg,rgba(3,7,13,.05) 10%,rgba(3,7,13,.25) 35%,rgba(3,7,13,.95) 100%)}
+.nba-hero-title{font-size:clamp(32px,6vw,58px);max-width:620px;line-height:.95;letter-spacing:-1.5px}
+.hero-kpis{max-width:560px}
+.hero-kpi{background:rgba(5,10,18,.68);backdrop-filter:blur(10px);border-color:rgba(99,232,255,.12)}
+.dashboard-intro{display:flex;justify-content:space-between;align-items:end;gap:16px;margin:18px 0 10px}
+.dashboard-intro h2{font-size:20px;margin:0}
+.dashboard-intro p{margin:5px 0 0;color:#7f8da2;font-size:11px}
+.dashboard-action{font-size:11px;color:var(--wyntr-cyan);font-weight:900;white-space:nowrap}
+.upcoming-strip{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:14px}
+.upcoming-card{border:1px solid #24334a;background:linear-gradient(145deg,#0d1625,#0a111d);border-radius:16px;padding:12px;cursor:pointer}
+.upcoming-card:hover{border-color:var(--wyntr-cyan)}
+.upcoming-time{font-size:9px;color:#8290a4;text-transform:uppercase;letter-spacing:1px}
+.upcoming-teams{display:grid;grid-template-columns:1fr 28px 1fr;align-items:center;margin-top:10px;gap:4px}
+.upcoming-team{text-align:center;font-size:12px;font-weight:900}
+.upcoming-team img{width:35px;height:35px;object-fit:contain;display:block;margin:0 auto 5px}
+.upcoming-vs{text-align:center;color:#526078;font-size:9px;font-weight:900}
+.upcoming-prob{display:flex;justify-content:space-between;margin-top:9px;font-size:10px}
+.upcoming-prob b{color:var(--wyntr-green)}
+.section-title{font-size:11px;letter-spacing:2px;color:#a9b5c7}
+.section-title:before{width:3px;height:12px}
+.card{background:linear-gradient(145deg,rgba(13,19,32,.96),rgba(8,13,23,.96));border-color:#1c2a3d;box-shadow:0 16px 45px rgba(0,0,0,.18)}
+.match-hero{padding:16px;border-color:#263a55}
+.match-topline{font-size:8px}
+.match-visual{margin:14px 0}
+.team-portrait{width:92px;height:92px}
+.match-team-name{font-size:14px}
+.match-record{font-size:9px}
+.match-score{font-size:27px}
+.probability-panel{gap:6px}
+.prob-card{padding:10px 7px}
+.prob-value{font-size:22px}
+.match-tabs{display:flex;gap:6px;overflow-x:auto;margin:0 0 12px;padding-bottom:2px;scrollbar-width:none}
+.match-tabs::-webkit-scrollbar{display:none}
+.match-tab{flex:0 0 auto;background:#0d1625;color:#8290a4;border:1px solid #26344a;border-radius:999px;padding:8px 11px;font-size:10px;font-weight:900;cursor:pointer}
+.match-tab.active{background:#102a32;color:#fff;border-color:var(--wyntr-green);box-shadow:0 0 0 1px rgba(24,215,176,.12)}
+.match-panel{display:none}
+.match-panel.active{display:block}
+.signal-card{background:linear-gradient(145deg,#101a2a,#0b1320);border-color:#23334a}
+.signal-head span:last-child{color:var(--wyntr-green)}
+.score-card{background:linear-gradient(145deg,#111b2b,#0b1320)}
+.model-score{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.model-score .metric{padding:14px}
+.model-score .metric-value{font-size:25px}
+.live-badge,.verified-badge{display:inline-flex;align-items:center;gap:5px;border-radius:999px;padding:5px 8px;font-size:9px;font-weight:950;text-transform:uppercase}
+.live-badge{background:rgba(255,98,98,.12);color:#ff7777;border:1px solid rgba(255,98,98,.3)}
+.verified-badge{background:rgba(24,215,176,.1);color:var(--wyntr-green);border:1px solid rgba(24,215,176,.25)}
+.live-dot{width:6px;height:6px;border-radius:50%;background:#ff6262;box-shadow:0 0 10px #ff6262}
+.bottom-nav{position:fixed;left:50%;bottom:10px;transform:translateX(-50%);z-index:50;width:min(560px,calc(100% - 20px));display:grid;grid-template-columns:repeat(5,1fr);gap:4px;padding:7px;background:rgba(7,12,21,.92);border:1px solid #26344a;border-radius:18px;backdrop-filter:blur(18px);box-shadow:0 14px 40px rgba(0,0,0,.4)}
+.bottom-nav a{text-decoration:none;color:#77859a;text-align:center;font-size:8px;font-weight:900;padding:6px 2px;border-radius:11px}
+.bottom-nav a span{display:block;font-size:15px;margin-bottom:2px}
+.bottom-nav a.active{color:#fff;background:#112532}
+.game-list-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+.game-list-header strong{font-size:16px}
+.game-list-header span{font-size:10px;color:#718096}
+@media(max-width:650px){
+  .container{width:94%}
+  .header{position:sticky}
+  .nba-hero{min-height:365px}
+  .nba-hero img{height:365px}
+  .nba-hero-overlay{padding:18px}
+  .nba-hero-title{font-size:35px}
+  .upcoming-strip{grid-template-columns:repeat(3,minmax(145px,1fr));overflow-x:auto;padding-bottom:4px}
+  .upcoming-card{min-width:145px}
+  .match-visual{grid-template-columns:1fr 58px 1fr}
+  .team-portrait{width:76px;height:76px}
+  .match-team-name{font-size:12px}
+  .model-score{grid-template-columns:1fr 1fr}
+  .bottom-nav{display:grid}
+}
+@media(min-width:651px){.bottom-nav{display:none}}
+
 </style>
 </head>
 
 <body>
 
-<div class="container">
+<div id="top" class="container">
 
 <header class="header">
   <div class="header-inner">
@@ -705,40 +803,7 @@ h3{
      CUOTAS
      ======================================================= -->
 
-<section id="market-section" class="card">
 
-<div class="section-title">
-  Mercado de cuotas
-</div>
-
-<div class="two">
-
-  <div class="metric">
-    <div class="metric-label">Fuente</div>
-    <div class="metric-value" style="font-size:18px">The Odds API</div>
-    <div class="muted">Consulta segura desde servidor</div>
-  </div>
-
-  <div class="metric">
-    <div class="metric-label">Configuración</div>
-    <div id="oddsConfig" class="metric-value" style="font-size:18px">Comprobando…</div>
-    <div class="muted">La API Key no se guarda en este dispositivo.</div>
-  </div>
-
-</div>
-
-<div class="actions">
-  <button id="oddsRefresh" class="secondary">Actualizar cuotas</button>
-</div>
-
-<div id="oddsStatus" class="status">Sin configurar.</div>
-<div id="oddsQuota" class="status">Cuota API: —</div>
-<div id="oddsLast" class="status">Última actualización: —</div>
-<div id="oddsNext" class="status">Próxima consulta: —</div>
-
-<div id="oddsContent" style="margin-top:15px"></div>
-
-</section>
 
 
 <!-- =======================================================
@@ -781,6 +846,41 @@ h3{
 </div>
 
 </div>
+
+</section>
+
+<section id="market-section" class="card">
+
+<div class="section-title">
+  Mercado de cuotas
+</div>
+
+<div class="two">
+
+  <div class="metric">
+    <div class="metric-label">Fuente</div>
+    <div class="metric-value" style="font-size:18px">The Odds API</div>
+    <div class="muted">Consulta segura desde servidor</div>
+  </div>
+
+  <div class="metric">
+    <div class="metric-label">Configuración</div>
+    <div id="oddsConfig" class="metric-value" style="font-size:18px">Comprobando…</div>
+    <div class="muted">La API Key no se guarda en este dispositivo.</div>
+  </div>
+
+</div>
+
+<div class="actions">
+  <button id="oddsRefresh" class="secondary">Actualizar cuotas</button>
+</div>
+
+<div id="oddsStatus" class="status">Sin configurar.</div>
+<div id="oddsQuota" class="status">Cuota API: —</div>
+<div id="oddsLast" class="status">Última actualización: —</div>
+<div id="oddsNext" class="status">Próxima consulta: —</div>
+
+<div id="oddsContent" style="margin-top:15px"></div>
 
 </section>
 
@@ -1547,139 +1647,83 @@ function filtered(){
 
 function render(){
 
-  const container =
-    $("games");
-
-  const list =
-    filtered();
+  const container = $("games");
+  const list = filtered();
 
   if(!list.length){
-
     container.innerHTML = `
-
       <div class="offseason">
-
-        <img
-          class="offseason-logo"
-          src="${NBA_LOGO}"
-          alt="NBA"
-        >
-
-        <div class="offseason-title">
-          Calendario NBA
-        </div>
-
-        <div class="muted">
-          No hay partidos disponibles
-          con estos filtros.
-        </div>
-
-        <br>
-
-        <div class="muted">
-          WYNTR continuará buscando
-          automáticamente los próximos partidos.
-        </div>
-
-      </div>
-
-    `;
-
+        <img class="offseason-logo" src="${NBA_LOGO}" alt="NBA">
+        <div class="offseason-title">Calendario NBA</div>
+        <div class="muted">No hay partidos disponibles con estos filtros.</div>
+      </div>`;
     return;
-
   }
 
-  container.innerHTML =
-    list.map(
-      game => `
+  const upcoming = list.filter(g => !g.completed).slice(0,3);
 
-        <button
-          class="game"
-          data-id="${esc(game.id)}"
-        >
-
-          <div class="game-date">
-            ${fmtDate(game.date)}
+  const strip = upcoming.length ? `
+    <div class="dashboard-intro">
+      <div>
+        <h2>Próximos partidos</h2>
+        <p>Selecciona un partido para abrir la ficha de inteligencia.</p>
+      </div>
+      <span class="dashboard-action">Ver calendario →</span>
+    </div>
+    <div class="upcoming-strip">
+      ${upcoming.map(game => `
+        <button class="upcoming-card" data-upcoming-id="${esc(game.id)}" type="button">
+          <div class="upcoming-time">${esc(fmtDate(game.date))}</div>
+          <div class="upcoming-teams">
+            <div class="upcoming-team">
+              ${game.away.logo ? `<img src="${esc(game.away.logo)}" alt="">` : ""}
+              ${esc(game.away.short)}
+            </div>
+            <div class="upcoming-vs">VS</div>
+            <div class="upcoming-team">
+              ${game.home.logo ? `<img src="${esc(game.home.logo)}" alt="">` : ""}
+              ${esc(game.home.short)}
+            </div>
           </div>
-
-          <div class="game-teams">
-
-            <span class="game-team">
-
-              ${
-                game.away.logo
-                  ? `
-                    <img
-                      class="game-logo"
-                      src="${esc(game.away.logo)}"
-                      alt="${esc(game.away.short)}"
-                    >
-                  `
-                  : ""
-              }
-
-              <span class="team">
-                ${esc(game.away.short)}
-              </span>
-
-            </span>
-
-
-            <span class="vs">
-              VS
-            </span>
-
-
-            <span class="game-team">
-
-              <span class="team">
-                ${esc(game.home.short)}
-              </span>
-
-              ${
-                game.home.logo
-                  ? `
-                    <img
-                      class="game-logo"
-                      src="${esc(game.home.logo)}"
-                      alt="${esc(game.home.short)}"
-                    >
-                  `
-                  : ""
-              }
-
-            </span>
-
+          <div class="upcoming-prob">
+            <span>WYNTR</span>
+            <b>${game.wyntrHomeProbability ? pct(game.wyntrHomeProbability*100) : "—"} / ${game.wyntrAwayProbability ? pct(game.wyntrAwayProbability*100) : "—"}</b>
           </div>
-
-          <div
-            class="muted"
-            style="margin-top:7px;font-size:11px"
-          >
-            ${esc(game.status)}
-          </div>
-
         </button>
+      `).join("")}
+    </div>` : "";
 
-      `
-    ).join("");
+  container.innerHTML = strip + `
+    <div class="game-list-header">
+      <strong>Todos los partidos</strong>
+      <span>${list.length} disponibles</span>
+    </div>
+    ${list.map(game => `
+      <button class="game ${selected?.id===game.id ? "selected" : ""}" data-id="${esc(game.id)}">
+        <div class="game-date">${esc(fmtDate(game.date))}</div>
+        <div class="game-teams">
+          <span class="game-team">
+            ${game.away.logo ? `<img class="game-logo" src="${esc(game.away.logo)}" alt="">` : ""}
+            <span class="team">${esc(game.away.short)}</span>
+          </span>
+          <span class="vs">VS</span>
+          <span class="game-team">
+            <span class="team">${esc(game.home.short)}</span>
+            ${game.home.logo ? `<img class="game-logo" src="${esc(game.home.logo)}" alt="">` : ""}
+          </span>
+        </div>
+        <div class="muted" style="margin-top:7px;font-size:11px">${esc(game.status)}</div>
+      </button>
+    `).join("")}
+  `;
 
-  container
-    .querySelectorAll(".game")
-    .forEach(
-      button => {
-
-        button.onclick =
-          () =>
-            selectGame(
-              button.dataset.id
-            );
-
-      }
-    );
-
+  container.querySelectorAll(".game").forEach(button => {
+    button.onclick = () => selectGame(button.dataset.id);
+  });
+  container.querySelectorAll(".upcoming-card").forEach(button => {
+    button.onclick = () => selectGame(button.dataset.upcomingId);
+  });
 }
-
 
 /* =========================================================
    HISTÓRICO
@@ -2445,153 +2489,82 @@ function normalCurveSvg(mean, sd, label, accent="#18d7b0"){
 }
 
 
-function renderAnalysis(
-  game,
-  result
-){
+function renderAnalysis(game,result){
 
   const analysis = $("analysis");
-
   const homeScore = Math.round(result.lambdaHome);
   const awayScore = Math.round(result.lambdaAway);
 
   const formDiff = result.hs.w10 - result.as.w10;
   const venueDiff = result.homeHome.w10 - result.awayRoad.w10;
-  const marginDiff = result.hs.margin - result.as.margin;
+  const h2hSignal = result.h2h.length ? (result.h2hWins/result.h2h.length-.5) : 0;
+  const injuryDiff = result.injuryData?.available ? result.injuryData.home-result.injuryData.away : 0;
+  const efficiencyDiff = result.hs.margin-result.as.margin;
+  const scoringDiff = result.hs.total-result.as.total;
 
-  const h2hSignal =
-    result.h2h.length
-      ? (result.h2hWins / result.h2h.length - .5)
-      : 0;
-
-  const injuryDiff =
-    result.injuryData?.available
-      ? result.injuryData.home-
-        result.injuryData.away
-      : 0;
-
-  const efficiencyDiff =
-    result.hs.margin-
-    result.as.margin;
-
-  const scoringDiff =
-    result.hs.scoringEnvironment-
-    result.as.scoringEnvironment;
-
-  const signals = [
+  const signals=[
     {
       title:"Forma reciente",
       value:Math.abs(formDiff),
-      text:
-        formDiff >= 0
-          ? `${esc(game.home.short)} presenta mejor W10`
-          : `${esc(game.away.short)} presenta mejor W10`
+      text:formDiff>=0 ? `${esc(game.home.short)} presenta mejor W10` : `${esc(game.away.short)} presenta mejor W10`
     },
     {
       title:"Localía / carretera",
       value:Math.abs(venueDiff),
-      text:
-        venueDiff >= 0
-          ? `${esc(game.home.short)} tiene mejor rendimiento en casa`
-          : `${esc(game.away.short)} tiene mejor rendimiento fuera`
+      text:venueDiff>=0 ? `${esc(game.home.short)} tiene mejor rendimiento en casa` : `${esc(game.away.short)} tiene mejor rendimiento fuera`
     },
     {
-      title:"Eficiencia relativa",
+      title:"Margen medio",
       value:Math.abs(efficiencyDiff)/10,
-      text:
-        efficiencyDiff >= 0
-          ? `${esc(game.home.short)} tiene mejor margen medio`
-          : `${esc(game.away.short)} tiene mejor margen medio`
+      text:efficiencyDiff>=0 ? `${esc(game.home.short)} tiene mejor margen medio` : `${esc(game.away.short)} tiene mejor margen medio`
     },
     {
-      title:"Entorno de anotación",
+      title:"Producción de puntos",
       value:Math.abs(scoringDiff)/10,
-      text:
-        scoringDiff >= 0
-          ? `${esc(game.home.short)} registra mayor anotación combinada reciente`
-          : `${esc(game.away.short)} registra mayor anotación combinada reciente`
+      text:scoringDiff>=0 ? `${esc(game.home.short)} registra mayor total medio` : `${esc(game.away.short)} registra mayor total medio`
     },
     {
       title:"H2H",
       value:Math.abs(h2hSignal),
-      text:
-        result.h2h.length
-          ? `${result.h2h.length} enfrentamientos disponibles`
-          : "Sin enfrentamientos recientes suficientes"
+      text:result.h2h.length ? `${result.h2h.length} enfrentamientos disponibles` : "Sin enfrentamientos recientes suficientes"
     },
     {
       title:"Disponibilidad",
-      value:
-        result.injuryData?.available
-          ? Math.abs(injuryDiff)
-          : 0,
-      text:
-        result.injuryData?.available
-          ? `Carga de ausencias: ${result.injuryData.home.toFixed(1)} casa · ${result.injuryData.away.toFixed(1)} visita`
-          : "Fuente de lesiones no disponible o requiere un plan con acceso a lesiones"
+      value:result.injuryData?.available ? Math.abs(injuryDiff) : 0,
+      text:result.injuryData?.available
+        ? `Carga de ausencias: ${result.injuryData.home.toFixed(1)} casa · ${result.injuryData.away.toFixed(1)} visita`
+        : "Fuente de lesiones no disponible o requiere acceso al endpoint"
     }
   ];
 
-  const maxSignal =
-    Math.max(.01,...signals.map(signal=>signal.value));
-
-  const keyPointsHtml =
-    signals.map(signal => `
-      <div class="signal-card">
-        <div class="signal-head">
-          <span>${signal.title}</span>
-          <span class="muted">${Math.round(signal.value/maxSignal*100)}%</span>
-        </div>
-        <div class="signal-desc">${signal.text}</div>
-        <div class="signal-track">
-          <span style="width:${Math.max(8,signal.value/maxSignal*100)}%"></span>
-        </div>
-      </div>
-    `).join("");
-
-  const marketCards = `
-    <div class="market-chip active">
-      <strong>Ganador ${esc(game.home.short)}</strong>
-      <span>${pct(result.home)}</span>
+  const maxSignal=Math.max(.01,...signals.map(x=>x.value));
+  const keyPoints=signals.map(signal=>`
+    <div class="signal-card">
+      <div class="signal-head"><span>${signal.title}</span><span>${Math.round(signal.value/maxSignal*100)}%</span></div>
+      <div class="signal-desc">${signal.text}</div>
+      <div class="signal-track"><span style="width:${Math.max(8,signal.value/maxSignal*100)}%"></span></div>
     </div>
-    <div class="market-chip">
-      <strong>Ganador ${esc(game.away.short)}</strong>
-      <span>${pct(result.away)}</span>
-    </div>
-    <div class="market-chip">
-      <strong>Hándicap</strong>
-      <span>${esc(game.home.short)} ${result.margin>=0?"+":"-"}${Math.abs(result.margin).toFixed(1)}</span>
-    </div>
-    <div class="market-chip">
-      <strong>Total proyectado</strong>
-      <span>${result.pace.toFixed(1)} puntos</span>
-    </div>
-  `;
+  `).join("");
 
-  const homeLogo = game.home.logo || teamLogoUrl(game.home.abbr);
-  const awayLogo = game.away.logo || teamLogoUrl(game.away.abbr);
+  const homeLogo=game.home.logo||teamLogoUrl(game.home.abbr);
+  const awayLogo=game.away.logo||teamLogoUrl(game.away.abbr);
 
-  analysis.innerHTML = `
+  const tabButton=(id,label,active=false)=>`<button class="match-tab${active?" active":""}" data-tab="${id}" type="button">${label}</button>`;
 
+  analysis.innerHTML=`
     <div class="card match-hero">
-
       <div class="match-topline">
-        <span>WYNTR · Ficha inteligente</span>
-        <span>${esc(fmtDate(game.date))}</span>
+        <span>WYNTR · Match Intelligence</span>
+        <span class="verified-badge">● Datos reales</span>
       </div>
 
       <div class="match-visual">
-
         <div class="match-side">
           <div class="team-portrait">
-            ${
-              homeLogo
-                ? `<img src="${esc(homeLogo)}" alt="${esc(game.home.name)}" onerror="this.style.display='none';this.nextElementSibling.style.display='block'"><span class="team-initials" style="display:none">${esc(game.home.abbr)}</span>`
-                : `<span class="team-initials">${esc(game.home.abbr || game.home.short.slice(0,3))}</span>`
-            }
+            ${homeLogo ? `<img src="${esc(homeLogo)}" alt="${esc(game.home.name)}" onerror="this.style.display='none';this.nextElementSibling.style.display='block'"><span class="team-initials" style="display:none">${esc(game.home.abbr)}</span>` : `<span class="team-initials">${esc(game.home.abbr||game.home.short.slice(0,3))}</span>`}
           </div>
           <div class="match-team-name">${esc(game.home.name)}</div>
-          <div class="match-record">W10 ${Math.round(result.hs.w10*10)}/10</div>
+          <div class="match-record">W10 · ${Math.round(result.hs.w10*10)}/10</div>
         </div>
 
         <div class="match-vs">
@@ -2602,127 +2575,128 @@ function renderAnalysis(
 
         <div class="match-side">
           <div class="team-portrait">
-            ${
-              awayLogo
-                ? `<img src="${esc(awayLogo)}" alt="${esc(game.away.name)}" onerror="this.style.display='none';this.nextElementSibling.style.display='block'"><span class="team-initials" style="display:none">${esc(game.away.abbr)}</span>`
-                : `<span class="team-initials">${esc(game.away.abbr || game.away.short.slice(0,3))}</span>`
-            }
+            ${awayLogo ? `<img src="${esc(awayLogo)}" alt="${esc(game.away.name)}" onerror="this.style.display='none';this.nextElementSibling.style.display='block'"><span class="team-initials" style="display:none">${esc(game.away.abbr)}</span>` : `<span class="team-initials">${esc(game.away.abbr||game.away.short.slice(0,3))}</span>`}
           </div>
           <div class="match-team-name">${esc(game.away.name)}</div>
-          <div class="match-record">W10 ${Math.round(result.as.w10*10)}/10</div>
+          <div class="match-record">W10 · ${Math.round(result.as.w10*10)}/10</div>
         </div>
-
       </div>
 
       <div class="probability-panel">
-
-        <div class="prob-card">
-          <div class="prob-label">${esc(game.home.short)}</div>
-          <div class="prob-value">${pct(result.home)}</div>
-          <div class="prob-bar"><div class="prob-fill" style="width:${result.home}%"></div></div>
-        </div>
-
-        <div class="prob-card">
-          <div class="prob-label">Modelo</div>
-          <div class="prob-value">${esc(result.confidence)}</div>
-          <div class="prob-bar"><div class="prob-fill" style="width:${result.confidenceScore || 0}%"></div></div>
-        </div>
-
-        <div class="prob-card">
-          <div class="prob-label">${esc(game.away.short)}</div>
-          <div class="prob-value">${pct(result.away)}</div>
-          <div class="prob-bar"><div class="prob-fill" style="width:${result.away}%"></div></div>
-        </div>
-
+        <div class="prob-card"><div class="prob-label">${esc(game.home.short)}</div><div class="prob-value">${pct(result.home)}</div><div class="prob-bar"><div class="prob-fill" style="width:${result.home}%"></div></div></div>
+        <div class="prob-card"><div class="prob-label">Confianza</div><div class="prob-value">${esc(result.confidenceScore)}%</div><div class="prob-bar"><div class="prob-fill" style="width:${result.confidenceScore}%"></div></div></div>
+        <div class="prob-card"><div class="prob-label">${esc(game.away.short)}</div><div class="prob-value">${pct(result.away)}</div><div class="prob-bar"><div class="prob-fill" style="width:${result.away}%"></div></div></div>
       </div>
-
     </div>
 
-    <div class="card">
-      <div class="section-title">Predicción de marcador</div>
-      <div class="score-prediction">
-        <div class="score-card">
-          <div class="metric-label">${esc(game.home.name)}</div>
-          <div class="score-big">${homeScore} puntos</div>
-          <div class="muted">Media proyectada: ${result.lambdaHome.toFixed(1)}</div>
-        </div>
-        <div class="score-card">
-          <div class="metric-label">${esc(game.away.name)}</div>
-          <div class="score-big">${awayScore} puntos</div>
-          <div class="muted">Media proyectada: ${result.lambdaAway.toFixed(1)}</div>
+    <div class="match-tabs" role="tablist">
+      ${tabButton("summary","Resumen",true)}
+      ${tabButton("analysis","Análisis")}
+      ${tabButton("market","Mercado")}
+      ${tabButton("injuries","Lesiones")}
+    </div>
+
+    <div class="match-panel active" data-panel="summary">
+      <div class="card">
+        <div class="section-title">Proyección de marcador</div>
+        <div class="model-score">
+          <div class="metric"><div class="metric-label">${esc(game.home.short)}</div><div class="metric-value">${homeScore}</div><div class="muted">media ${result.lambdaHome.toFixed(1)}</div></div>
+          <div class="metric"><div class="metric-label">${esc(game.away.short)}</div><div class="metric-value">${awayScore}</div><div class="muted">media ${result.lambdaAway.toFixed(1)}</div></div>
         </div>
       </div>
-    </div>
 
-    <div class="card">
-      <div class="section-title">Distribución de puntos · cónicas</div>
-      <div class="distribution-grid">
-        ${normalCurveSvg(result.lambdaHome,result.scoreStd,game.home.short,"#ff9b4a")}
-        ${normalCurveSvg(result.lambdaAway,result.scoreStd,game.away.short,"#63e8ff")}
+      <div class="card">
+        <div class="section-title">Señales clave</div>
+        <div class="signal-grid">${keyPoints}</div>
+        <div class="muted" style="margin-top:10px">Las barras muestran fuerza relativa de señales disponibles; no son probabilidades independientes.</div>
       </div>
-    </div>
 
-    <div class="card">
-      <div class="section-title">Puntos clave</div>
-      <div class="signal-grid">${keyPointsHtml}</div>
-      <div class="muted" style="margin-top:10px">
-        Las barras representan la fuerza relativa de cada señal disponible; no son porcentajes de probabilidad independientes.
-      </div>
-    </div>
-
-    <div class="card">
-      <div class="section-title">Componentes que alimentan la probabilidad</div>
-      <div class="grid">
-        <div class="metric"><div class="metric-label">Gradient Boosting</div><div class="metric-value">${pct(result.gb*100)}</div></div>
-        <div class="metric"><div class="metric-label">ELO</div><div class="metric-value">${pct(result.elo*100)}</div></div>
-        <div class="metric"><div class="metric-label">Margen</div><div class="metric-value">${pct(result.scoreDistribution*100)}</div></div>
-        <div class="metric"><div class="metric-label">Forma</div><div class="metric-value">${pct(result.form*100)}</div></div>
-      </div>
-    </div>
-
-    <div class="card">
-      <div class="section-title">WYNTR vs mercado</div>
-      <div class="market-select">${marketCards}</div>
-      <div id="marketComparison" class="market-comparison">
-        <div class="empty">
-          Cargando probabilidad de mercado…
+      <div class="card">
+        <div class="section-title">Contexto del partido</div>
+        <div class="grid">
+          <div class="metric"><div class="metric-label">ELO diferencial</div><div class="metric-value">${result.eloDiff>=0?"+":""}${result.eloDiff.toFixed(0)}</div></div>
+          <div class="metric"><div class="metric-label">H2H</div><div class="metric-value">${result.h2hWins}-${Math.max(0,result.h2h.length-result.h2hWins)}</div></div>
+          <div class="metric"><div class="metric-label">Total proyectado</div><div class="metric-value">${result.pace.toFixed(1)}</div></div>
+          <div class="metric"><div class="metric-label">Muestra histórica</div><div class="metric-value">${result.sample}</div></div>
         </div>
       </div>
-      <div class="muted" style="margin-top:10px">
-        <strong>Probabilidad WYNTR</strong> = salida del modelo.
-        <strong>Probabilidad de mercado</strong> = probabilidad implícita normalizada entre los dos precios moneyline.
-        <strong>Edge</strong> = WYNTR − mercado.
+    </div>
+
+    <div class="match-panel" data-panel="analysis">
+      <div class="card">
+        <div class="section-title">Distribución de puntos</div>
+        <div class="distribution-grid">
+          ${normalCurveSvg(result.lambdaHome,result.scoreStd,game.home.short,"#ff9b4a")}
+          ${normalCurveSvg(result.lambdaAway,result.scoreStd,game.away.short,"#63e8ff")}
+        </div>
+        <div class="muted" style="margin-top:8px">Visualización estadística basada en la media y desviación estándar calculadas por WYNTR.</div>
+      </div>
+
+      <div class="card">
+        <div class="section-title">Componentes del modelo</div>
+        <div class="grid">
+          <div class="metric"><div class="metric-label">Gradient Boosting</div><div class="metric-value">${pct(result.gb*100)}</div></div>
+          <div class="metric"><div class="metric-label">ELO</div><div class="metric-value">${pct(result.elo*100)}</div></div>
+          <div class="metric"><div class="metric-label">Distribución</div><div class="metric-value">${pct(result.scoreDistribution*100)}</div></div>
+          <div class="metric"><div class="metric-label">Forma</div><div class="metric-value">${pct(result.form*100)}</div></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="section-title">Calidad del modelo</div>
+        <div class="grid">
+          <div class="metric"><div class="metric-label">Confianza</div><div class="metric-value">${result.confidenceScore}%</div></div>
+          <div class="metric"><div class="metric-label">Test</div><div class="metric-value">${result.testSample}</div></div>
+          <div class="metric"><div class="metric-label">Brier</div><div class="metric-value">${result.brier===null?"N/D":result.brier.toFixed(3)}</div></div>
+          <div class="metric"><div class="metric-label">Log loss</div><div class="metric-value">${result.logLoss===null?"N/D":result.logLoss.toFixed(3)}</div></div>
+        </div>
+        <div class="muted" style="margin-top:10px">La confianza es heurística; no representa una probabilidad de acierto.</div>
       </div>
     </div>
 
-    <div class="card">
-      <div class="section-title">Calidad del modelo</div>
-      <div class="grid">
-        <div class="metric"><div class="metric-label">Señal</div><div class="metric-value">${esc(result.confidence)}</div></div>
-        <div class="metric"><div class="metric-label">Muestra</div><div class="metric-value">${result.sample}</div></div>
-        <div class="metric"><div class="metric-label">Test</div><div class="metric-value">${result.testSample}</div></div>
-        <div class="metric"><div class="metric-label">ELO diferencial</div><div class="metric-value">${result.eloDiff>=0?"+":""}${result.eloDiff.toFixed(0)}</div></div>
-      </div>
-      <div class="muted" style="margin-top:12px">
-        Validación: accuracy ${result.accuracy===null?"N/D":pct(result.accuracy*100)} · Brier ${result.brier===null?"N/D":result.brier.toFixed(3)} · Log loss ${result.logLoss===null?"N/D":result.logLoss.toFixed(3)}.
-      </div>
-      <div class="muted" style="margin-top:8px">
-        Lesiones:
-        ${result.injuryData?.available
-          ? `${result.injuryData.home.toFixed(1)} carga casa · ${result.injuryData.away.toFixed(1)} carga visita`
-          : "fuente no disponible o requiere acceso al endpoint de lesiones"}
-      </div>
-      <div class="muted" style="margin-top:8px">
-        La confianza es un indicador heurístico de consistencia, tamaño de muestra y validación; no representa una probabilidad de acierto.
+    <div class="match-panel" data-panel="market">
+      <div class="card">
+        <div class="section-title">WYNTR vs mercado</div>
+        <div class="market-select">
+          <div class="market-chip active"><strong>Ganador ${esc(game.home.short)}</strong><span>${pct(result.home)}</span></div>
+          <div class="market-chip"><strong>Ganador ${esc(game.away.short)}</strong><span>${pct(result.away)}</span></div>
+          <div class="market-chip"><strong>Total proyectado</strong><span>${result.pace.toFixed(1)} puntos</span></div>
+        </div>
+        <div id="marketComparison" class="market-comparison"><div class="empty">Cargando probabilidad de mercado…</div></div>
+        <div class="muted" style="margin-top:10px">Probabilidad de mercado = moneyline implícito normalizado entre los dos precios disponibles. Edge = WYNTR − mercado.</div>
       </div>
     </div>
 
+    <div class="match-panel" data-panel="injuries">
+      <div class="card">
+        <div class="section-title">Lesiones y disponibilidad</div>
+        ${result.injuryData?.available && result.injuryData.records?.length
+          ? `<div class="signal-grid">${result.injuryData.records.slice(0,12).map(item=>`
+              <div class="signal-card">
+                <div class="signal-head"><span>${esc(item.player?.first_name||"Jugador")} ${esc(item.player?.last_name||"")}</span><span>${esc(item.status||"Sin estado")}</span></div>
+                <div class="signal-desc">${esc(item.description||item.injury||"Estado reportado por la fuente")}</div>
+              </div>`).join("")}</div>`
+          : `<div class="empty">${result.injuryData?.reason ? esc(result.injuryData.reason) : "No hay datos de lesiones disponibles para este partido."}</div>`}
+      </div>
+      <div class="card">
+        <div class="section-title">Carga de disponibilidad</div>
+        <div class="grid">
+          <div class="metric"><div class="metric-label">${esc(game.home.short)}</div><div class="metric-value">${result.injuryData?.available ? result.injuryData.home.toFixed(1) : "N/D"}</div></div>
+          <div class="metric"><div class="metric-label">${esc(game.away.short)}</div><div class="metric-value">${result.injuryData?.available ? result.injuryData.away.toFixed(1) : "N/D"}</div></div>
+        </div>
+      </div>
+    </div>
   `;
 
+  analysis.querySelectorAll(".match-tab").forEach(tab=>{
+    tab.onclick=()=>{
+      const target=tab.dataset.tab;
+      analysis.querySelectorAll(".match-tab").forEach(x=>x.classList.toggle("active",x===tab));
+      analysis.querySelectorAll(".match-panel").forEach(panel=>panel.classList.toggle("active",panel.dataset.panel===target));
+      if(target==="market") renderMarketComparison(game,result,state.odds);
+    };
+  });
 }
-
-
-
 
 /* =========================================================
    SELECCIONAR PARTIDO
@@ -3488,6 +3462,15 @@ if ("serviceWorker" in navigator) {
 }
 
 </script>
+
+
+<nav class="bottom-nav" aria-label="Navegación móvil">
+  <a class="active" href="#top"><span>⌂</span>Inicio</a>
+  <a href="#games-section"><span>▦</span>Calendario</a>
+  <a href="#analysis-section"><span>⌁</span>Análisis</a>
+  <a href="#market-section"><span>◈</span>Mercado</a>
+  <a href="#engine-section"><span>⋯</span>Más</a>
+</nav>
 
 </body>
 </html>
