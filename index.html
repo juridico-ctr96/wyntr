@@ -434,6 +434,48 @@ h3{
   }
 
 }
+
+/* WYNTR MATCH INTELLIGENCE CARD */
+.match-hero{position:relative;overflow:hidden;padding:20px;background:radial-gradient(circle at 18% 15%,rgba(99,232,255,.10),transparent 32%),radial-gradient(circle at 82% 15%,rgba(255,140,66,.10),transparent 32%),linear-gradient(145deg,#0d1322,#090e19);border-color:#263550}
+.match-topline{display:flex;justify-content:space-between;align-items:center;gap:10px;color:#7f8da2;font-size:10px;font-weight:900;letter-spacing:1.5px;text-transform:uppercase}
+.match-visual{display:grid;grid-template-columns:1fr 110px 1fr;align-items:center;gap:10px;margin:18px 0}
+.match-side{text-align:center;min-width:0}
+.team-portrait{width:104px;height:104px;margin:0 auto 9px;border-radius:50%;display:grid;place-items:center;background:radial-gradient(circle at 35% 30%,#1e2a42,#0b111d 70%);border:1px solid #31415e;box-shadow:0 0 0 8px rgba(99,232,255,.035),0 16px 35px rgba(0,0,0,.3);overflow:hidden}
+.team-portrait img{width:72%;height:72%;object-fit:contain;display:block}
+.team-initials{font-size:28px;font-weight:950;color:#63e8ff;letter-spacing:1px}
+.match-team-name{font-size:16px;font-weight:900;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.match-record{margin-top:5px;color:#8794a8;font-size:10px}
+.match-vs{text-align:center}
+.match-vs-label{color:#59677c;font-size:10px;font-weight:900;letter-spacing:2px}
+.match-time{margin-top:8px;font-size:11px;color:#b7c1cf}
+.match-score{margin-top:9px;font-size:30px;font-weight:950;letter-spacing:-1px}
+.probability-panel{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:10px}
+.prob-card{background:#101827;border:1px solid #273650;border-radius:15px;padding:13px 9px;text-align:center}
+.prob-label{color:#8c98aa;font-size:10px;font-weight:800}
+.prob-value{font-size:25px;font-weight:950;margin-top:4px}
+.prob-bar{height:6px;margin-top:8px;border-radius:99px;background:#1c2637;overflow:hidden}
+.prob-fill{height:100%;border-radius:99px;background:#18d7b0}
+.score-prediction{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}
+.score-card{padding:14px;border:1px solid #293852;border-radius:15px;background:#0f1725}
+.score-big{font-size:26px;font-weight:950}
+.signal-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.signal-card{border:1px solid #293852;background:#101827;border-radius:14px;padding:12px}
+.signal-head{display:flex;justify-content:space-between;gap:10px;font-size:11px;font-weight:850}
+.signal-desc{color:#8794a8;font-size:10px;line-height:1.5;margin-top:5px}
+.signal-track{height:5px;background:#1c2637;border-radius:99px;margin-top:8px;overflow:hidden}
+.signal-track span{display:block;height:100%;background:#18d7b0;border-radius:99px}
+.distribution-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.distribution{background:#0d1522;border:1px solid #25334a;border-radius:15px;padding:10px}
+.distribution svg{width:100%;height:auto;display:block}
+.market-select{display:flex;gap:8px;overflow-x:auto;padding-bottom:4px;scrollbar-width:none}
+.market-select::-webkit-scrollbar{display:none}
+.market-chip{flex:0 0 auto;min-width:120px;text-align:left;padding:12px;border:1px solid #2b3951;border-radius:13px;background:#101827;color:#fff}
+.market-chip.active{border-color:#18d7b0;box-shadow:0 0 0 1px rgba(24,215,176,.22)}
+.market-chip strong{display:block;font-size:12px}
+.market-chip span{display:block;color:#8996aa;font-size:10px;margin-top:4px}
+.game.selected{border-color:#18d7b0;box-shadow:0 0 0 1px rgba(24,215,176,.18),0 0 22px rgba(24,215,176,.08)}
+@media(max-width:650px){.match-visual{grid-template-columns:1fr 62px 1fr}.team-portrait{width:82px;height:82px}.match-team-name{font-size:13px}.match-score{font-size:25px}.signal-grid,.distribution-grid{grid-template-columns:1fr}.prob-value{font-size:21px}}
+
 </style>
 </head>
 
@@ -954,7 +996,24 @@ function team(t){
    EVENTO
    ========================================================= */
 
+function teamLogoUrl(abbr){
+
+  const code =
+    String(abbr || "")
+      .trim()
+      .toUpperCase();
+
+  return code
+    ? `https://a.espncdn.com/i/teamlogos/nba/500/${encodeURIComponent(code)}.png`
+    : "";
+
+}
+
+
 function normBDLTeam(t){
+
+  const abbr =
+    t?.abbreviation || "";
 
   return {
 
@@ -965,19 +1024,18 @@ function normBDLTeam(t){
     name:
       t?.full_name ||
       t?.name ||
-      t?.abbreviation ||
+      abbr ||
       "Desconocido",
 
     short:
       t?.name ||
-      t?.abbreviation ||
+      abbr ||
       "Desconocido",
 
-    abbr:
-      t?.abbreviation ||
-      "",
+    abbr,
 
-    logo:""
+    logo:
+      teamLogoUrl(abbr)
 
   };
 
@@ -2793,6 +2851,20 @@ async function analyzeGame(
       lambdaHome-
       lambdaAway,
 
+    lambdaHome,
+
+    lambdaAway,
+
+    projectedHomeScore:
+      Math.round(lambdaHome),
+
+    projectedAwayScore:
+      Math.round(lambdaAway),
+
+    scoreStd:12,
+
+    confidenceScore,
+
     gbTest:
       gradientBoosting
         ?.test||
@@ -2821,511 +2893,294 @@ async function analyzeGame(
    RENDER ANÁLISIS
    ========================================================= */
 
+function normalCurveSvg(mean, sd, label, accent="#18d7b0"){
+
+  const width = 320;
+  const height = 150;
+  const padX = 18;
+  const baseY = 124;
+  const topY = 20;
+  const points = [];
+
+  for(let i=0;i<=48;i++){
+
+    const z =
+      -3.2 +
+      (6.4*i/48);
+
+    const x =
+      padX +
+      (i/48)*
+      (width-padX*2);
+
+    const density =
+      Math.exp(-0.5*z*z);
+
+    const y =
+      baseY -
+      density*
+      (baseY-topY);
+
+    points.push(
+      `${x.toFixed(1)},${y.toFixed(1)}`
+    );
+
+  }
+
+  const line = points.join(" ");
+
+  const area =
+    `M ${padX},${baseY} L ${line} L ${width-padX},${baseY} Z`;
+
+  const meanX =
+    padX +
+    (3.2/6.4)*
+    (width-padX*2);
+
+  return `
+    <div class="distribution">
+      <div class="metric-label">${esc(label)}</div>
+      <svg viewBox="0 0 ${width} ${height}" role="img" aria-label="Distribución estimada de puntos">
+        <path d="${area}" fill="${accent}" fill-opacity=".12"/>
+        <polyline points="${line}" fill="none" stroke="${accent}" stroke-width="3" stroke-linecap="round"/>
+        <line x1="${meanX}" x2="${meanX}" y1="22" y2="${baseY}" stroke="#aab5c5" stroke-dasharray="4 4" opacity=".65"/>
+        <text x="${meanX+6}" y="30" fill="#e9eef6" font-size="11" font-weight="800">μ ${n(mean).toFixed(1)}</text>
+        <text x="${width/2}" y="145" text-anchor="middle" fill="#7f8da2" font-size="10">desv. est. ${n(sd).toFixed(1)}</text>
+      </svg>
+    </div>
+  `;
+
+}
+
+
 function renderAnalysis(
   game,
   result
 ){
 
-  const analysis =
-    $("analysis");
+  const analysis = $("analysis");
+
+  const homeScore = Math.round(result.lambdaHome);
+  const awayScore = Math.round(result.lambdaAway);
+
+  const formDiff = result.hs.w10 - result.as.w10;
+  const venueDiff = result.homeHome.w10 - result.awayRoad.w10;
+  const marginDiff = result.hs.margin - result.as.margin;
+
+  const h2hSignal =
+    result.h2h.length
+      ? (result.h2hWins / result.h2h.length - .5)
+      : 0;
+
+  const signals = [
+    {
+      title:"Forma reciente",
+      value:Math.abs(formDiff),
+      text:
+        formDiff >= 0
+          ? `${esc(game.home.short)} presenta mejor W10`
+          : `${esc(game.away.short)} presenta mejor W10`
+    },
+    {
+      title:"Localía / carretera",
+      value:Math.abs(venueDiff),
+      text:
+        venueDiff >= 0
+          ? `${esc(game.home.short)} tiene mejor rendimiento en casa`
+          : `${esc(game.away.short)} tiene mejor rendimiento fuera`
+    },
+    {
+      title:"Margen de puntos",
+      value:Math.abs(marginDiff)/10,
+      text:
+        marginDiff >= 0
+          ? `${esc(game.home.short)} tiene mejor margen histórico`
+          : `${esc(game.away.short)} tiene mejor margen histórico`
+    },
+    {
+      title:"H2H",
+      value:Math.abs(h2hSignal),
+      text:
+        result.h2h.length
+          ? `${result.h2h.length} enfrentamientos disponibles`
+          : "Sin enfrentamientos recientes suficientes"
+    }
+  ];
+
+  const maxSignal =
+    Math.max(.01,...signals.map(signal=>signal.value));
+
+  const keyPointsHtml =
+    signals.map(signal => `
+      <div class="signal-card">
+        <div class="signal-head">
+          <span>${signal.title}</span>
+          <span class="muted">${Math.round(signal.value/maxSignal*100)}%</span>
+        </div>
+        <div class="signal-desc">${signal.text}</div>
+        <div class="signal-track">
+          <span style="width:${Math.max(8,signal.value/maxSignal*100)}%"></span>
+        </div>
+      </div>
+    `).join("");
+
+  const marketCards = `
+    <div class="market-chip active">
+      <strong>Ganador ${esc(game.home.short)}</strong>
+      <span>${pct(result.home)}</span>
+    </div>
+    <div class="market-chip">
+      <strong>Ganador ${esc(game.away.short)}</strong>
+      <span>${pct(result.away)}</span>
+    </div>
+    <div class="market-chip">
+      <strong>Hándicap</strong>
+      <span>${esc(game.home.short)} ${result.margin>=0?"+":"-"}${Math.abs(result.margin).toFixed(1)}</span>
+    </div>
+    <div class="market-chip">
+      <strong>Total proyectado</strong>
+      <span>${result.pace.toFixed(1)} puntos</span>
+    </div>
+  `;
+
+  const homeLogo = game.home.logo || teamLogoUrl(game.home.abbr);
+  const awayLogo = game.away.logo || teamLogoUrl(game.away.abbr);
 
   analysis.innerHTML = `
 
-    <div class="two">
+    <div class="card match-hero">
 
-      <div class="metric">
+      <div class="match-topline">
+        <span>WYNTR · Ficha inteligente</span>
+        <span>${esc(fmtDate(game.date))}</span>
+      </div>
 
-        <div class="metric-label">
-          ${esc(game.home.name)}
-          — probabilidad
+      <div class="match-visual">
+
+        <div class="match-side">
+          <div class="team-portrait">
+            ${
+              homeLogo
+                ? `<img src="${esc(homeLogo)}" alt="${esc(game.home.name)}" onerror="this.style.display='none';this.nextElementSibling.style.display='block'"><span class="team-initials" style="display:none">${esc(game.home.abbr)}</span>`
+                : `<span class="team-initials">${esc(game.home.abbr || game.home.short.slice(0,3))}</span>`
+            }
+          </div>
+          <div class="match-team-name">${esc(game.home.name)}</div>
+          <div class="match-record">W10 ${Math.round(result.hs.w10*10)}/10</div>
         </div>
 
-        <div class="metric-value good">
-          ${pct(result.home)}
+        <div class="match-vs">
+          <div class="match-vs-label">VS</div>
+          <div class="match-score">${homeScore} - ${awayScore}</div>
+          <div class="match-time">${esc(game.status)}</div>
+        </div>
+
+        <div class="match-side">
+          <div class="team-portrait">
+            ${
+              awayLogo
+                ? `<img src="${esc(awayLogo)}" alt="${esc(game.away.name)}" onerror="this.style.display='none';this.nextElementSibling.style.display='block'"><span class="team-initials" style="display:none">${esc(game.away.abbr)}</span>`
+                : `<span class="team-initials">${esc(game.away.abbr || game.away.short.slice(0,3))}</span>`
+            }
+          </div>
+          <div class="match-team-name">${esc(game.away.name)}</div>
+          <div class="match-record">W10 ${Math.round(result.as.w10*10)}/10</div>
         </div>
 
       </div>
 
+      <div class="probability-panel">
 
-      <div class="metric">
-
-        <div class="metric-label">
-          ${esc(game.away.name)}
-          — probabilidad
+        <div class="prob-card">
+          <div class="prob-label">${esc(game.home.short)}</div>
+          <div class="prob-value">${pct(result.home)}</div>
+          <div class="prob-bar"><div class="prob-fill" style="width:${result.home}%"></div></div>
         </div>
 
-        <div class="metric-value">
-          ${pct(result.away)}
+        <div class="prob-card">
+          <div class="prob-label">Modelo</div>
+          <div class="prob-value">${esc(result.confidence)}</div>
+          <div class="prob-bar"><div class="prob-fill" style="width:${result.confidenceScore || 0}%"></div></div>
         </div>
 
-      </div>
-
-    </div>
-
-
-    <div
-      class="grid"
-      style="margin-top:12px"
-    >
-
-      <div class="metric">
-
-        <div class="metric-label">
-          Confianza
-        </div>
-
-        <div class="metric-value">
-          ${esc(result.confidence)}
-        </div>
-
-      </div>
-
-
-      <div class="metric">
-
-        <div class="metric-label">
-          Muestra histórica
-        </div>
-
-        <div class="metric-value">
-          ${result.sample}
-        </div>
-
-      </div>
-
-
-      <div class="metric">
-
-        <div class="metric-label">
-          Validación
-        </div>
-
-        <div class="metric-value">
-          ${result.validation}
-        </div>
-
-      </div>
-
-
-      <div class="metric">
-
-        <div class="metric-label">
-          ELO diferencial
-        </div>
-
-        <div class="metric-value">
-
-          ${
-            result.eloDiff>=0
-              ? "+"
-              : ""
-          }
-
-          ${result.eloDiff.toFixed(0)}
-
+        <div class="prob-card">
+          <div class="prob-label">${esc(game.away.short)}</div>
+          <div class="prob-value">${pct(result.away)}</div>
+          <div class="prob-bar"><div class="prob-fill" style="width:${result.away}%"></div></div>
         </div>
 
       </div>
 
     </div>
 
-
-    <h3>
-      Componentes del modelo
-    </h3>
-
-
-    <div class="table-wrap">
-
-      <table>
-
-        <thead>
-
-          <tr>
-
-            <th>
-              Modelo
-            </th>
-
-            <th>
-              Local
-            </th>
-
-            <th>
-              Visitante
-            </th>
-
-          </tr>
-
-        </thead>
-
-
-        <tbody>
-
-          <tr>
-
-            <td>
-              Gradient Boosting
-            </td>
-
-            <td>
-              ${pct(result.gb*100)}
-            </td>
-
-            <td>
-              ${pct((1-result.gb)*100)}
-            </td>
-
-          </tr>
-
-
-          <tr>
-
-            <td>
-              ELO
-            </td>
-
-            <td>
-              ${pct(result.elo*100)}
-            </td>
-
-            <td>
-              ${pct((1-result.elo)*100)}
-            </td>
-
-          </tr>
-
-
-          <tr>
-
-            <td>
-              Distribución margen
-            </td>
-
-            <td>
-              ${pct(result.poisson*100)}
-            </td>
-
-            <td>
-              ${pct((1-result.poisson)*100)}
-            </td>
-
-          </tr>
-
-
-          <tr>
-
-            <td>
-              Forma
-            </td>
-
-            <td>
-              ${pct(result.form*100)}
-            </td>
-
-            <td>
-              ${pct((1-result.form)*100)}
-            </td>
-
-          </tr>
-
-
-          <tr>
-
-            <td>
-              Producción
-            </td>
-
-            <td>
-              ${pct(result.production*100)}
-            </td>
-
-            <td>
-              ${pct((1-result.production)*100)}
-            </td>
-
-          </tr>
-
-        </tbody>
-
-      </table>
-
+    <div class="card">
+      <div class="section-title">Predicción de marcador</div>
+      <div class="score-prediction">
+        <div class="score-card">
+          <div class="metric-label">${esc(game.home.name)}</div>
+          <div class="score-big">${homeScore} puntos</div>
+          <div class="muted">Media proyectada: ${result.lambdaHome.toFixed(1)}</div>
+        </div>
+        <div class="score-card">
+          <div class="metric-label">${esc(game.away.name)}</div>
+          <div class="score-big">${awayScore} puntos</div>
+          <div class="muted">Media proyectada: ${result.lambdaAway.toFixed(1)}</div>
+        </div>
+      </div>
     </div>
 
-
-    <h3>
-      Forma 5 / 10 / 20
-    </h3>
-
-
-    <div class="three">
-
-      <div class="metric">
-
-        <div class="metric-label">
-          Local últimos 5
-        </div>
-
-        <div class="metric-value">
-          ${Math.round(result.hs.w5*5)}/5
-        </div>
-
+    <div class="card">
+      <div class="section-title">Distribución de puntos · cónicas</div>
+      <div class="distribution-grid">
+        ${normalCurveSvg(result.lambdaHome,result.scoreStd,game.home.short,"#ff9b4a")}
+        ${normalCurveSvg(result.lambdaAway,result.scoreStd,game.away.short,"#63e8ff")}
       </div>
-
-
-      <div class="metric">
-
-        <div class="metric-label">
-          Local últimos 10
-        </div>
-
-        <div class="metric-value">
-          ${Math.round(result.hs.w10*10)}/10
-        </div>
-
-      </div>
-
-
-      <div class="metric">
-
-        <div class="metric-label">
-          Local últimos 20
-        </div>
-
-        <div class="metric-value">
-          ${Math.round(result.hs.w20*20)}/20
-        </div>
-
-      </div>
-
-
-      <div class="metric">
-
-        <div class="metric-label">
-          Visitante últimos 5
-        </div>
-
-        <div class="metric-value">
-          ${Math.round(result.as.w5*5)}/5
-        </div>
-
-      </div>
-
-
-      <div class="metric">
-
-        <div class="metric-label">
-          Visitante últimos 10
-        </div>
-
-        <div class="metric-value">
-          ${Math.round(result.as.w10*10)}/10
-        </div>
-
-      </div>
-
-
-      <div class="metric">
-
-        <div class="metric-label">
-          Visitante últimos 20
-        </div>
-
-        <div class="metric-value">
-          ${Math.round(result.as.w20*20)}/20
-        </div>
-
-      </div>
-
     </div>
 
-
-    <h3>
-      Producción ofensiva y defensiva
-    </h3>
-
-
-    <div class="grid">
-
-      <div class="metric">
-
-        <div class="metric-label">
-          PF local
-        </div>
-
-        <div class="metric-value">
-          ${result.hs.pf.toFixed(1)}
-        </div>
-
+    <div class="card">
+      <div class="section-title">Puntos clave</div>
+      <div class="signal-grid">${keyPointsHtml}</div>
+      <div class="muted" style="margin-top:10px">
+        Las barras representan la fuerza relativa de cada señal disponible; no son porcentajes de probabilidad independientes.
       </div>
-
-
-      <div class="metric">
-
-        <div class="metric-label">
-          PA local
-        </div>
-
-        <div class="metric-value">
-          ${result.hs.pa.toFixed(1)}
-        </div>
-
-      </div>
-
-
-      <div class="metric">
-
-        <div class="metric-label">
-          PF visitante
-        </div>
-
-        <div class="metric-value">
-          ${result.as.pf.toFixed(1)}
-        </div>
-
-      </div>
-
-
-      <div class="metric">
-
-        <div class="metric-label">
-          PA visitante
-        </div>
-
-        <div class="metric-value">
-          ${result.as.pa.toFixed(1)}
-        </div>
-
-      </div>
-
     </div>
 
-
-    <h3>
-      Local / visitante · H2H · ritmo
-    </h3>
-
-
-    <div class="table-wrap">
-
-      <table>
-
-        <tbody>
-
-          <tr>
-
-            <td>
-              Rendimiento local
-            </td>
-
-            <td>
-              ${pct(result.homeHome.w10*100)}
-              últimos 10
-            </td>
-
-            <td>
-              Margen
-              ${result.homeHome.margin.toFixed(1)}
-            </td>
-
-          </tr>
-
-
-          <tr>
-
-            <td>
-              Rendimiento visitante
-            </td>
-
-            <td>
-              ${pct(result.awayRoad.w10*100)}
-              últimos 10
-            </td>
-
-            <td>
-              Margen
-              ${result.awayRoad.margin.toFixed(1)}
-            </td>
-
-          </tr>
-
-
-          <tr>
-
-            <td>
-              H2H
-            </td>
-
-            <td colspan="2">
-
-              ${
-                result.h2h.length
-                  ? `${result.h2h.length}
-                     enfrentamientos ·
-                     ${result.h2hWins}
-                     victorias del equipo local`
-                  : "Sin H2H reciente"
-              }
-
-            </td>
-
-          </tr>
-
-
-          <tr>
-
-            <td>
-              Ritmo estimado
-            </td>
-
-            <td>
-              ${result.pace.toFixed(1)}
-              puntos combinados
-            </td>
-
-            <td>
-              Margen proyectado
-              ${result.margin.toFixed(1)}
-            </td>
-
-          </tr>
-
-        </tbody>
-
-      </table>
-
+    <div class="card">
+      <div class="section-title">Componentes que alimentan la probabilidad</div>
+      <div class="grid">
+        <div class="metric"><div class="metric-label">Gradient Boosting</div><div class="metric-value">${pct(result.gb*100)}</div></div>
+        <div class="metric"><div class="metric-label">ELO</div><div class="metric-value">${pct(result.elo*100)}</div></div>
+        <div class="metric"><div class="metric-label">Margen</div><div class="metric-value">${pct(result.scoreDistribution*100)}</div></div>
+        <div class="metric"><div class="metric-label">Forma</div><div class="metric-value">${pct(result.form*100)}</div></div>
+      </div>
     </div>
 
+    <div class="card">
+      <div class="section-title">Selección de mercado</div>
+      <div class="market-select">${marketCards}</div>
+      <div class="muted" style="margin-top:10px">
+        Son salidas estadísticas de WYNTR. Las cuotas reales se muestran cuando The Odds API está configurada.
+      </div>
+    </div>
 
-    <h3>
-      Calidad y fuentes
-    </h3>
-
-
-    <div class="muted">
-
-      Histórico:
-      BALLDONTLIE.
-
-      <br><br>
-
-      Cuotas:
-      The Odds API cuando se configura
-      una API Key.
-
-      <br><br>
-
-      Lesiones/ausencias:
-      esta versión no presenta datos
-      de lesiones como confirmados porque
-      no tiene una fuente específica de
-      lesiones conectada.
-
+    <div class="card">
+      <div class="section-title">Calidad del modelo</div>
+      <div class="grid">
+        <div class="metric"><div class="metric-label">Señal</div><div class="metric-value">${esc(result.confidence)}</div></div>
+        <div class="metric"><div class="metric-label">Muestra</div><div class="metric-value">${result.sample}</div></div>
+        <div class="metric"><div class="metric-label">Validación</div><div class="metric-value">${result.validation}</div></div>
+        <div class="metric"><div class="metric-label">ELO diferencial</div><div class="metric-value">${result.eloDiff>=0?"+":""}${result.eloDiff.toFixed(0)}</div></div>
+      </div>
+      <div class="muted" style="margin-top:12px">
+        Histórico: BALLDONTLIE. Lesiones y ausencias no se muestran como confirmadas hasta conectar una fuente específica.
+      </div>
     </div>
 
   `;
 
 }
+
+
 
 
 /* =========================================================
@@ -3339,6 +3194,22 @@ async function selectGame(id){
       game =>
         game.id===id
     );
+
+  document
+    .querySelectorAll(".game.selected")
+    .forEach(
+      el =>
+        el.classList.remove("selected")
+    );
+
+  const selectedButton =
+    document.querySelector(
+      `.game[data-id="${CSS.escape(String(id))}"]`
+    );
+
+  if(selectedButton){
+    selectedButton.classList.add("selected");
+  }
 
   if(!selected){
 
