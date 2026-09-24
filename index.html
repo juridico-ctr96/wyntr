@@ -1356,8 +1356,8 @@ function normalizeFixtureCalendarGames(payload,fromDate,toDate){
 
   const teamValue=(row,side)=>{
     const objectKey=side==="home"
-      ? ["home_team","homeTeam","home"]
-      : ["away_team","awayTeam","away"];
+      ? ["home_team","homeTeam","HomeTeam","home"]
+      : ["away_team","awayTeam","AwayTeam","away"];
 
     const raw=value(row,objectKey);
 
@@ -1372,7 +1372,7 @@ function normalizeFixtureCalendarGames(payload,fromDate,toDate){
     const prefix=side==="home"?"home":"away";
     return {
       id:String(value(row,[prefix+"_team_id",prefix+"TeamId",prefix+"_id"])||""),
-      name:String(value(row,[prefix+"_team",prefix+"_team_name",prefix+"Team",prefix+"TeamName",prefix+"_name",prefix+"Name"])||""),
+      name:String(value(row,[prefix+"_team",prefix+"_team_name",prefix+"Team",prefix.charAt(0).toUpperCase()+prefix.slice(1)+"Team",prefix+"TeamName",prefix.charAt(0).toUpperCase()+prefix.slice(1)+"TeamName",prefix+"_name",prefix+"Name"])||""),
       abbr:String(value(row,[prefix+"_team_abbr",prefix+"_team_abbreviation",prefix+"Abbreviation",prefix+"_abbr"])||"")
     };
   };
@@ -1397,8 +1397,8 @@ function normalizeFixtureCalendarGames(payload,fromDate,toDate){
     const homeId=home.id||BDL_TEAM_IDS[homeCode]||homeCode;
     const awayId=away.id||BDL_TEAM_IDS[awayCode]||awayCode;
 
-    const homeScore=Number(value(row,["home_score","homeScore","Home Score"]));
-    const awayScore=Number(value(row,["away_score","awayScore","Away Score"]));
+    const homeScore=Number(value(row,["home_score","homeScore","Home Score","HomeTeamScore"]));
+    const awayScore=Number(value(row,["away_score","awayScore","Away Score","AwayTeamScore"]));
     const statusRaw=String(value(row,["status","Status","game_status","gameStatus"])||"scheduled").toLowerCase();
     const completed=Number.isFinite(homeScore)&&Number.isFinite(awayScore) &&
       !/scheduled|upcoming|preseason|preview/i.test(statusRaw);
