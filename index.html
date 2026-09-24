@@ -367,6 +367,21 @@ h3{
   font-weight:900
 }
 
+.header{position:sticky;top:0;z-index:20;background:rgba(7,11,20,.88);backdrop-filter:blur(16px);padding:12px 0 14px;border-bottom:1px solid rgba(38,50,70,.55)}
+.header-inner{display:flex;align-items:flex-end;justify-content:space-between;gap:16px}
+.brand-block{min-width:0}
+.app-nav{display:flex;gap:7px;overflow-x:auto;margin-top:12px;padding:2px 0 3px;scrollbar-width:none}
+.app-nav a{white-space:nowrap}
+.hero-kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:14px}
+.hero-kpi{background:rgba(10,16,28,.72);border:1px solid rgba(99,232,255,.14);border-radius:13px;padding:10px}
+.hero-kpi b{display:block;font-size:17px}
+.hero-kpi span{display:block;color:#8290a4;font-size:9px;text-transform:uppercase;letter-spacing:1px;margin-top:3px}
+.section-title{display:flex;align-items:center;gap:8px}
+.section-title:before{content:"";width:4px;height:14px;border-radius:3px;background:#18d7b0}
+.match-hero{box-shadow:0 20px 60px rgba(0,0,0,.28)}
+.prob-card:first-child,.prob-card:last-child{background:linear-gradient(145deg,#101b2b,#0d1522)}
+.prob-card:nth-child(2){background:linear-gradient(145deg,#0e201f,#0d171c);border-color:rgba(24,215,176,.28)}
+@media(max-width:650px){.header-inner{display:block}.hero-kpis{grid-template-columns:1fr 1fr 1fr}.hero-kpi{padding:8px 7px}.hero-kpi b{font-size:14px}.hero-kpi span{font-size:8px}.nba-hero-overlay{padding:18px}.card{border-radius:17px;padding:15px}}
 .app-nav{display:flex;gap:8px;overflow-x:auto;margin-top:14px;padding-bottom:3px;scrollbar-width:none}
 .app-nav::-webkit-scrollbar{display:none}
 .app-nav a{flex:0 0 auto;text-decoration:none;color:#b9c3d0;background:#111927;border:1px solid #263246;border-radius:999px;padding:8px 11px;font-size:11px;font-weight:800}
@@ -514,7 +529,12 @@ h3{
 <div class="container">
 
 <header class="header">
-  <div class="logo">WYNTR</div>
+  <div class="header-inner">
+    <div class="brand-block">
+      <div class="logo">WYNTR</div>
+      <div class="subtitle">FIND THE SIGNAL · NBA INTELLIGENCE ENGINE</div>
+    </div>
+  </div>
   <nav class="app-nav" aria-label="Navegación principal">
     <a href="#calendar">Calendario</a>
     <a href="#games-section">Partidos</a>
@@ -522,9 +542,6 @@ h3{
     <a href="#market-section">Mercado</a>
     <a href="#engine-section">Motor</a>
   </nav>
-  <div class="subtitle">
-    FIND THE SIGNAL · NBA INTELLIGENCE ENGINE
-  </div>
 </header>
 
 <!-- =======================================================
@@ -559,8 +576,11 @@ h3{
 
     </div>
 
-    <div class="nba-hero-title">
-      FIND THE SIGNAL
+    <div class="nba-hero-title">FIND THE SIGNAL</div>
+    <div class="hero-kpis">
+      <div class="hero-kpi"><b>NBA</b><span>Deporte</span></div>
+      <div class="hero-kpi"><b>REAL DATA</b><span>Fuentes conectadas</span></div>
+      <div class="hero-kpi"><b>WYNTR</b><span>Model intelligence</span></div>
     </div>
 
   </div>
