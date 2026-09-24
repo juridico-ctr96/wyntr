@@ -646,6 +646,7 @@ body{background:
 .upcoming-card{transition:transform .16s ease,box-shadow .16s ease}
 .upcoming-card:hover{transform:translateY(-2px);box-shadow:0 14px 30px rgba(0,0,0,.2)}
 .section-anchor{scroll-margin-top:110px}
+#analysis-section{scroll-margin-top:112px}
 @media(max-width:650px){
   .hero-description{font-size:11px}
   .data-strip-item{padding:9px 8px}
@@ -2795,6 +2796,17 @@ async function selectGame(id){
       selected,
       result
     );
+
+    // Llevar automáticamente al usuario a la ficha del partido.
+    requestAnimationFrame(() => {
+      const analysisSection = $("analysis-section");
+      if (analysisSection) {
+        analysisSection.scrollIntoView({
+          behavior: "smooth",
+          block: "start"
+        });
+      }
+    });
 
     startOddsRefresh(
       selected
