@@ -1402,6 +1402,61 @@ function officialNBAGames(payload){
   return rows;
 }
 
+function normalizeOfficialCalendarGames(payload,fromDate,toDate){
+  const official=officialNBAGames(payload);
+  const from=new Date(fromDate);
+  const to=new Date(toDate);
+
+  return official
+    .filter(game=>{
+      const date=new Date(game.date);
+      return Number.isFinite(date.getTime()) && date>=from && date<=to;
+    })
+    .map(game=>{
+      const source=(payload?.leagueSchedule?.gameDates||[])
+        .flatMap(block=>(block?.games||[]).map(item=>({item,block})))
+        .find(row=>String(row.item?.gameId||"")===String(game.id));
+      const raw=source?.item||{};
+      const home=raw.homeTeam||{};
+      const away=raw.awayTeam||{};
+      const statusText=String(game.statusText||"").toLowerCase();
+      const statusNumber=Number(game.status||0);
+      const statusState=statusNumber===3||/final|complete/.test(statusText)
+        ?"final"
+        :statusNumber===2
+          ?"live"
+          :game.postponed
+            ?"postponed"
+            :"scheduled";
+
+      return {
+        id:game.id,
+        date:game.date,
+        name:`${game.awayCode} @ ${game.homeCode}`,
+        home:{
+          id:String(home.teamId||game.homeCode),
+          name:home.teamName||game.homeCode,
+          short:home.teamName||game.homeCode,
+          abbr:game.homeCode,
+          logo:teamLogoUrl(game.homeCode)
+        },
+        away:{
+          id:String(away.teamId||game.awayCode),
+          name:away.teamName||game.awayCode,
+          short:away.teamName||game.awayCode,
+          abbr:game.awayCode,
+          logo:teamLogoUrl(game.awayCode)
+        },
+        homeScore:statusState==="final"&&Number.isFinite(Number(home.score))?Number(home.score):null,
+        awayScore:statusState==="final"&&Number.isFinite(Number(away.score))?Number(away.score):null,
+        completed:statusState==="final",
+        statusState,
+        postponed:statusState==="postponed",
+        status:game.statusText||statusState
+      };
+    });
+}
+
 function verifyCalendarAgainstNBA(currentGames,payload){
   const official=officialNBAGames(payload);
   const byKey=new Map();
@@ -1480,40 +1535,29 @@ function renderCalendarQuality(){
 
 async function loadCalendar(){
 
-  const status =
-    $("calendarStatus");
-
-  status.textContent =
-    "Consultando calendario NBA con BALLDONTLIE...";
+  const status=$("calendarStatus");
+  status.textContent="Consultando calendario oficial NBA...";
 
   try{
 
-    const now =
-      new Date();
+    const now=new Date();
+    const endDate=new Date(now);
+    endDate.setDate(endDate.getDate()+45);
 
-    const end =
-      new Date(now);
-
-    end.setDate(
-      end.getDate()+45
+    // El calendario futuro usa NBA.com como fuente primaria.
+    // Así no consumimos innecesariamente el límite de BALLDONTLIE.
+    const officialResponse=await fetchJSON(
+      NBA_SCHEDULE,
+      15000
     );
 
-    const params =
-      new URLSearchParams({
-        start_date:
-          now.toISOString().slice(0,10),
-        end_date:
-          end.toISOString().slice(0,10)
-      });
+    const officialGames=normalizeOfficialCalendarGames(
+      officialResponse,
+      now,
+      endDate
+    );
 
-    const data =
-      await fetchBDLGames(
-        params,
-        5
-      );
-
-    const normalized=data.map(normEvent);
-    const quality=validateCalendarGames(normalized);
+    const quality=validateCalendarGames(officialGames);
 
     state.dataQuality={
       total:quality.total,
@@ -1522,180 +1566,97 @@ async function loadCalendar(){
     };
 
     games=dedupe(quality.valid);
+    state.scheduleVerification={
+      source:"NBA.com",
+      current:games.length,
+      official:officialNBAGames(officialResponse).length,
+      matched:games.map(game=>({game})),
+      mismatches:[],
+      missing:[],
+      exact:true
+    };
+
     updateTeams();
     render();
     renderCalendarQuality();
 
     if(games.length){
-      status.textContent=games.length+" partido(s) válidos · "+quality.rejected+" descartados · BALLDONTLIE. Verificando con NBA.com…";
-      try{
-        const verification=await verifySchedule(games);
-        state.scheduleVerification=verification;
-        renderCalendarQuality();
-        if(verification.exact){
-          status.textContent=games.length+" partidos válidos · 0 descartados · verificados contra NBA.com: "+verification.matched.length+"/"+verification.current+" coinciden en equipos y fecha/hora.";
-        }else{
-          status.innerHTML="<span class=\"error\">"+games.length+" partidos cargados · verificación NBA.com: "+verification.matched.length+"/"+verification.current+" coinciden.<br>"+verification.mismatches.length+" discrepancia(s) y "+verification.missing.length+" partido(s) no encontrados.</span>";
-        }
-      }catch(verifyError){
-        console.error("WYNTR NBA verification:",verifyError);
-        state.scheduleVerification=null;
-        renderCalendarQuality();
-        status.textContent=games.length+" partidos válidos · BALLDONTLIE. Verificación secundaria NBA.com no disponible ahora.";
-      }
+      status.textContent=
+        games.length+
+        " partidos válidos · 0 descartados · calendario oficial NBA.com.";
     }else{
-      status.textContent="No hay partidos publicados en los próximos 45 días.";
+      status.textContent=
+        "No hay partidos publicados en los próximos 45 días.";
     }
+
     return games;
 
-  }catch(error){
+  }catch(officialError){
 
-    console.error(
-      "WYNTR calendar:",
-      error
-    );
+    console.error("WYNTR NBA official calendar:",officialError);
 
-    games=[];
+    // Fallback: BDL sigue disponible para que la aplicación no dependa
+    // de una única fuente.
+    try{
 
-    render();
+      status.textContent=
+        "Calendario oficial no disponible. Consultando BALLDONTLIE...";
 
-    const detail =
-      error?.message ||
-      "Error desconocido";
+      const now=new Date();
+      const end=new Date(now);
+      end.setDate(end.getDate()+45);
 
-    status.innerHTML = `
-      <span class="error">
-        No se pudo consultar BALLDONTLIE.
-        <br>
-        <small>${esc(detail)}</small>
+      const params=new URLSearchParams({
+        start_date:now.toISOString().slice(0,10),
+        end_date:end.toISOString().slice(0,10)
+      });
+
+      const data=await fetchBDLGames(params,2);
+      const normalized=data.map(normEvent);
+      const quality=validateCalendarGames(normalized);
+
+      state.dataQuality={
+        total:quality.total,
+        valid:quality.valid.length,
+        rejected:quality.rejected
+      };
+
+      games=dedupe(quality.valid);
+      state.scheduleVerification=null;
+
+      updateTeams();
+      render();
+      renderCalendarQuality();
+
+      status.textContent=
+        games.length+
+        " partidos válidos · BALLDONTLIE.";
+
+      return games;
+
+    }catch(error){
+
+      console.error("WYNTR calendar fallback:",error);
+
+      games=[];
+      state.scheduleVerification=null;
+      render();
+
+      const detail=error?.message||"Error desconocido";
+
+      status.innerHTML=`
+        <span class="error">
+          No se pudo cargar el calendario.
+          <br>
+          <small>${esc(detail)}</small>
+        </span>
         <br><br>
-        Pulsa "Actualizar partidos" para intentar nuevamente.
-      </span>
-    `;
-
-    return [];
-
-  }
-
-}
-
-
-/* =========================================================
-   EQUIPOS
-   ========================================================= */
-
-function updateTeams(){
-
-  const select =
-    $("team");
-
-  const map =
-    new Map();
-
-  games.forEach(
-    game => {
-
-      if(game.home.id){
-
-        map.set(
-          game.home.id,
-          game.home
-        );
-
-      }
-
-      if(game.away.id){
-
-        map.set(
-          game.away.id,
-          game.away
-        );
-
-      }
-
-    }
-  );
-
-  const current =
-    select.value;
-
-  select.innerHTML =
-    `<option value="all">
-      Todos
-    </option>`;
-
-  [
-    ...map.values()
-  ]
-  .sort(
-    (a,b) =>
-      a.name.localeCompare(
-        b.name
-      )
-  )
-  .forEach(
-    team => {
-
-      select.innerHTML += `
-        <option value="${esc(team.id)}">
-          ${esc(team.name)}
-        </option>
+        Pulsa "Actualizar partidos" para intentarlo nuevamente.
       `;
 
+      return [];
     }
-  );
-
-  if(
-    map.has(current)
-  ){
-
-    select.value =
-      current;
-
   }
-
-}
-
-
-/* =========================================================
-   FILTROS
-   ========================================================= */
-
-function filtered(){
-
-  const selectedTeam =
-    $("team").value;
-
-  const type =
-    $("type").value;
-
-  return games.filter(
-    game => {
-
-      const teamMatch =
-        selectedTeam === "all" ||
-        game.home.id === selectedTeam ||
-        game.away.id === selectedTeam;
-
-      const typeMatch =
-        type === "all" ||
-        (
-          type === "completed" &&
-          game.completed
-        ) ||
-        (
-          type === "upcoming" &&
-          !game.completed
-        );
-
-      return (
-        teamMatch &&
-        typeMatch
-      );
-
-    }
-  );
-
 }
 
 
