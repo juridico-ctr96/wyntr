@@ -808,8 +808,8 @@ y no garantizan resultados.
 const BDL =
 "/api/balldontlie";
 
-const ODDS =
-"https://api.the-odds-api.com/v4/sports/basketball_nba/odds/";
+const ODDS="/api/odds";
+const INJURIES="/api/injuries";
 
 const NBA_LOGO =
 "https://cdn.nba.com/logos/leagues/L/logo-nba-logoman.svg";
@@ -828,7 +828,10 @@ let countTimer = null;
 let count = 60;
 
 const state = {
-  analysis:null
+  analysis:null,
+  injuries:null,
+  odds:null,
+  dataQuality:null
 };
 
 
@@ -950,9 +953,19 @@ async function fetchJSON(
 
     if(!response.ok){
 
-      throw new Error(
-        `HTTP ${response.status}`
-      );
+      let message=`HTTP ${response.status}`;
+      let code="";
+
+      try{
+        const body=await response.json();
+        message=body?.error||body?.message||message;
+        code=body?.code||"";
+      }catch{}
+
+      const error=new Error(message);
+      error.status=response.status;
+      error.code=code;
+      throw error;
 
     }
 
@@ -1056,50 +1069,33 @@ function normBDLTeam(t){
 
 function normEvent(e){
 
-  const home =
-    e?.home_team;
-
-  const away =
-    e?.visitor_team;
-
-  const date =
-    e?.datetime ||
-    e?.date;
-
-  const statusState =
-    String(
-      e?.status_state ||
-      ""
-    ).toLowerCase();
+  const home=e?.home_team;
+  const away=e?.visitor_team;
+  const statusState=String(e?.status_state||"").toLowerCase();
 
   return {
-
-    id:String(
-      e?.id || ""
-    ),
-
-    date,
-
-    name:
-      `${away?.abbreviation || away?.name || ""} @ ${home?.abbreviation || home?.name || ""}`,
-
-    home:
-      normBDLTeam(home),
-
-    away:
-      normBDLTeam(away),
-
-    completed:
-      statusState === "final" ||
-      String(e?.status || "").toLowerCase() === "final",
-
-    status:
-      e?.status ||
-      statusState ||
-      "Desconocido"
-
+    id:String(e?.id||""),
+    date:e?.datetime||e?.date,
+    name:`${away?.abbreviation||away?.name||""} @ ${home?.abbreviation||home?.name||""}`,
+    home:normBDLTeam(home),
+    away:normBDLTeam(away),
+    homeScore:Number.isFinite(Number(e?.home_team_score))?Number(e.home_team_score):null,
+    awayScore:Number.isFinite(Number(e?.visitor_team_score))?Number(e.visitor_team_score):null,
+    completed:statusState==="final"||String(e?.status||"").toLowerCase()==="final",
+    statusState,
+    postponed:Boolean(e?.postponed)||statusState==="postponed",
+    status:e?.status||statusState||"Desconocido"
   };
-
+}
+function validateGameRecord(game){
+  const validDate=Number.isFinite(new Date(game.date).getTime());
+  const validTeams=Boolean(game.home?.id&&game.away?.id&&game.home.id!==game.away.id);
+  const blocked=["canceled","cancelled","abandoned","postponed"].includes(game.statusState);
+  return {valid:Boolean(game.id)&&validDate&&validTeams&&!blocked};
+}
+function validateCalendarGames(list){
+  const valid=list.filter(validateGameRecord);
+  return {valid,total:list.length,rejected:list.length-valid.length};
 }
 
 
@@ -1245,25 +1241,24 @@ async function loadCalendar(){
         5
       );
 
-    games =
-      dedupe(
-        data
-          .map(normEvent)
-          .filter(
-            game =>
-              game.home.id &&
-              game.away.id
-          )
-      );
+    const normalized=data.map(normEvent);
+    const quality=validateCalendarGames(normalized);
+
+    state.dataQuality={
+      total:quality.total,
+      valid:quality.valid.length,
+      rejected:quality.rejected
+    };
+
+    games=dedupe(quality.valid);
 
     updateTeams();
-
     render();
 
     if(games.length){
 
-      status.textContent =
-        `${games.length} partido(s) encontrados · próximos 45 días · BALLDONTLIE.`;
+      status.textContent=
+        `${games.length} partido(s) válidos · ${quality.rejected} registro(s) descartados · BALLDONTLIE.`;
 
     }else{
 
@@ -1580,7 +1575,7 @@ function cacheKey(
       .sort()
       .join("_");
 
-  return `wyntr_hist_${days}_${teams || "all"}`;
+  return `wyntr_hist_v2_${days}_${teams || "all"}`;
 
 }
 
@@ -1722,374 +1717,85 @@ async function loadHistory(
    ELO + ESTADÍSTICAS
    ========================================================= */
 
-function buildFeatures(
-  history,
-  homeId,
-  awayId,
-  cutoff
-){
+function buildFeatures(history,homeId,awayId,cutoff){
 
-  const prior =
-    history.filter(
-      game =>
-        new Date(game.date) <
-        cutoff
-    );
+  const prior=history
+    .filter(g=>new Date(g.date)<cutoff)
+    .sort((a,b)=>new Date(b.date)-new Date(a.date));
 
-  const homeGames =
-    prior
-      .filter(
-        game =>
-          game.home.id === homeId ||
-          game.away.id === homeId
-      )
-      .sort(
-        (a,b) =>
-          new Date(b.date) -
-          new Date(a.date)
-      );
+  const teamGames=id=>prior.filter(g=>g.home.id===id||g.away.id===id);
 
-  const awayGames =
-    prior
-      .filter(
-        game =>
-          game.home.id === awayId ||
-          game.away.id === awayId
-      )
-      .sort(
-        (a,b) =>
-          new Date(b.date) -
-          new Date(a.date)
-      );
+  const ordered=[...prior].sort((a,b)=>new Date(a.date)-new Date(b.date));
+  const elo=new Map();
+  const rating=id=>elo.has(id)?elo.get(id):1500;
 
-  const ordered =
-    [...prior].sort(
-      (a,b) =>
-        new Date(a.date) -
-        new Date(b.date)
-    );
+  ordered.forEach(g=>{
+    const hr=rating(g.home.id), ar=rating(g.away.id);
+    const eh=1/(1+Math.pow(10,(ar-hr)/400));
+    const y=g.homeScore>g.awayScore?1:0;
+    const k=20;
+    elo.set(g.home.id,hr+k*(y-eh));
+    elo.set(g.away.id,ar+k*((1-y)-(1-eh)));
+  });
 
-  const elo =
-    new Map();
-
-  function rating(id){
-
-    return elo.has(id)
-      ? elo.get(id)
-      : 1500;
-
+  function stats(list,id){
+    const v=list.slice(0,20).map(g=>{
+      const h=g.home.id===id;
+      const pf=h?g.homeScore:g.awayScore;
+      const pa=h?g.awayScore:g.homeScore;
+      return {pf,pa,m:pf-pa,t:pf+pa,w:pf>pa};
+    });
+    const avg=k=>v.length?v.reduce((s,x)=>s+x[k],0)/v.length:0;
+    const wr=n=>{const x=v.slice(0,n);return x.length?x.filter(a=>a.w).length/x.length:.5};
+    const m=v.map(x=>x.m), mm=avg("m");
+    const sd=m.length?Math.sqrt(m.reduce((s,x)=>s+(x-mm)**2,0)/m.length):0;
+    return {n:v.length,w5:wr(5),w10:wr(10),w20:wr(20),pf:avg("pf"),pa:avg("pa"),margin:mm,total:avg("t"),marginStd:sd};
   }
 
-  for(
-    const game of ordered
-  ){
+  const hg=teamGames(homeId), ag=teamGames(awayId);
+  const hs=stats(hg,homeId), as=stats(ag,awayId);
+  const hh=stats(hg.filter(g=>g.home.id===homeId),homeId);
+  const ar=stats(ag.filter(g=>g.away.id===awayId),awayId);
 
-    const homeRating =
-      rating(
-        game.home.id
-      );
+  const h2h=prior.filter(g=>
+    (g.home.id===homeId&&g.away.id===awayId)||
+    (g.home.id===awayId&&g.away.id===homeId)
+  ).slice(0,10);
 
-    const awayRating =
-      rating(
-        game.away.id
-      );
+  const h2w=h2h.filter(g=>
+    (g.home.id===homeId&&g.homeScore>g.awayScore)||
+    (g.away.id===homeId&&g.awayScore>g.homeScore)
+  ).length;
 
-    const expectedHome =
-      1 /
-      (
-        1 +
-        Math.pow(
-          10,
-          (
-            awayRating -
-            homeRating
-          ) /
-          400
-        )
-      );
-
-    const result =
-      game.homeScore >
-      game.awayScore
-        ? 1
-        : 0;
-
-    const K=20;
-
-    elo.set(
-      game.home.id,
-      homeRating +
-      K *
-      (
-        result -
-        expectedHome
-      )
-    );
-
-    elo.set(
-      game.away.id,
-      awayRating +
-      K *
-      (
-        (1-result) -
-        (1-expectedHome)
-      )
-    );
-
-  }
-
-  function statistics(
-    games,
-    id
-  ){
-
-    const last =
-      games.slice(
-        0,
-        20
-      );
-
-    const values =
-      last.map(
-        game => {
-
-          const isHome =
-            game.home.id === id;
-
-          const pointsFor =
-            isHome
-              ? game.homeScore
-              : game.awayScore;
-
-          const pointsAgainst =
-            isHome
-              ? game.awayScore
-              : game.homeScore;
-
-          const win =
-            pointsFor >
-            pointsAgainst;
-
-          return {
-
-            pf:pointsFor,
-
-            pa:pointsAgainst,
-
-            margin:
-              pointsFor -
-              pointsAgainst,
-
-            win,
-
-            pace:
-              game.homeScore +
-              game.awayScore
-
-          };
-
-        }
-      );
-
-    const average =
-      key =>
-        values.length
-          ? values.reduce(
-              (sum,item) =>
-                sum + item[key],
-              0
-            ) /
-            values.length
-          : 0;
-
-    const wins =
-      number =>
-        values
-          .slice(
-            0,
-            number
-          )
-          .filter(
-            item =>
-              item.win
-          ).length /
-        Math.max(
-          1,
-          Math.min(
-            number,
-            values.length
-          )
-        );
-
-    return {
-
-      n:
-        values.length,
-
-      w5:
-        wins(5),
-
-      w10:
-        wins(10),
-
-      w20:
-        wins(20),
-
-      pf:
-        average("pf"),
-
-      pa:
-        average("pa"),
-
-      margin:
-        average("margin"),
-
-      pace:
-        average("pace")
-
-    };
-
-  }
-
-  const homeStats =
-    statistics(
-      homeGames,
-      homeId
-    );
-
-  const awayStats =
-    statistics(
-      awayGames,
-      awayId
-    );
-
-  const homeHomeStats =
-    statistics(
-      homeGames.filter(
-        game =>
-          game.home.id === homeId
-      ),
-      homeId
-    );
-
-  const awayRoadStats =
-    statistics(
-      awayGames.filter(
-        game =>
-          game.away.id === awayId
-      ),
-      awayId
-    );
-
-  const h2h =
-    prior
-      .filter(
-        game =>
-          (
-            game.home.id === homeId &&
-            game.away.id === awayId
-          ) ||
-          (
-            game.home.id === awayId &&
-            game.away.id === homeId
-          )
-      )
-      .sort(
-        (a,b) =>
-          new Date(b.date) -
-          new Date(a.date)
-      )
-      .slice(
-        0,
-        10
-      );
-
-  const h2hWins =
-    h2h.filter(
-      game =>
-        (
-          game.home.id === homeId &&
-          game.homeScore >
-          game.awayScore
-        ) ||
-        (
-          game.away.id === homeId &&
-          game.awayScore >
-          game.homeScore
-        )
-    ).length;
-
-  const homeElo =
-    rating(homeId);
-
-  const awayElo =
-    rating(awayId);
-
-  const features = [
-
-    homeElo -
-    awayElo,
-
-    homeStats.w10 -
-    awayStats.w10,
-
-    homeStats.margin -
-    awayStats.margin,
-
-    homeStats.pf -
-    awayStats.pf,
-
-    homeStats.pa -
-    awayStats.pa,
-
-    homeStats.pace -
-    awayStats.pace,
-
-    homeHomeStats.w10 -
-    awayRoadStats.w10,
-
-    homeHomeStats.margin -
-    awayRoadStats.margin,
-
-    h2h.length
-      ? (
-          h2hWins /
-          h2h.length
-        ) -
-        .5
-      : 0
-
-  ];
+  const expectedHome=(hs.pf+as.pa)/2+3;
+  const expectedAway=(as.pf+hs.pa)/2;
+  const expectedMargin=expectedHome-expectedAway;
 
   return {
-
-    features,
-
-    homeElo,
-
-    awayElo,
-
-    homeStats,
-
-    awayStats,
-
-    homeHomeStats,
-
-    awayRoadStats,
-
-    h2h,
-
-    h2hWins,
-
-    priorCount:
-      prior.length
-
+    features:[
+      rating(homeId)-rating(awayId),
+      hs.w10-as.w10,
+      hs.margin-as.margin,
+      hs.pf-as.pf,
+      hs.pa-as.pa,
+      hs.total-as.total,
+      hh.w10-ar.w10,
+      hh.margin-ar.margin,
+      h2h.length?h2w/h2h.length-.5:0,
+      expectedMargin,
+      expectedHome+expectedAway,
+      hs.marginStd-as.marginStd
+    ],
+    homeElo:rating(homeId),awayElo:rating(awayId),
+    homeStats:hs,awayStats:as,homeHomeStats:hh,awayRoadStats:ar,
+    h2h,h2hWins:h2w,expectedHome,expectedAway,expectedMargin,
+    expectedTotal:expectedHome+expectedAway,priorCount:prior.length
   };
-
 }
 
 
 /* =========================================================
+   SIGMOID/* =========================================================
    SIGMOID
    ========================================================= */
 
@@ -2231,677 +1937,329 @@ function scoreDifferenceProbability(
    GRADIENT BOOSTING
    ========================================================= */
 
-function trainGradientBoosting(
-  rows
-){
-
-  if(
-    rows.length<20
-  ){
-
-    return null;
-
+function logitProbability(p){p=clamp(p,.001,.999);return Math.log(p/(1-p));}
+function logLoss(p,y){p=clamp(p,.001,.999);return -(y*Math.log(p)+(1-y)*Math.log(1-p));}
+function fitPlattCalibration(rows){
+  if(rows.length<20)return {calibrated:false,predict:p=>p};
+  let a=1,b=0;
+  for(let e=0;e<120;e++){
+    let ga=0,gb=0;
+    rows.forEach(r=>{
+      const z=logitProbability(r.p),q=sigmoid(a*z+b);
+      ga+=(q-r.y)*z; gb+=q-r.y;
+    });
+    const rate=.025/Math.sqrt(e+1);
+    a-=rate*ga/rows.length; b-=rate*gb/rows.length;
   }
+  return {calibrated:true,predict:p=>clamp(sigmoid(a*logitProbability(p)+b),.01,.99)};
+}
+function trainGradientBoosting(rows){
 
-  const split =
-    Math.max(
-      10,
-      Math.floor(
-        rows.length*.70
-      )
-    );
+  if(rows.length<20)return null;
 
-  const train =
-    rows.slice(
-      0,
-      split
-    );
-
-  const test =
-    rows.slice(
-      split
-    );
-
-  const base =
-    train.reduce(
-      (sum,row) =>
-        sum+row.y,
-      0
-    ) /
-    train.length;
-
-  let predictions =
-    train.map(
-      () =>
-        base
-    );
-
+  const split=Math.max(12,Math.floor(rows.length*.70));
+  const train=rows.slice(0,split),test=rows.slice(split);
+  const base=train.reduce((s,r)=>s+r.y,0)/train.length;
+  let pred=train.map(()=>base);
   const stumps=[];
 
-  for(
-    let round=0;
-    round<30;
-    round++
-  ){
+  for(let round=0;round<40;round++){
 
-    let best={
+    let best={error:Infinity,feature:0,threshold:0,left:0,right:0};
 
-      error:Infinity,
+    for(let f=0;f<train[0].x.length;f++){
 
-      feature:0,
+      const values=train.map(r=>r.x[f]).sort((a,b)=>a-b);
+      const thresholds=[20,35,50,65,80].map(q=>values[Math.min(values.length-1,Math.floor(values.length*q/100))]);
 
-      threshold:0,
+      for(const threshold of new Set(thresholds)){
 
-      left:0,
+        const left=[],right=[];
 
-      right:0
+        train.forEach((r,i)=>{
+          const residual=r.y-pred[i];
+          (r.x[f]<=threshold?left:right).push(residual);
+        });
 
-    };
-
-    for(
-      let feature=0;
-      feature<train[0].x.length;
-      feature++
-    ){
-
-      const values =
-        train
-          .map(
-            row =>
-              row.x[feature]
-          )
-          .sort(
-            (a,b) =>
-              a-b
-          );
-
-      const thresholds=[
-
-        values[
-          Math.floor(
-            values.length*.20
-          )
-        ],
-
-        values[
-          Math.floor(
-            values.length*.40
-          )
-        ],
-
-        values[
-          Math.floor(
-            values.length*.60
-          )
-        ],
-
-        values[
-          Math.floor(
-            values.length*.80
-          )
-        ]
-
-      ];
-
-      for(
-        const threshold
-        of thresholds
-      ){
-
-        const left=[];
-        const right=[];
-
-        train.forEach(
-          (
-            row,
-            index
-          ) => {
-
-            const residual =
-              row.y -
-              predictions[index];
-
-            if(
-              row.x[feature] <=
-              threshold
-            ){
-
-              left.push(
-                residual
-              );
-
-            }else{
-
-              right.push(
-                residual
-              );
-
-            }
-
-          }
-        );
-
-        const leftMean =
-          left.length
-            ? left.reduce(
-                (a,b) =>
-                  a+b,
-                0
-              ) /
-              left.length
-            : 0;
-
-        const rightMean =
-          right.length
-            ? right.reduce(
-                (a,b) =>
-                  a+b,
-                0
-              ) /
-              right.length
-            : 0;
+        const lm=left.length?left.reduce((a,b)=>a+b,0)/left.length:0;
+        const rm=right.length?right.reduce((a,b)=>a+b,0)/right.length:0;
 
         let error=0;
 
-        train.forEach(
-          (
-            row,
-            index
-          ) => {
+        train.forEach((r,i)=>{
+          const u=r.x[f]<=threshold?lm:rm;
+          error+=(r.y-pred[i]-u)**2;
+        });
 
-            const prediction =
-              row.x[feature] <=
-              threshold
-                ? leftMean
-                : rightMean;
-
-            error +=
-              Math.pow(
-                (
-                  row.y -
-                  predictions[index] -
-                  prediction
-                ),
-                2
-              );
-
-          }
-        );
-
-        if(
-          error<
-          best.error
-        ){
-
-          best={
-
-            error,
-
-            feature,
-
-            threshold,
-
-            left:leftMean,
-
-            right:rightMean
-
-          };
-
-        }
+        if(error<best.error)best={error,feature:f,threshold,left:lm,right:rm};
 
       }
 
     }
 
-    stumps.push(
-      best
-    );
+    stumps.push(best);
 
-    train.forEach(
-      (
-        row,
-        index
-      ) => {
-
-        predictions[index] =
-          clamp(
-            predictions[index]+
-            .08*
-            (
-              row.x[
-                best.feature
-              ] <=
-              best.threshold
-                ? best.left
-                : best.right
-            ),
-            .001,
-            .999
-          );
-
-      }
-    );
-
-  }
-
-  function predict(
-    features
-  ){
-
-    let value =
-      base;
-
-    stumps.forEach(
-      stump => {
-
-        value +=
-          .08*
-          (
-            features[
-              stump.feature
-            ] <=
-            stump.threshold
-              ? stump.left
-              : stump.right
-          );
-
-      }
-    );
-
-    return clamp(
-      value,
-      .001,
-      .999
-    );
-
-  }
-
-  let correct=0;
-
-  test.forEach(
-    row => {
-
-      const prediction =
-        predict(
-          row.x
-        );
-
-      if(
-        (
-          prediction>=.5
-        ) ===
-        (
-          row.y===1
-        )
-      ){
-
-        correct++;
-
-      }
-
-    }
-  );
-
-  return {
-
-    predict,
-
-    train:
-      train.length,
-
-    test:
-      test.length,
-
-    accuracy:
-      test.length
-        ? correct/
-          test.length
-        : null
-
-  };
-
-}
-
-
-/* =========================================================
-   ANÁLISIS
-   ========================================================= */
-
-async function analyzeGame(
-  game
-){
-
-  const days =
-    n(
-      $("range").value,
-      360
-    );
-
-  const history =
-    await loadHistory(
-      days,
-      [
-        game.home.id,
-        game.away.id
-      ]
-    );
-
-  const cutoff =
-    new Date(
-      game.date
-    );
-
-  const features =
-    buildFeatures(
-      history,
-      game.home.id,
-      game.away.id,
-      cutoff
-    );
-
-  const rows=[];
-
-  for(
-    const historical
-    of history
-  ){
-
-    if(
-      historical.homeScore<=0 ||
-      historical.awayScore<=0
-    ){
-
-      continue;
-
-    }
-
-    const historicalFeatures =
-      buildFeatures(
-        history,
-        historical.home.id,
-        historical.away.id,
-        new Date(
-          historical.date
-        )
+    train.forEach((r,i)=>{
+      pred[i]=clamp(
+        pred[i]+.06*(r.x[best.feature]<=best.threshold?best.left:best.right),
+        .001,.999
       );
-
-    rows.push({
-
-      x:
-        historicalFeatures
-          .features,
-
-      y:
-        historical.homeScore >
-        historical.awayScore
-          ? 1
-          : 0
-
     });
 
   }
 
-  const gradientBoosting =
-    trainGradientBoosting(
-      rows
+  function predict(x){
+    let p=base;
+    stumps.forEach(t=>p+=.06*(x[t.feature]<=t.threshold?t.left:t.right));
+    return clamp(p,.001,.999);
+  }
+
+  const testRows=test.map(r=>({y:r.y,p:predict(r.x)}));
+  const correct=testRows.filter(r=>(r.p>=.5)===(r.y===1)).length;
+  const cal=fitPlattCalibration(testRows);
+  const calibrated=testRows.map(r=>({y:r.y,p:cal.predict(r.p)}));
+
+  return {
+    predict,
+    calibrate:cal.predict,
+    train:train.length,
+    test:test.length,
+    accuracy:test.length?correct/test.length:null,
+    brier:calibrated.length?calibrated.reduce((s,r)=>s+(r.p-r.y)**2,0)/calibrated.length:null,
+    logLoss:calibrated.length?calibrated.reduce((s,r)=>s+logLoss(r.p,r.y),0)/calibrated.length:null,
+    calibrated:cal.calibrated
+  };
+}
+
+
+/* =========================================================
+   ANÁLISIS/* =========================================================
+   ANÁLISIS
+   ========================================================= */
+
+async function loadInjuries(game){
+
+  try{
+
+    const q=new URLSearchParams();
+    q.append("team_ids[]",game.home.id);
+    q.append("team_ids[]",game.away.id);
+    q.set("per_page","100");
+
+    const data=await fetchJSON(
+      `${INJURIES}?${q.toString()}`,
+      12000
     );
 
-  let gbProbability;
+    const records=Array.isArray(data?.data)?data.data:[];
 
-  if(
-    gradientBoosting
-  ){
+    const burden=teamId=>records
+      .filter(x=>String(x?.player?.team_id||"")===String(teamId))
+      .reduce((sum,x)=>{
+        const status=String(x?.status||"").toLowerCase();
+        const w=status.includes("out")
+          ?1
+          :status.includes("doubtful")
+            ?.75
+            :status.includes("question")
+              ?.5
+              :status.includes("probable")
+                ?.15
+                :.25;
+        return sum+w;
+      },0);
 
-    gbProbability =
-      gradientBoosting.predict(
-        features.features
-      );
+    const result={
+      available:true,
+      records,
+      home:burden(game.home.id),
+      away:burden(game.away.id)
+    };
 
-  }else{
+    state.injuries=result;
+    return result;
 
-    gbProbability =
-      clamp(
-        .5+
-        features.features[0]/800+
-        features.features[1]*.18+
-        features.features[2]/50,
-        .15,
-        .85
-      );
+  }catch(error){
+
+    const result={
+      available:false,
+      records:[],
+      home:0,
+      away:0,
+      reason:error?.message||"Fuente de lesiones no disponible"
+    };
+
+    state.injuries=result;
+    return result;
 
   }
 
-  const eloProbability =
-    sigmoid(
-      (
-        features.homeElo -
-        features.awayElo+
-        55
-      )/400
+}
+
+function availabilityProbability(i){
+  if(!i?.available)return .5;
+  return clamp(.5+(i.away-i.home)*.06,.35,.65);
+}
+
+async function analyzeGame(game){
+
+  const days=n($("range").value,360);
+
+  const [history,injuries]=await Promise.all([
+    loadHistory(days,[game.home.id,game.away.id]),
+    loadInjuries(game)
+  ]);
+
+  const features=buildFeatures(
+    history,
+    game.home.id,
+    game.away.id,
+    new Date(game.date)
+  );
+
+  const rows=[];
+
+  history.forEach(historical=>{
+
+    if(historical.homeScore<=0||historical.awayScore<=0)return;
+
+    const f=buildFeatures(
+      history,
+      historical.home.id,
+      historical.away.id,
+      new Date(historical.date)
     );
 
-  const lambdaHome =
-    clamp(
-      (
-        features.homeStats.pf+
-        features.awayStats.pa
-      )/2+3,
-      95,
-      140
-    );
+    rows.push({
+      x:f.features,
+      y:historical.homeScore>historical.awayScore?1:0
+    });
 
-  const lambdaAway =
-    clamp(
-      (
-        features.awayStats.pf+
-        features.homeStats.pa
-      )/2,
-      90,
-      135
-    );
+  });
 
-  const scoreProbability =
-    scoreDifferenceProbability(
-      lambdaHome,
-      lambdaAway
-    );
+  const gb=trainGradientBoosting(rows);
 
-  const formProbability =
-    clamp(
-      .5+
-      (
-        features.homeStats.w10-
-        features.awayStats.w10
-      )*.55+
-      (
-        features.homeHomeStats.w10-
-        features.awayRoadStats.w10
-      )*.25,
-      .15,
-      .85
-    );
+  const gbProbability=gb
+    ?gb.calibrate(gb.predict(features.features))
+    :.5;
 
-  const productionProbability =
-    clamp(
-      .5+
-      (
-        features.homeStats.margin-
-        features.awayStats.margin
-      )/25+
-      (
-        features.homeHomeStats.margin-
-        features.awayRoadStats.margin
-      )/30,
-      .15,
-      .85
-    );
+  const eloProbability=sigmoid(
+    (
+      features.homeElo-
+      features.awayElo+
+      55
+    )/400
+  );
 
-  const finalProbability =
-    clamp(
+  const scoreProbability=scoreDifferenceProbability(
+    features.expectedHome,
+    features.expectedAway
+  );
 
-      .45*
-      gbProbability+
+  const formProbability=clamp(
+    .5+
+    (
+      features.homeStats.w10-
+      features.awayStats.w10
+    )*.55+
+    (
+      features.homeHomeStats.w10-
+      features.awayRoadStats.w10
+    )*.25,
+    .15,.85
+  );
 
-      .20*
-      eloProbability+
+  const productionProbability=clamp(
+    .5+
+    (
+      features.homeStats.margin-
+      features.awayStats.margin
+    )/25+
+    (
+      features.homeHomeStats.margin-
+      features.awayRoadStats.margin
+    )/30,
+    .15,.85
+  );
 
-      .15*
-      scoreProbability+
+  const availability=availabilityProbability(injuries);
 
-      .10*
-      formProbability+
+  const finalProbability=clamp(
+    .40*gbProbability+
+    .20*eloProbability+
+    .15*scoreProbability+
+    .10*formProbability+
+    .10*productionProbability+
+    .05*availability,
+    .05,.95
+  );
 
-      .10*
-      productionProbability,
+  const parts=[
+    gbProbability,
+    eloProbability,
+    scoreProbability,
+    formProbability,
+    productionProbability,
+    availability
+  ];
 
-      .05,
-      .95
+  const disagreement=parts.reduce(
+    (s,p)=>s+Math.abs(p-finalProbability),
+    0
+  )/parts.length;
 
-    );
+  const sampleFactor=clamp(features.priorCount/50,0,1);
+  const agreementFactor=clamp(1-disagreement*3,0,1);
+  const validationFactor=gb?.brier!=null
+    ?clamp(1-gb.brier/.25,0,1)
+    :.5;
 
-  const disagreement =
-    Math.abs(
-      gbProbability-
-      eloProbability
-    )+
-    Math.abs(
-      gbProbability-
-      scoreProbability
-    )+
-    Math.abs(
-      gbProbability-
-      formProbability
-    )+
-    Math.abs(
-      gbProbability-
-      productionProbability
-    );
-
-  const confidenceScore =
-    Math.max(
-      0,
-      100-
-      disagreement*70
-    );
-
-  let confidence="Baja";
-
-  if(
-    confidenceScore>=75
-  ){
-
-    confidence="Alta";
-
-  }else if(
-    confidenceScore>=55
-  ){
-
-    confidence="Media";
-
-  }
-
-  const validation =
-    gradientBoosting &&
-    gradientBoosting.accuracy!==null
-
-      ? pct(
-          gradientBoosting.accuracy*100
-        )
-
-      : "N/D";
+  const confidenceScore=Math.round(
+    100*(
+      .45*agreementFactor+
+      .35*sampleFactor+
+      .20*validationFactor
+    )
+  );
 
   const result={
-
-    home:
-      finalProbability*100,
-
-    away:
-      (1-finalProbability)*100,
-
-    gb:
-      gbProbability,
-
-    elo:
-      eloProbability,
-
-    scoreDistribution:
-      scoreProbability,
-
-    form:
-      formProbability,
-
-    production:
-      productionProbability,
-
-    confidence,
-
-    sample:
-      features.priorCount,
-
-    validation,
-
-    eloDiff:
-      features.homeElo-
-      features.awayElo,
-
-    hs:
-      features.homeStats,
-
-    as:
-      features.awayStats,
-
-    homeHome:
-      features.homeHomeStats,
-
-    awayRoad:
-      features.awayRoadStats,
-
-    h2h:
-      features.h2h,
-
-    h2hWins:
-      features.h2hWins,
-
-    pace:
-      lambdaHome+
-      lambdaAway,
-
-    margin:
-      lambdaHome-
-      lambdaAway,
-
-    lambdaHome,
-
-    lambdaAway,
-
-    projectedHomeScore:
-      Math.round(lambdaHome),
-
-    projectedAwayScore:
-      Math.round(lambdaAway),
-
-    scoreStd:12,
-
+    home:finalProbability*100,
+    away:(1-finalProbability)*100,
+    gb:gbProbability,
+    elo:eloProbability,
+    scoreDistribution:scoreProbability,
+    form:formProbability,
+    production:productionProbability,
+    availability,
+    confidence:confidenceScore>=75?"Alta":confidenceScore>=55?"Media":"Baja",
     confidenceScore,
-
-    gbTest:
-      gradientBoosting
-        ?.test||
-      0
-
+    sample:features.priorCount,
+    accuracy:gb?.accuracy??null,
+    brier:gb?.brier??null,
+    logLoss:gb?.logLoss??null,
+    eloDiff:features.homeElo-features.awayElo,
+    hs:features.homeStats,
+    as:features.awayStats,
+    homeHome:features.homeHomeStats,
+    awayRoad:features.awayRoadStats,
+    h2h:features.h2h,
+    h2hWins:features.h2hWins,
+    injuryData:injuries,
+    totalScoringEnvironment:features.expectedTotal,
+    pace:features.expectedTotal,
+    margin:features.expectedMargin,
+    lambdaHome:clamp(features.expectedHome,95,140),
+    lambdaAway:clamp(features.expectedAway,90,135),
+    projectedHomeScore:Math.round(clamp(features.expectedHome,95,140)),
+    projectedAwayScore:Math.round(clamp(features.expectedAway,90,135)),
+    scoreStd:12,
+    testSample:gb?.test||0
   };
 
-  state.analysis =
-    result;
-
-  game.wyntrHomeProbability =
-    finalProbability;
-
-  game.wyntrAwayProbability =
-    1-finalProbability;
-
-  window.wyntrCurrentAnalysis =
-    result;
+  state.analysis=result;
+  game.wyntrHomeProbability=finalProbability;
+  game.wyntrAwayProbability=1-finalProbability;
+  window.wyntrCurrentAnalysis=result;
 
   return result;
 
@@ -2909,6 +2267,7 @@ async function analyzeGame(
 
 
 /* =========================================================
+   RENDER ANÁLISIS/* =========================================================
    RENDER ANÁLISIS
    ========================================================= */
 
