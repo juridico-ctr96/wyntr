@@ -947,6 +947,8 @@ async function fetchJSON(
       try{
         const body=await response.json();
         message=body?.error||body?.message||message;
+        if(body?.upstreamStatus) message += ` (HTTP ${body.upstreamStatus})`;
+        if(body?.details) message += `: ${body.details}`;
         code=body?.code||"";
       }catch{}
 
