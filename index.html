@@ -1535,7 +1535,7 @@ async function fetchBDLGames(
    ========================================================= */
 
 function normalizeTeamCode(value){
-  const raw=String(value||"").toUpperCase().replace(/[^A-Z]/g,"").trim();
+  const raw=String(value||"").toUpperCase().replace(/[^A-Z0-9]/g,"").trim();
 
   const aliases={
     ATLANTAHAWKS:"ATL",
