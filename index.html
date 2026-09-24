@@ -3252,6 +3252,41 @@ async function loadOdds(
       );
 
       $("oddsContent").innerHTML=
+        `
+          <div class="empty">
+            El partido existe en BALLDONTLIE, pero The Odds API aún no publica mercado para él.
+          </div>
+        `;
+
+      renderMarketComparison(
+        game,
+        window.wyntrCurrentAnalysis,
+        null
+      );
+
+      return;
+    }
+
+    const snapshot=marketSnapshot(event);
+
+    state.odds=snapshot;
+
+    renderMarketComparison(
+      game,
+      window.wyntrCurrentAnalysis,
+      snapshot
+    );
+
+    if(!snapshot){
+
+      setOddsStatus(
+        "Mercado recibido sin moneyline completo."
+      );
+
+      return;
+    }
+
+    $("oddsContent").innerHTML=
       `
         <div class="two">
           <div class="metric">
