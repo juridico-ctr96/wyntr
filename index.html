@@ -6,7 +6,7 @@
 <meta name="theme-color" content="#070b14">
 <link rel="manifest" href="/manifest.webmanifest">
 <link rel="icon" href="/icons/icon.svg" type="image/svg+xml">
-<title>WYNTR — Find the Signal</title>
+<title>PRIME SCORE — Sports Intelligence</title>
 
 <style>
 *{box-sizing:border-box}
@@ -670,7 +670,7 @@ body{background:
 }
 .container{width:min(1180px,94%);padding-bottom:86px}
 .header{padding:10px 0 12px}
-.logo{font-size:27px;letter-spacing:4px;color:#fff;line-height:1}
+.logo{font-size:26px;letter-spacing:2px;color:#fff;line-height:1}
 .subtitle{font-size:9px;letter-spacing:1.8px;text-transform:uppercase;color:#74839a}
 .app-nav{margin-top:10px}
 .app-nav a{background:rgba(16,26,43,.78);border-color:#1d2a3d;padding:7px 10px}
@@ -782,6 +782,23 @@ body{background:
   .data-strip-item strong{font-size:11px}
 }
 
+
+.prime-mark{
+  display:inline-grid;
+  place-items:center;
+  width:30px;
+  height:30px;
+  margin-right:8px;
+  border-radius:9px;
+  color:#061018;
+  background:linear-gradient(135deg,#f5f7fb 0%,#63e8ff 55%,#1677ff 100%);
+  box-shadow:0 0 22px rgba(99,232,255,.28);
+  font-size:18px;
+  font-weight:950;
+  letter-spacing:-1px;
+  vertical-align:middle
+}
+
 </style>
 </head>
 
@@ -792,8 +809,8 @@ body{background:
 <header class="header">
   <div class="header-inner">
     <div class="brand-block">
-      <div class="logo"><span class="brand-mark">W</span>WYNTR</div>
-      <div class="subtitle">FIND THE SIGNAL · NBA INTELLIGENCE ENGINE</div>
+      <div class="logo"><span class="brand-mark prime-mark">P</span>PRIME SCORE</div>
+      <div class="subtitle">SPORTS INTELLIGENCE · NBA ANALYSIS ENGINE</div>
     </div>
   </div>
   <nav class="app-nav" aria-label="Navegación principal">
@@ -1014,7 +1031,7 @@ body{background:
 <section id="analysis-section" class="card">
 
 <div class="section-title">
-  Análisis WYNTR
+  Análisis PRIME SCORE
 </div>
 
 
@@ -2215,7 +2232,7 @@ function render(){
             </div>
           </div>
           <div class="upcoming-prob">
-            <span>WYNTR</span>
+            <span>PRIME SCORE</span>
             <b>${game.wyntrHomeProbability ? pct(game.wyntrHomeProbability*100) : "—"} / ${game.wyntrAwayProbability ? pct(game.wyntrAwayProbability*100) : "—"}</b>
           </div>
         </button>
@@ -3186,7 +3203,7 @@ function renderAnalysis(game,result){
   analysis.innerHTML=`
     <div class="card match-hero">
       <div class="match-topline">
-        <span>WYNTR · Match Intelligence</span>
+        <span>PRIME SCORE · Match Intelligence</span>
         <span class="verified-badge">● Datos reales</span>
       </div>
 
@@ -3288,7 +3305,7 @@ function renderAnalysis(game,result){
 
     <div class="match-panel" data-panel="market">
       <div class="card">
-        <div class="section-title">WYNTR vs mercado</div>
+        <div class="section-title">PRIME SCORE vs mercado</div>
         <div class="market-select">
           <div class="market-chip active"><strong>Ganador ${esc(game.home.short)}</strong><span>${pct(result.home)}</span></div>
           <div class="market-chip"><strong>Ganador ${esc(game.away.short)}</strong><span>${pct(result.away)}</span></div>
@@ -3653,7 +3670,7 @@ function renderMarketComparison(
 
   if(!snapshot){
     container.innerHTML=
-      `<div class="empty">No hay moneyline completo para calcular el mercado. WYNTR no estima cuotas que la fuente no entregue.</div>`;
+      `<div class="empty">No hay moneyline completo para calcular el mercado. PRIME SCORE no estima cuotas que la fuente no entregue.</div>`;
     return;
   }
 
@@ -3694,7 +3711,7 @@ function renderMarketComparison(
           </div>
         </div>
         <div class="market-edge">
-          <span>Mayor diferencia WYNTR vs mercado</span>
+          <span>Mayor diferencia PRIME SCORE vs mercado</span>
           <strong>${strongestEdge>=0?"+":""}${(strongestEdge*100).toFixed(1)} pp</strong>
         </div>
       </div>
@@ -3725,7 +3742,7 @@ function renderMarketComparison(
 
     <div class="table-wrap" style="margin-top:12px">
       <table class="market-table">
-        <thead><tr><th>Resultado</th><th>WYNTR</th><th>Mercado justo</th><th>Edge</th><th>Mejor cuota</th><th>EV</th></tr></thead>
+        <thead><tr><th>Resultado</th><th>PRIME SCORE</th><th>Mercado justo</th><th>Edge</th><th>Mejor cuota</th><th>EV</th></tr></thead>
         <tbody>
           <tr>
             <td>${esc(game.home.short)}</td>
@@ -3752,11 +3769,11 @@ function renderMarketComparison(
       ${esc(game.home.short)}: ${movementLabel(snapshot.bestHome?.home,movement.previousHome)}
       &nbsp; · &nbsp;
       ${esc(game.away.short)}: ${movementLabel(snapshot.bestAway?.away,movement.previousAway)}
-      <br><span style="display:block;margin-top:6px">WYNTR no presenta una línea de apertura ni historial que no haya sido recibido de la fuente.</span>
+      <br><span style="display:block;margin-top:6px">PRIME SCORE no presenta una línea de apertura ni historial que no haya sido recibido de la fuente.</span>
     </div>
 
     <div class="muted" style="margin-top:10px">
-      Mercado justo = probabilidades implícitas normalizadas de las dos cuotas disponibles. Edge = probabilidad WYNTR − mercado justo. EV es un cálculo teórico con la probabilidad del modelo y la mejor cuota actual; no representa garantía de resultado.
+      Mercado justo = probabilidades implícitas normalizadas de las dos cuotas disponibles. Edge = probabilidad PRIME SCORE − mercado justo. EV es un cálculo teórico con la probabilidad del modelo y la mejor cuota actual; no representa garantía de resultado.
     </div>
   `;
 }
@@ -4209,7 +4226,7 @@ async function loadNews(){
         });
     }
   }catch(error){
-    console.warn("WYNTR NBA news:", error);
+    console.warn("PRIME SCORE NBA news:", error);
     if($("newsRefreshStatus")) $("newsRefreshStatus").textContent = "Sin conexión";
   }
 }
@@ -4227,7 +4244,7 @@ loadCalendar();
 if ("serviceWorker" in navigator) {
   window.addEventListener("load", () => {
     navigator.serviceWorker.register("/sw.js").catch(error => {
-      console.warn("WYNTR service worker:", error);
+      console.warn("PRIME SCORE service worker:", error);
     });
   });
 }
