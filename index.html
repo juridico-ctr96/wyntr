@@ -1380,7 +1380,7 @@ function normalizeFixtureCalendarGames(payload,fromDate,toDate){
   return rows.map((row,index)=>{
     const date=value(row,[
       "date","Date","datetime","date_time","start_date","startDate",
-      "game_date","gameDate","kickoff","Kickoff"
+      "game_date","gameDate","kickoff","Kickoff","DateUtc","dateUtc","date_utc"
     ]);
 
     const home=teamValue(row,"home");
