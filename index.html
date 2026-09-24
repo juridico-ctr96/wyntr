@@ -1755,6 +1755,14 @@ async function loadCalendar(force=false){
       return [];
     }
   }
+
+  })();
+
+  try{
+    return await calendarLoadPromise;
+  }finally{
+    calendarLoadPromise=null;
+  }
 }
 
 /* =========================================================
