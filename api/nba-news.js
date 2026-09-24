@@ -63,7 +63,41 @@ export default async function handler(req, res) {
       });
     }
 
-    const result = unique(items).slice(0, 16);
+    const result = unique(items).slice(0, 12);
+
+    // NBA.com does not always expose the article image on the news index.
+    // Resolve the canonical og:image from each article page so WYNTR can
+    // display the real editorial thumbnail instead of an empty placeholder.
+    const enriched = await Promise.all(result.map(async item => {
+      if (item.image) return item;
+
+      try {
+        const articleResponse = await fetch(item.url, {
+          headers: {
+            "User-Agent": "Mozilla/5.0 (compatible; WYNTR NBA News/1.0)",
+            "Accept": "text/html,application/xhtml+xml"
+          }
+        });
+
+        if (!articleResponse.ok) return item;
+
+        const articleHtml = await articleResponse.text();
+        const imageMatch =
+          articleHtml.match(/<meta[^>]+property=["']og:image["'][^>]+content=["']([^"']+)["']/i) ||
+          articleHtml.match(/<meta[^>]+content=["']([^"']+)["'][^>]+property=["']og:image["']/i);
+
+        if (!imageMatch?.[1]) return item;
+
+        return {
+          ...item,
+          image: imageMatch[1]
+        };
+      } catch {
+        return item;
+      }
+    }));
+
+    const finalItems = enriched.filter(item => item && item.title && item.url);
 
     if (!result.length) throw new Error("NBA.com returned no articles");
 
