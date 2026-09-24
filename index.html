@@ -619,6 +619,39 @@ body{background:
 }
 @media(min-width:651px){.bottom-nav{display:none}}
 
+
+/* =========================================================
+   WYNTR VISUAL PASS 3 · hierarchy, status, micro-interactions
+   ========================================================= */
+.brand-mark{display:inline-grid;place-items:center;width:27px;height:27px;margin-right:7px;border-radius:9px;background:linear-gradient(145deg,#18d7b0,#63e8ff);color:#061018;font-size:13px;font-weight:950;letter-spacing:-1px;box-shadow:0 0 22px rgba(24,215,176,.18)}
+.header .logo{display:flex;align-items:center}
+.hero-copy{max-width:660px}
+.hero-eyebrow{display:inline-flex;align-items:center;gap:7px;width:max-content;padding:6px 9px;border:1px solid rgba(24,215,176,.28);border-radius:999px;background:rgba(5,12,20,.55);color:#a9f5e5;font-size:9px;font-weight:950;letter-spacing:1.4px;text-transform:uppercase;margin-bottom:10px}
+.hero-dot{width:6px;height:6px;border-radius:50%;background:var(--wyntr-green);box-shadow:0 0 12px rgba(24,215,176,.8)}
+.hero-description{max-width:520px;margin:9px 0 14px;color:#a4b0c0;font-size:12px;line-height:1.55}
+.hero-cta{display:inline-flex;align-items:center;gap:8px;text-decoration:none;background:#18d7b0;color:#04130f;border-radius:11px;padding:10px 14px;font-size:11px;font-weight:950;box-shadow:0 10px 28px rgba(24,215,176,.14)}
+.hero-cta:hover{transform:translateY(-1px)}
+.data-strip{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:14px}
+.data-strip-item{padding:10px 11px;border-radius:13px;background:#0a121f;border:1px solid #1d2b3e}
+.data-strip-item strong{display:block;font-size:12px}
+.data-strip-item span{display:block;color:#718096;font-size:9px;margin-top:3px}
+.status-pill{display:inline-flex;align-items:center;gap:6px;padding:5px 8px;border-radius:999px;font-size:8px;font-weight:950;text-transform:uppercase;letter-spacing:.8px}
+.status-pill.upcoming{background:rgba(99,232,255,.08);color:#63e8ff;border:1px solid rgba(99,232,255,.18)}
+.status-pill.final{background:rgba(145,158,178,.09);color:#9aa7b8;border:1px solid #26344a}
+.status-pill.live{background:rgba(255,98,98,.1);color:#ff7777;border:1px solid rgba(255,98,98,.25)}
+.game-meta{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-top:8px}
+.game-date{margin-bottom:0}
+.game{transition:transform .16s ease,border-color .16s ease,box-shadow .16s ease}
+.game:hover{transform:translateY(-1px);box-shadow:0 10px 26px rgba(0,0,0,.16)}
+.upcoming-card{transition:transform .16s ease,box-shadow .16s ease}
+.upcoming-card:hover{transform:translateY(-2px);box-shadow:0 14px 30px rgba(0,0,0,.2)}
+.section-anchor{scroll-margin-top:110px}
+@media(max-width:650px){
+  .hero-description{font-size:11px}
+  .data-strip-item{padding:9px 8px}
+  .data-strip-item strong{font-size:11px}
+}
+
 </style>
 </head>
 
@@ -629,7 +662,7 @@ body{background:
 <header class="header">
   <div class="header-inner">
     <div class="brand-block">
-      <div class="logo">WYNTR</div>
+      <div class="logo"><span class="brand-mark">W</span>WYNTR</div>
       <div class="subtitle">FIND THE SIGNAL · NBA INTELLIGENCE ENGINE</div>
     </div>
   </div>
@@ -674,11 +707,16 @@ body{background:
 
     </div>
 
-    <div class="nba-hero-title">FIND THE SIGNAL</div>
-    <div class="hero-kpis">
-      <div class="hero-kpi"><b>NBA</b><span>Deporte</span></div>
-      <div class="hero-kpi"><b>REAL DATA</b><span>Fuentes conectadas</span></div>
-      <div class="hero-kpi"><b>WYNTR</b><span>Model intelligence</span></div>
+    <div class="hero-copy">
+      <div class="hero-eyebrow"><span class="hero-dot"></span> NBA Intelligence Engine</div>
+      <div class="nba-hero-title">FIND THE SIGNAL</div>
+      <div class="hero-description">Analiza cada partido con datos reales, modelos estadísticos, contexto de equipo y mercado en una sola ficha.</div>
+      <a class="hero-cta" href="#games-section">Ver partidos <span>→</span></a>
+    </div>
+    <div class="data-strip">
+      <div class="data-strip-item"><strong>REAL DATA</strong><span>Fuentes conectadas</span></div>
+      <div class="data-strip-item"><strong>MODEL</strong><span>Señales combinadas</span></div>
+      <div class="data-strip-item"><strong>MARKET</strong><span>Cuotas en tiempo real</span></div>
     </div>
 
   </div>
@@ -1700,7 +1738,10 @@ function render(){
     </div>
     ${list.map(game => `
       <button class="game ${selected?.id===game.id ? "selected" : ""}" data-id="${esc(game.id)}">
-        <div class="game-date">${esc(fmtDate(game.date))}</div>
+        <div class="game-meta">
+          <div class="game-date">${esc(fmtDate(game.date))}</div>
+          <span class="status-pill ${game.completed ? "final" : (String(game.status||"").toLowerCase().includes("live") ? "live" : "upcoming")}">${game.completed ? "Final" : (String(game.status||"").toLowerCase().includes("live") ? "En vivo" : "Próximo")}</span>
+        </div>
         <div class="game-teams">
           <span class="game-team">
             ${game.away.logo ? `<img class="game-logo" src="${esc(game.away.logo)}" alt="">` : ""}
