@@ -1273,9 +1273,16 @@ async function loadCalendar(){
 
     render();
 
+    const detail =
+      error?.message ||
+      "Error desconocido";
+
     status.innerHTML = `
       <span class="error">
         No se pudo consultar BALLDONTLIE.
+        <br>
+        <small>${esc(detail)}</small>
+        <br><br>
         Pulsa "Actualizar partidos" para intentar nuevamente.
       </span>
     `;
