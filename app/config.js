@@ -6,6 +6,7 @@ window.WYNTR_CONFIG = Object.freeze({
     games: "/api/balldontlie",
     odds: "/api/odds",
     injuries: "/api/injuries",
+    news: "/api/nba-news",
     officialSchedule: "/api/nba-schedule",
     health: "/api/health"
   },
