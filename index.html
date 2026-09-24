@@ -476,6 +476,18 @@ h3{
 .game.selected{border-color:#18d7b0;box-shadow:0 0 0 1px rgba(24,215,176,.18),0 0 22px rgba(24,215,176,.08)}
 @media(max-width:650px){.match-visual{grid-template-columns:1fr 62px 1fr}.team-portrait{width:82px;height:82px}.match-team-name{font-size:13px}.match-score{font-size:25px}.signal-grid,.distribution-grid{grid-template-columns:1fr}.prob-value{font-size:21px}}
 
+.market-comparison{margin-top:12px}
+.market-table{width:100%;min-width:0}
+.market-table th,.market-table td{text-align:center}
+.edge-positive{font-weight:900}
+.edge-negative{font-weight:900}
+.edge-neutral{font-weight:900}
+@media(max-width:650px){
+  .market-table th,.market-table td{
+    font-size:10px;
+    padding:7px 4px;
+  }
+}
 </style>
 </head>
 
@@ -2979,6 +2991,20 @@ function renderAnalysis(
       ? (result.h2hWins / result.h2h.length - .5)
       : 0;
 
+  const injuryDiff =
+    result.injuryData?.available
+      ? result.injuryData.home-
+        result.injuryData.away
+      : 0;
+
+  const efficiencyDiff =
+    result.hs.margin-
+    result.as.margin;
+
+  const scoringDiff =
+    result.hs.scoringEnvironment-
+    result.as.scoringEnvironment;
+
   const signals = [
     {
       title:"Forma reciente",
@@ -2997,12 +3023,20 @@ function renderAnalysis(
           : `${esc(game.away.short)} tiene mejor rendimiento fuera`
     },
     {
-      title:"Margen de puntos",
-      value:Math.abs(marginDiff)/10,
+      title:"Eficiencia relativa",
+      value:Math.abs(efficiencyDiff)/10,
       text:
-        marginDiff >= 0
-          ? `${esc(game.home.short)} tiene mejor margen histórico`
-          : `${esc(game.away.short)} tiene mejor margen histórico`
+        efficiencyDiff >= 0
+          ? `${esc(game.home.short)} tiene mejor margen medio`
+          : `${esc(game.away.short)} tiene mejor margen medio`
+    },
+    {
+      title:"Entorno de anotación",
+      value:Math.abs(scoringDiff)/10,
+      text:
+        scoringDiff >= 0
+          ? `${esc(game.home.short)} registra mayor anotación combinada reciente`
+          : `${esc(game.away.short)} registra mayor anotación combinada reciente`
     },
     {
       title:"H2H",
@@ -3011,6 +3045,17 @@ function renderAnalysis(
         result.h2h.length
           ? `${result.h2h.length} enfrentamientos disponibles`
           : "Sin enfrentamientos recientes suficientes"
+    },
+    {
+      title:"Disponibilidad",
+      value:
+        result.injuryData?.available
+          ? Math.abs(injuryDiff)
+          : 0,
+      text:
+        result.injuryData?.available
+          ? `Carga de ausencias: ${result.injuryData.home.toFixed(1)} casa · ${result.injuryData.away.toFixed(1)} visita`
+          : "Fuente de lesiones no disponible o requiere un plan con acceso a lesiones"
     }
   ];
 
@@ -3163,10 +3208,17 @@ function renderAnalysis(
     </div>
 
     <div class="card">
-      <div class="section-title">Selección de mercado</div>
+      <div class="section-title">WYNTR vs mercado</div>
       <div class="market-select">${marketCards}</div>
+      <div id="marketComparison" class="market-comparison">
+        <div class="empty">
+          Cargando probabilidad de mercado…
+        </div>
+      </div>
       <div class="muted" style="margin-top:10px">
-        Son salidas estadísticas de WYNTR. Las cuotas reales se muestran cuando The Odds API está configurada.
+        <strong>Probabilidad WYNTR</strong> = salida del modelo.
+        <strong>Probabilidad de mercado</strong> = probabilidad implícita normalizada entre los dos precios moneyline.
+        <strong>Edge</strong> = WYNTR − mercado.
       </div>
     </div>
 
@@ -3179,7 +3231,16 @@ function renderAnalysis(
         <div class="metric"><div class="metric-label">ELO diferencial</div><div class="metric-value">${result.eloDiff>=0?"+":""}${result.eloDiff.toFixed(0)}</div></div>
       </div>
       <div class="muted" style="margin-top:12px">
-        Histórico: BALLDONTLIE. Lesiones y ausencias no se muestran como confirmadas hasta conectar una fuente específica.
+        Validación: accuracy ${result.accuracy===null?"N/D":pct(result.accuracy*100)} · Brier ${result.brier===null?"N/D":result.brier.toFixed(3)} · Log loss ${result.logLoss===null?"N/D":result.logLoss.toFixed(3)}.
+      </div>
+      <div class="muted" style="margin-top:8px">
+        Lesiones:
+        ${result.injuryData?.available
+          ? `${result.injuryData.home.toFixed(1)} carga casa · ${result.injuryData.away.toFixed(1)} carga visita`
+          : "fuente no disponible o requiere acceso al endpoint de lesiones"}
+      </div>
+      <div class="muted" style="margin-top:8px">
+        La confianza es un indicador heurístico de consistencia, tamaño de muestra y validación; no representa una probabilidad de acierto.
       </div>
     </div>
 
