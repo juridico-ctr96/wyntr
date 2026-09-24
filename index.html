@@ -2487,9 +2487,9 @@ function scoreDifferenceProbability(
     lambdaAway;
 
   /*
-    Aproximación normal del margen.
-    Evita el Distribución margen truncado a 0-12,
-    que no es adecuado para puntos NBA.
+    La misma distribución se utiliza tanto para
+    calcular la probabilidad derivada del marcador
+    como para reconciliar la proyección final.
   */
 
   const scoreStd = 12;
@@ -2505,6 +2505,88 @@ function scoreDifferenceProbability(
     .05,
     .95
   );
+
+}
+
+/*
+  Inversa aproximada de la CDF normal estándar.
+  Basada en Abramowitz & Stegun 26.2.23.
+  Se usa para que probabilidad y marcador proyectado
+  representen exactamente la misma señal estadística.
+*/
+function inverseNormalCDF(p){
+
+  p=clamp(Number(p),.000001,.999999);
+
+  const rationalApproximation=t=>{
+    const numerator=
+      (0.010328*t+0.802853)*t+
+      2.515517;
+
+    const denominator=
+      ((0.001308*t+0.189269)*t+1.432788)*t+
+      1;
+
+    return t-numerator/denominator;
+  };
+
+  if(p<.5){
+    return -rationalApproximation(
+      Math.sqrt(-2*Math.log(p))
+    );
+  }
+
+  return rationalApproximation(
+    Math.sqrt(-2*Math.log(1-p))
+  );
+}
+
+/*
+  Reconciliación única entre la probabilidad final
+  y el marcador. Conserva el entorno de anotación
+  esperado y modifica únicamente el diferencial para
+  que el lado con mayor probabilidad también sea el
+  lado con mayor marcador proyectado.
+*/
+function reconcileProjectedScore(total, probability){
+
+  const scoreStd=12;
+  const totalScore=Math.round(
+    clamp(Number(total)||210,190,250)
+  );
+
+  const z=inverseNormalCDF(
+    clamp(Number(probability),.05,.95)
+  );
+
+  const margin=
+    z*
+    scoreStd*
+    Math.sqrt(2);
+
+  let home=Math.round(
+    (totalScore+margin)/2
+  );
+
+  home=clamp(
+    home,
+    90,
+    totalScore-90
+  );
+
+  const away=
+    totalScore-home;
+
+  return {
+    home,
+    away,
+    total:home+away,
+    margin:home-away,
+    probability:scoreDifferenceProbability(
+      home,
+      away
+    )
+  };
 
 }
 
@@ -2819,8 +2901,20 @@ async function analyzeGame(game){
     margin:features.expectedMargin,
     lambdaHome:clamp(features.expectedHome,95,140),
     lambdaAway:clamp(features.expectedAway,90,135),
-    projectedHomeScore:Math.round(clamp(features.expectedHome,95,140)),
-    projectedAwayScore:Math.round(clamp(features.expectedAway,90,135)),
+
+    // Probabilidad y marcador comparten ahora la misma señal.
+    projectedScore:reconcileProjectedScore(
+      features.expectedTotal,
+      finalProbability
+    ),
+    projectedHomeScore:reconcileProjectedScore(
+      features.expectedTotal,
+      finalProbability
+    ).home,
+    projectedAwayScore:reconcileProjectedScore(
+      features.expectedTotal,
+      finalProbability
+    ).away,
     scoreStd:12,
     testSample:gb?.test||0
   };
