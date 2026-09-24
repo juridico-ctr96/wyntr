@@ -722,7 +722,7 @@ h3{
 
 <div class="muted">
 
-ELO · Poisson · forma 5/10/20 ·
+ELO · margen de puntos · forma 5/10/20 ·
 local/visitante · H2H · margen ·
 ritmo · producción · Gradient Boosting ·
 validación histórica · mercado
@@ -751,8 +751,8 @@ y no garantizan resultados.
    WYNTR — FIND THE SIGNAL
    ========================================================= */
 
-const ESPN =
-"/api/espn";
+const BDL =
+"/api/balldontlie";
 
 const ODDS =
 "https://api.the-odds-api.com/v4/sports/basketball_nba/odds/";
@@ -954,46 +954,78 @@ function team(t){
    EVENTO
    ========================================================= */
 
-function normEvent(e){
-
-  const competition =
-    e?.competitions?.[0];
-
-  const competitors =
-    competition?.competitors || [];
-
-  const home =
-    competitors.find(
-      x => x.homeAway === "home"
-    );
-
-  const away =
-    competitors.find(
-      x => x.homeAway === "away"
-    );
+function normBDLTeam(t){
 
   return {
 
     id:String(
-      e.id || ""
+      t?.id || ""
     ),
 
-    date:e.date,
+    name:
+      t?.full_name ||
+      t?.name ||
+      t?.abbreviation ||
+      "Desconocido",
+
+    short:
+      t?.name ||
+      t?.abbreviation ||
+      "Desconocido",
+
+    abbr:
+      t?.abbreviation ||
+      "",
+
+    logo:""
+
+  };
+
+}
+
+
+function normEvent(e){
+
+  const home =
+    e?.home_team;
+
+  const away =
+    e?.visitor_team;
+
+  const date =
+    e?.datetime ||
+    e?.date;
+
+  const statusState =
+    String(
+      e?.status_state ||
+      ""
+    ).toLowerCase();
+
+  return {
+
+    id:String(
+      e?.id || ""
+    ),
+
+    date,
 
     name:
-      e.name || "",
+      `${away?.abbreviation || away?.name || ""} @ ${home?.abbreviation || home?.name || ""}`,
 
     home:
-      team(home?.team),
+      normBDLTeam(home),
 
     away:
-      team(away?.team),
+      normBDLTeam(away),
 
     completed:
-      !!e?.status?.type?.completed,
+      statusState === "final" ||
+      String(e?.status || "").toLowerCase() === "final",
 
     status:
-      e?.status?.type?.description ||
+      e?.status ||
+      statusState ||
       "Desconocido"
 
   };
@@ -1006,27 +1038,73 @@ function normHistoryEvent(e){
   const g =
     normEvent(e);
 
-  const competitors =
-    e?.competitions?.[0]
-      ?.competitors || [];
-
-  const home =
-    competitors.find(
-      x => x.homeAway === "home"
-    );
-
-  const away =
-    competitors.find(
-      x => x.homeAway === "away"
-    );
-
   g.homeScore =
-    n(home?.score);
+    n(e?.home_team_score);
 
   g.awayScore =
-    n(away?.score);
+    n(e?.visitor_team_score);
 
   return g;
+
+}
+
+
+async function fetchBDLGames(
+  params,
+  maxPages=5
+){
+
+  const result=[];
+  let cursor=null;
+
+  for(
+    let page=0;
+    page<maxPages;
+    page++
+  ){
+
+    const query =
+      new URLSearchParams(
+        params
+      );
+
+    query.set(
+      "per_page",
+      "100"
+    );
+
+    if(cursor){
+      query.set(
+        "cursor",
+        String(cursor)
+      );
+    }
+
+    const data =
+      await fetchJSON(
+        `${BDL}?${query.toString()}`,
+        20000
+      );
+
+    result.push(
+      ...(data.data || [])
+    );
+
+    const next =
+      data?.meta?.next_cursor;
+
+    if(
+      next === null ||
+      next === undefined ||
+      String(next) === String(cursor)
+    ){
+      break;
+    }
+
+    cursor=next;
+  }
+
+  return result;
 
 }
 
@@ -1069,7 +1147,7 @@ async function loadCalendar(){
     $("calendarStatus");
 
   status.textContent =
-    "Consultando calendario NBA...";
+    "Consultando calendario NBA con BALLDONTLIE...";
 
   try{
 
@@ -1079,31 +1157,27 @@ async function loadCalendar(){
     const end =
       new Date(now);
 
-    /*
-      Buscamos 45 días hacia adelante.
-      Esto permite detectar pretemporada
-      y el inicio de la temporada regular.
-    */
-
     end.setDate(
       end.getDate()+45
     );
 
-    const from =
-      dateKey(now);
-
-    const to =
-      dateKey(end);
+    const params =
+      new URLSearchParams({
+        start_date:
+          now.toISOString().slice(0,10),
+        end_date:
+          end.toISOString().slice(0,10)
+      });
 
     const data =
-      await fetchJSON(
-        `${ESPN}?dates=${from}-${to}&limit=1000`,
-        20000
+      await fetchBDLGames(
+        params,
+        5
       );
 
     games =
       dedupe(
-        (data.events || [])
+        data
           .map(normEvent)
           .filter(
             game =>
@@ -1119,7 +1193,7 @@ async function loadCalendar(){
     if(games.length){
 
       status.textContent =
-        `${games.length} partido(s) encontrados · próximos 45 días.`;
+        `${games.length} partido(s) encontrados · próximos 45 días · BALLDONTLIE.`;
 
     }else{
 
@@ -1143,7 +1217,7 @@ async function loadCalendar(){
 
     status.innerHTML = `
       <span class="error">
-        No se pudo consultar ESPN.
+        No se pudo consultar BALLDONTLIE.
         Pulsa "Actualizar partidos" para intentar nuevamente.
       </span>
     `;
@@ -1418,17 +1492,32 @@ function render(){
    HISTÓRICO
    ========================================================= */
 
-function cacheKey(days){
+function cacheKey(
+  days,
+  teamIds=[]
+){
 
-  return `wyntr_hist_${days}`;
+  const teams =
+    teamIds
+      .map(String)
+      .sort()
+      .join("_");
+
+  return `wyntr_hist_${days}_${teams || "all"}`;
 
 }
 
 
-async function loadHistory(days){
+async function loadHistory(
+  days,
+  teamIds=[]
+){
 
   const key =
-    cacheKey(days);
+    cacheKey(
+      days,
+      teamIds
+    );
 
   const cached =
     localStorage.getItem(
@@ -1463,6 +1552,14 @@ async function loadHistory(days){
 
   }
 
+  if(
+    teamIds.length < 2
+  ){
+
+    return [];
+
+  }
+
   const end =
     new Date();
 
@@ -1474,78 +1571,52 @@ async function loadHistory(days){
     days
   );
 
+  const params =
+    new URLSearchParams({
+      start_date:
+        start.toISOString().slice(0,10),
+      end_date:
+        end.toISOString().slice(0,10)
+    });
+
+  teamIds
+    .map(String)
+    .forEach(
+      id =>
+        params.append(
+          "team_ids[]",
+          id
+        )
+    );
+
   let result=[];
 
-  for(
-    let cursor =
-      new Date(start);
+  try{
 
-    cursor <= end;
-
-  ){
-
-    const fromDate =
-      new Date(cursor);
-
-    const toDate =
-      new Date(cursor);
-
-    toDate.setDate(
-      toDate.getDate()+29
-    );
-
-    const from =
-      dateKey(fromDate);
-
-    const to =
-      dateKey(
-        toDate > end
-          ? end
-          : toDate
-      );
-
-    try{
-
-      const data =
-        await fetchJSON(
-          `${ESPN}?dates=${from}-${to}&limit=1000`,
-          20000
-        );
-
-      result.push(
-        ...(data.events || [])
-          .map(
-            normHistoryEvent
-          )
-          .filter(
-            game =>
-              game.home.id &&
-              game.away.id &&
-              game.completed &&
-              game.homeScore > 0 &&
-              game.awayScore > 0
-          )
-      );
-
-    }catch(error){
-
-      console.warn(
-        "Histórico:",
-        error
-      );
-
-    }
-
-    cursor.setDate(
-      cursor.getDate()+30
-    );
-
-    await new Promise(
-      resolve =>
-        setTimeout(
-          resolve,
-          50
+    result =
+      (
+        await fetchBDLGames(
+          params,
+          3
         )
+      )
+      .map(
+        normHistoryEvent
+      )
+      .filter(
+        game =>
+          game.home.id &&
+          game.away.id &&
+          game.completed &&
+          game.homeScore > 0 &&
+          game.awayScore > 0
+      );
+
+  }catch(error){
+
+    console.warn(
+      "Histórico BALLDONTLIE:",
+      error
     );
 
   }
@@ -1553,13 +1624,17 @@ async function loadHistory(days){
   result =
     dedupe(result);
 
-  localStorage.setItem(
-    key,
-    JSON.stringify({
-      time:Date.now(),
-      games:result
-    })
-  );
+  if(result.length){
+
+    localStorage.setItem(
+      key,
+      JSON.stringify({
+        time:Date.now(),
+        games:result
+      })
+    );
+
+  }
 
   return result;
 
@@ -1982,74 +2057,94 @@ function factorial(x){
 
 
 /* =========================================================
-   POISSON
+   DISTRIBUCIÓN DEL MARGEN
    ========================================================= */
 
-function poissonHomeProbability(
+function erf(x){
+
+  const sign =
+    x < 0
+      ? -1
+      : 1;
+
+  const ax =
+    Math.abs(x);
+
+  const t =
+    1/
+    (
+      1+
+      0.3275911*ax
+    );
+
+  const y =
+    1-
+    (
+      (
+        (
+          (
+            1.061405429*t-
+            1.453152027
+          )*t+
+          1.421413741
+        )*t-
+        0.284496736
+      )*t+
+      0.254829592
+    )*
+    t*
+    Math.exp(
+      -ax*ax
+    );
+
+  return sign*y;
+
+}
+
+
+function normalCDF(x){
+
+  return (
+    .5*
+    (
+      1+
+      erf(
+        x/
+        Math.sqrt(2)
+      )
+    )
+  );
+
+}
+
+
+function scoreDifferenceProbability(
   lambdaHome,
   lambdaAway
 ){
 
-  let home=0;
-  let away=0;
+  const margin =
+    lambdaHome -
+    lambdaAway;
 
-  for(
-    let h=0;
-    h<=12;
-    h++
-  ){
+  /*
+    Aproximación normal del margen.
+    Evita el Distribución margen truncado a 0-12,
+    que no es adecuado para puntos NBA.
+  */
 
-    for(
-      let a=0;
-      a<=12;
-      a++
-    ){
+  const scoreStd = 12;
 
-      const probability =
-        Math.exp(
-          -lambdaHome
-        ) *
-        Math.pow(
-          lambdaHome,
-          h
-        ) /
-        factorial(h) *
-        Math.exp(
-          -lambdaAway
-        ) *
-        Math.pow(
-          lambdaAway,
-          a
-        ) /
-        factorial(a);
-
-      if(h>a){
-
-        home+=probability;
-
-      }else if(a>h){
-
-        away+=probability;
-
-      }
-
-    }
-
-  }
-
-  if(
-    home+away===0
-  ){
-
-    return .5;
-
-  }
-
-  return (
-    home /
-    (
-      home+away
-    )
+  return clamp(
+    normalCDF(
+      margin/
+      (
+        scoreStd*
+        Math.sqrt(2)
+      )
+    ),
+    .05,
+    .95
   );
 
 }
@@ -2407,7 +2502,11 @@ async function analyzeGame(
 
   const history =
     await loadHistory(
-      days
+      days,
+      [
+        game.home.id,
+        game.away.id
+      ]
     );
 
   const cutoff =
@@ -2524,8 +2623,8 @@ async function analyzeGame(
       135
     );
 
-  const poissonProbability =
-    poissonHomeProbability(
+  const scoreProbability =
+    scoreDifferenceProbability(
       lambdaHome,
       lambdaAway
     );
@@ -2570,7 +2669,7 @@ async function analyzeGame(
       eloProbability+
 
       .15*
-      poissonProbability+
+      scoreProbability+
 
       .10*
       formProbability+
@@ -2590,7 +2689,7 @@ async function analyzeGame(
     )+
     Math.abs(
       gbProbability-
-      poissonProbability
+      scoreProbability
     )+
     Math.abs(
       gbProbability-
@@ -2648,8 +2747,8 @@ async function analyzeGame(
     elo:
       eloProbability,
 
-    poisson:
-      poissonProbability,
+    scoreDistribution:
+      scoreProbability,
 
     form:
       formProbability,
@@ -2900,7 +2999,7 @@ function renderAnalysis(
           <tr>
 
             <td>
-              Poisson
+              Distribución margen
             </td>
 
             <td>
@@ -3206,7 +3305,7 @@ function renderAnalysis(
     <div class="muted">
 
       Histórico:
-      ESPN.
+      BALLDONTLIE.
 
       <br><br>
 
