@@ -8,7 +8,7 @@ const SHELL = [
   "/app/store.js",
   "/app/api.js",
   "/app/entitlements.js",
-  "/icons/icon.svg"
+  "/icons/prime-score.svg"
 ];
 
 self.addEventListener("install", event => {
