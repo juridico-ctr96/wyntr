@@ -43,6 +43,15 @@ export default async function handler(req, res) {
       if (!title || title.length < 12 || title.length > 180) continue;
       if (/load more|see all|home|news|fantasy/i.test(title)) continue;
 
+      const contextStart = Math.max(0, match.index - 1200);
+      const contextEnd = Math.min(html.length, anchorRe.lastIndex + 1200);
+      const context = html.slice(contextStart, contextEnd);
+      const imageMatch = context.match(/<img[^>]+(?:src|data-src)=["']([^"']+)["']/i);
+      const rawImage = imageMatch?.[1] || null;
+      const image = rawImage
+        ? (rawImage.startsWith("http") ? rawImage : "https://www.nba.com" + (rawImage.startsWith("/") ? rawImage : "/" + rawImage))
+        : null;
+
       items.push({
         id: url,
         title,
@@ -50,7 +59,7 @@ export default async function handler(req, res) {
         published: new Date().toISOString(),
         source: "NBA.com",
         url,
-        image: null
+        image
       });
     }
 
