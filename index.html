@@ -497,6 +497,25 @@ h3{
 .game.selected{border-color:#18d7b0;box-shadow:0 0 0 1px rgba(24,215,176,.18),0 0 22px rgba(24,215,176,.08)}
 @media(max-width:650px){.match-visual{grid-template-columns:1fr 62px 1fr}.team-portrait{width:82px;height:82px}.match-team-name{font-size:13px}.match-score{font-size:25px}.signal-grid,.distribution-grid{grid-template-columns:1fr}.prob-value{font-size:21px}}
 
+.market-intel{display:grid;grid-template-columns:1.15fr .85fr;gap:12px}
+.market-hero{border:1px solid #26374f;border-radius:16px;padding:16px;background:linear-gradient(145deg,#101b2b,#0c1420)}
+.market-hero-label{font-size:10px;text-transform:uppercase;letter-spacing:1.4px;color:#7f8da2;font-weight:900}
+.market-hero-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}
+.market-side{border:1px solid #25344a;border-radius:13px;padding:12px;background:#0d1624}
+.market-side strong{display:block;font-size:12px}
+.market-side .market-pct{font-size:25px;font-weight:950;margin-top:5px}
+.market-side .market-odd{font-size:12px;color:#9aa7b9;margin-top:3px}
+.market-edge{margin-top:12px;padding:11px;border-radius:12px;background:#0a111d;border:1px solid #24334a;display:flex;justify-content:space-between;gap:12px;align-items:center}
+.market-edge strong{font-size:15px}
+.market-subgrid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.market-stat{border:1px solid #25344a;border-radius:13px;padding:12px;background:#0d1624}
+.market-stat .label{font-size:10px;color:#7f8da2;text-transform:uppercase;letter-spacing:1px;font-weight:850}
+.market-stat .value{font-size:20px;font-weight:950;margin-top:5px}
+.market-movement{margin-top:10px;padding-top:10px;border-top:1px solid #1f2b3d;color:#9aa7b9;font-size:11px}
+.market-dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:#718096;margin-right:5px}
+.market-dot.up{background:#18d7b0}.market-dot.down{background:#ff6b7a}
+@media(max-width:700px){.market-intel{grid-template-columns:1fr}.market-hero-row{grid-template-columns:1fr 1fr}}
+
 .market-comparison{margin-top:12px}
 .market-table{width:100%;min-width:0}
 .market-table th,.market-table td{text-align:center}
@@ -2997,10 +3016,18 @@ function marketSnapshot(event){
       0
     )/rows.length;
 
-  return {
+  const latestUpdate=rows.map(row=>row.updatedAt).filter(Boolean).sort().pop()||null;
+  const previous=window.WYNTR_MARKET_LAST?.[String(event.id)]||null;
+
+  const snapshot={
     books:rows,
     homeFair:average("fairHome"),
     awayFair:average("fairAway"),
+    latestUpdate,
+    movement:{
+      previousHome:previous?.bestHome??null,
+      previousAway:previous?.bestAway??null
+    },
     bestHome:rows.reduce(
       (best,row)=>
         !best||row.home>best.home?row:best,
@@ -3012,6 +3039,14 @@ function marketSnapshot(event){
       null
     )
   };
+
+  window.WYNTR_MARKET_LAST=window.WYNTR_MARKET_LAST||{};
+  window.WYNTR_MARKET_LAST[String(event.id)]={
+    bestHome:snapshot.bestHome?.home??null,
+    bestAway:snapshot.bestAway?.away??null
+  };
+
+  return snapshot;
 }
 
 function calculateEV(probability,decimalOdd){
@@ -3043,87 +3078,116 @@ function renderMarketComparison(
 ){
 
   const container=$("marketComparison");
-
   if(!container||!result)return;
 
   if(!snapshot){
-
     container.innerHTML=
-      `
-        <div class="empty">
-          No hay moneyline completo para calcular una probabilidad de mercado justa.
-        </div>
-      `;
-
+      `<div class="empty">No hay moneyline completo para calcular el mercado. WYNTR no estima cuotas que la fuente no entregue.</div>`;
     return;
   }
 
-  const homeEdge=
-    result.home/100-
-    snapshot.homeFair;
+  const homeEdge=result.home/100-snapshot.homeFair;
+  const awayEdge=result.away/100-snapshot.awayFair;
+  const edgeClass=value=>value>.01?"edge-positive":value<-.01?"edge-negative":"edge-neutral";
+  const homeEV=snapshot.bestHome?calculateEV(result.home/100,snapshot.bestHome.home):null;
+  const awayEV=snapshot.bestAway?calculateEV(result.away/100,snapshot.bestAway.away):null;
+  const movement=snapshot.movement||{};
 
-  const awayEdge=
-    result.away/100-
-    snapshot.awayFair;
+  const movementLabel=(current,previous)=>{
+    if(!Number.isFinite(previous))return `<span class="market-dot"></span>Sin histórico en esta sesión`;
+    const diff=current-previous;
+    if(Math.abs(diff)<0.005)return `<span class="market-dot"></span>Sin cambio`;
+    return diff<0
+      ?`<span class="market-dot down"></span>Cuota bajó ${Math.abs(diff).toFixed(2)}`
+      :`<span class="market-dot up"></span>Cuota subió ${diff.toFixed(2)}`;
+  };
 
-  const edgeClass=value=>
-    value>.01
-      ?"edge-positive"
-      :value<-.01
-        ?"edge-negative"
-        :"edge-neutral";
-
-  const homeEV=
-    snapshot.bestHome
-      ?calculateEV(
-          result.home/100,
-          snapshot.bestHome.home
-        )
-      :null;
-
-  const awayEV=
-    snapshot.bestAway
-      ?calculateEV(
-          result.away/100,
-          snapshot.bestAway.away
-        )
-      :null;
+  const strongestEdge=Math.abs(homeEdge)>=Math.abs(awayEdge)?homeEdge:awayEdge;
+  const strongestEV=Math.abs(homeEV||0)>=Math.abs(awayEV||0)?homeEV:awayEV;
 
   container.innerHTML=
-    `
-      <div class="table-wrap">
-        <table class="market-table">
-          <thead>
-            <tr>
-              <th>Resultado</th>
-              <th>WYNTR</th>
-              <th>Mercado justo</th>
-              <th>Edge</th>
-              <th>Mejor cuota</th>
-              <th>EV</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td>${esc(game.home.short)}</td>
-              <td>${pct(result.home)}</td>
-              <td>${pct(snapshot.homeFair*100)}</td>
-              <td class="${edgeClass(homeEdge)}">${homeEdge>=0?"+":""}${(homeEdge*100).toFixed(1)} pp</td>
-              <td>${snapshot.bestHome?.home?.toFixed(2)||"—"}</td>
-              <td>${formatEV(homeEV)}</td>
-            </tr>
-            <tr>
-              <td>${esc(game.away.short)}</td>
-              <td>${pct(result.away)}</td>
-              <td>${pct(snapshot.awayFair*100)}</td>
-              <td class="${edgeClass(awayEdge)}">${awayEdge>=0?"+":""}${(awayEdge*100).toFixed(1)} pp</td>
-              <td>${snapshot.bestAway?.away?.toFixed(2)||"—"}</td>
-              <td>${formatEV(awayEV)}</td>
-            </tr>
-          </tbody>
-        </table>
+  `
+    <div class="market-intel">
+      <div class="market-hero">
+        <div class="market-hero-label">Market intelligence · moneyline</div>
+        <div class="market-hero-row">
+          <div class="market-side">
+            <strong>${esc(game.home.short)}</strong>
+            <div class="market-pct">${pct(result.home)}</div>
+            <div class="market-odd">Mejor cuota ${snapshot.bestHome?.home?.toFixed(2)||"—"}</div>
+          </div>
+          <div class="market-side">
+            <strong>${esc(game.away.short)}</strong>
+            <div class="market-pct">${pct(result.away)}</div>
+            <div class="market-odd">Mejor cuota ${snapshot.bestAway?.away?.toFixed(2)||"—"}</div>
+          </div>
+        </div>
+        <div class="market-edge">
+          <span>Mayor diferencia WYNTR vs mercado</span>
+          <strong>${strongestEdge>=0?"+":""}${(strongestEdge*100).toFixed(1)} pp</strong>
+        </div>
       </div>
-    `;
+
+      <div class="market-subgrid">
+        <div class="market-stat">
+          <div class="label">Mercado justo</div>
+          <div class="value">${pct(snapshot.homeFair*100)} / ${pct(snapshot.awayFair*100)}</div>
+          <div class="muted">${esc(game.home.short)} / ${esc(game.away.short)}</div>
+        </div>
+        <div class="market-stat">
+          <div class="label">EV teórico</div>
+          <div class="value">${formatEV(strongestEV)}</div>
+          <div class="muted">Con la mejor cuota actual</div>
+        </div>
+        <div class="market-stat">
+          <div class="label">Casas</div>
+          <div class="value">${snapshot.books.length}</div>
+          <div class="muted">Moneyline completo</div>
+        </div>
+        <div class="market-stat">
+          <div class="label">Actualización</div>
+          <div class="value" style="font-size:15px">${fmtDate(snapshot.latestUpdate||new Date())}</div>
+          <div class="muted">The Odds API</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="table-wrap" style="margin-top:12px">
+      <table class="market-table">
+        <thead><tr><th>Resultado</th><th>WYNTR</th><th>Mercado justo</th><th>Edge</th><th>Mejor cuota</th><th>EV</th></tr></thead>
+        <tbody>
+          <tr>
+            <td>${esc(game.home.short)}</td>
+            <td>${pct(result.home)}</td>
+            <td>${pct(snapshot.homeFair*100)}</td>
+            <td class="${edgeClass(homeEdge)}">${homeEdge>=0?"+":""}${(homeEdge*100).toFixed(1)} pp</td>
+            <td>${snapshot.bestHome?.home?.toFixed(2)||"—"}</td>
+            <td>${formatEV(homeEV)}</td>
+          </tr>
+          <tr>
+            <td>${esc(game.away.short)}</td>
+            <td>${pct(result.away)}</td>
+            <td>${pct(snapshot.awayFair*100)}</td>
+            <td class="${edgeClass(awayEdge)}">${awayEdge>=0?"+":""}${(awayEdge*100).toFixed(1)} pp</td>
+            <td>${snapshot.bestAway?.away?.toFixed(2)||"—"}</td>
+            <td>${formatEV(awayEV)}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="market-movement">
+      <strong style="color:#f5f7fb">Movimiento observado durante esta sesión</strong><br>
+      ${esc(game.home.short)}: ${movementLabel(snapshot.bestHome?.home,movement.previousHome)}
+      &nbsp; · &nbsp;
+      ${esc(game.away.short)}: ${movementLabel(snapshot.bestAway?.away,movement.previousAway)}
+      <br><span style="display:block;margin-top:6px">WYNTR no presenta una línea de apertura ni historial que no haya sido recibido de la fuente.</span>
+    </div>
+
+    <div class="muted" style="margin-top:10px">
+      Mercado justo = probabilidades implícitas normalizadas de las dos cuotas disponibles. Edge = probabilidad WYNTR − mercado justo. EV es un cálculo teórico con la probabilidad del modelo y la mejor cuota actual; no representa garantía de resultado.
+    </div>
+  `;
 }
 
 async function loadOdds(
@@ -3188,41 +3252,6 @@ async function loadOdds(
       );
 
       $("oddsContent").innerHTML=
-        `
-          <div class="empty">
-            El partido existe en BALLDONTLIE, pero The Odds API aún no publica mercado para él.
-          </div>
-        `;
-
-      renderMarketComparison(
-        game,
-        window.wyntrCurrentAnalysis,
-        null
-      );
-
-      return;
-    }
-
-    const snapshot=marketSnapshot(event);
-
-    state.odds=snapshot;
-
-    renderMarketComparison(
-      game,
-      window.wyntrCurrentAnalysis,
-      snapshot
-    );
-
-    if(!snapshot){
-
-      setOddsStatus(
-        "Mercado recibido sin moneyline completo."
-      );
-
-      return;
-    }
-
-    $("oddsContent").innerHTML=
       `
         <div class="two">
           <div class="metric">
@@ -3237,43 +3266,24 @@ async function loadOdds(
           </div>
         </div>
 
-        <h3>Moneyline · casas</h3>
-
+        <h3>Moneyline · comparación de casas</h3>
         <div class="table-wrap">
           <table>
-            <thead>
-              <tr>
-                <th>Casa</th>
-                <th>Local</th>
-                <th>Visitante</th>
-              </tr>
-            </thead>
+            <thead><tr><th>Casa</th><th>Local</th><th>Visitante</th><th>Actualizado</th></tr></thead>
             <tbody>
-              ${snapshot.books.map(
-                row=>`
-                  <tr>
-                    <td>${esc(row.book)}</td>
-                    <td>${row.home.toFixed(2)}</td>
-                    <td>${row.away.toFixed(2)}</td>
-                  </tr>
-                `
-              ).join("")}
+              ${snapshot.books.map(row=>`
+                <tr>
+                  <td>${esc(row.book)}</td>
+                  <td>${row.home.toFixed(2)}</td>
+                  <td>${row.away.toFixed(2)}</td>
+                  <td>${row.updatedAt?fmtDate(row.updatedAt):"—"}</td>
+                </tr>
+              `).join("")}
             </tbody>
           </table>
         </div>
-
         <div class="muted" style="margin-top:12px">
-          Última actualización del mercado:
-          ${fmtDate(
-            snapshot.books
-              .map(row=>row.updatedAt)
-              .filter(Boolean)
-              .sort()
-              .pop()||
-            new Date()
-          )}
-          <br>
-          WYNTR no inventa historial de movimiento: solo muestra el estado recibido de la fuente.
+          ${snapshot.books.length} casas con moneyline completo · actualización automática cada 60 s.
         </div>
       `;
 
