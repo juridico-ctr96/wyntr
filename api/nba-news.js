@@ -99,14 +99,14 @@ export default async function handler(req, res) {
 
     const finalItems = enriched.filter(item => item && item.title && item.url);
 
-    if (!result.length) throw new Error("NBA.com returned no articles");
+    if (!finalItems.length) throw new Error("NBA.com returned no articles");
 
     res.setHeader("Cache-Control", "s-maxage=300, stale-while-revalidate=900");
     res.setHeader("Content-Type", "application/json; charset=utf-8");
     return res.status(200).json({
       source: "NBA.com",
       updatedAt: new Date().toISOString(),
-      items: result
+      items: finalItems
     });
   } catch (nbaError) {
     console.error("WYNTR NBA.com news:", nbaError);
