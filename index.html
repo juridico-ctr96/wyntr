@@ -115,6 +115,116 @@ body{min-height:100vh}
 }
 
 /* =========================================================
+   NBA NEWS TICKER
+   ========================================================= */
+.news-ticker{
+  position:relative;
+  overflow:hidden;
+  padding:0;
+  border-color:#253247;
+  background:linear-gradient(145deg,#0d1421,#090f18);
+}
+.news-ticker-head{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+  padding:12px 15px 8px;
+}
+.news-live{
+  display:flex;
+  align-items:center;
+  gap:7px;
+  color:#dce5ef;
+  font-size:10px;
+  font-weight:900;
+  letter-spacing:1.8px;
+  text-transform:uppercase;
+}
+.news-live-dot{
+  width:7px;
+  height:7px;
+  border-radius:50%;
+  background:#18d7b0;
+  box-shadow:0 0 0 5px rgba(24,215,176,.10);
+  animation:wyntrPulse 1.7s infinite;
+}
+@keyframes wyntrPulse{0%,100%{opacity:1}50%{opacity:.35}}
+.news-refresh{
+  color:#66758a;
+  font-size:9px;
+  font-weight:800;
+}
+.news-stage{
+  position:relative;
+  min-height:74px;
+}
+.news-slide{
+  display:grid;
+  grid-template-columns:76px 1fr;
+  gap:12px;
+  align-items:center;
+  padding:10px 15px 15px;
+  text-decoration:none;
+  color:#fff;
+}
+.news-image{
+  width:76px;
+  height:54px;
+  border-radius:10px;
+  object-fit:cover;
+  background:#151e2c;
+  border:1px solid #253247;
+}
+.news-copy{min-width:0}
+.news-kicker{
+  color:#18d7b0;
+  font-size:8px;
+  font-weight:900;
+  letter-spacing:1.5px;
+  text-transform:uppercase;
+  margin-bottom:4px;
+}
+.news-title{
+  font-size:13px;
+  line-height:1.28;
+  font-weight:850;
+  display:-webkit-box;
+  -webkit-line-clamp:2;
+  -webkit-box-orient:vertical;
+  overflow:hidden;
+}
+.news-meta{
+  color:#718096;
+  font-size:9px;
+  margin-top:5px;
+}
+.news-dots{
+  display:flex;
+  justify-content:center;
+  gap:5px;
+  padding:0 0 11px;
+}
+.news-dot{
+  width:5px;
+  height:5px;
+  border-radius:50%;
+  background:#344154;
+}
+.news-dot.active{background:#63e8ff;width:14px;border-radius:8px}
+.news-empty{
+  padding:16px;
+  color:#7f8da2;
+  font-size:11px;
+  text-align:center;
+}
+@media(max-width:520px){
+  .news-slide{grid-template-columns:68px 1fr;gap:10px}
+  .news-image{width:68px;height:50px}
+  .news-title{font-size:12px}
+}
+
+/* =========================================================
    PARTIDOS
    ========================================================= */
 
@@ -741,6 +851,17 @@ body{background:
 
   </div>
 
+</section>
+
+<section id="news-section" class="card news-ticker" aria-label="Noticias NBA">
+  <div class="news-ticker-head">
+    <div class="news-live"><span class="news-live-dot"></span>NBA NEWS</div>
+    <div id="newsRefreshStatus" class="news-refresh">Actualizando...</div>
+  </div>
+  <div id="newsStage" class="news-stage">
+    <div class="news-empty">Cargando noticias relevantes de la NBA...</div>
+  </div>
+  <div id="newsDots" class="news-dots" aria-hidden="true"></div>
 </section>
 
 
@@ -3993,6 +4114,108 @@ window.addEventListener(
 
   }
 );
+
+
+/* =========================================================
+   NBA NEWS — TICKER EN TIEMPO REAL
+   ========================================================= */
+
+const NBA_NEWS = "/api/nba-news";
+let newsItems = [];
+let newsIndex = 0;
+let newsTimer = null;
+let newsRefreshTimer = null;
+
+function renderNewsSlide(){
+  const stage = $("newsStage");
+  const dots = $("newsDots");
+
+  if(!stage || !dots) return;
+
+  if(!newsItems.length){
+    stage.innerHTML = '<div class="news-empty">No hay noticias disponibles en este momento.</div>';
+    dots.innerHTML = "";
+    return;
+  }
+
+  const item = newsItems[newsIndex % newsItems.length];
+  const date = new Date(item.published);
+  const time = Number.isNaN(date.getTime())
+    ? ""
+    : date.toLocaleString("es-CO", {
+        day:"2-digit",
+        month:"short",
+        hour:"2-digit",
+        minute:"2-digit"
+      });
+
+  stage.innerHTML = `
+    <a class="news-slide" href="${item.url}" target="_blank" rel="noopener noreferrer">
+      ${item.image ? `<img class="news-image" src="${item.image}" alt="" loading="lazy">` : '<div class="news-image"></div>'}
+      <div class="news-copy">
+        <div class="news-kicker">Última hora · ${item.source || "ESPN"}</div>
+        <div class="news-title">${escapeHtml(item.title)}</div>
+        <div class="news-meta">${time}</div>
+      </div>
+    </a>
+  `;
+
+  dots.innerHTML = newsItems.map((_, i) =>
+    `<span class="news-dot ${i === newsIndex ? "active" : ""}"></span>`
+  ).join("");
+}
+
+function escapeHtml(value){
+  return String(value ?? "").replace(/[&<>"']/g, char => ({
+    "&":"&amp;",
+    "<":"&lt;",
+    ">":"&gt;",
+    '"':"&quot;",
+    "'":"&#039;"
+  }[char]));
+}
+
+function startNewsRotation(){
+  clearInterval(newsTimer);
+  if(newsItems.length > 1){
+    newsTimer = setInterval(() => {
+      newsIndex = (newsIndex + 1) % newsItems.length;
+      renderNewsSlide();
+    }, 6500);
+  }
+}
+
+async function loadNews(){
+  try{
+    const response = await fetch(NBA_NEWS, {
+      cache:"no-store",
+      headers:{Accept:"application/json"}
+    });
+
+    if(!response.ok) throw new Error("HTTP " + response.status);
+
+    const data = await response.json();
+    newsItems = Array.isArray(data.items) ? data.items : [];
+    newsIndex = 0;
+    renderNewsSlide();
+    startNewsRotation();
+
+    if($("newsRefreshStatus")){
+      $("newsRefreshStatus").textContent =
+        "Actualizado " +
+        new Date().toLocaleTimeString("es-CO", {
+          hour:"2-digit",
+          minute:"2-digit"
+        });
+    }
+  }catch(error){
+    console.warn("WYNTR NBA news:", error);
+    if($("newsRefreshStatus")) $("newsRefreshStatus").textContent = "Sin conexión";
+  }
+}
+
+loadNews();
+newsRefreshTimer = setInterval(loadNews, 5 * 60 * 1000);
 
 
 /* =========================================================
