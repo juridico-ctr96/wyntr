@@ -1581,23 +1581,22 @@ async function loadCalendar(){
   const status=$("calendarStatus");
   status.textContent="Consultando calendario NBA...";
 
+  const now=new Date();
+  const endDate=new Date(now);
+  endDate.setDate(endDate.getDate()+45);
+
+  const params=new URLSearchParams({
+    start_date:now.toISOString().slice(0,10),
+    end_date:endDate.toISOString().slice(0,10)
+  });
+
+  // BALLDONTLIE vuelve a ser la fuente primaria del calendario.
+  // Fue la fuente que ya había entregado el calendario correctamente.
   try{
+    status.textContent="Consultando calendario real...";
 
-    const now=new Date();
-    const endDate=new Date(now);
-    endDate.setDate(endDate.getDate()+45);
-
-    const params=new URLSearchParams({
-      start_date:now.toISOString().slice(0,10),
-      end_date:endDate.toISOString().slice(0,10)
-    });
-
-    const payload=await fetchJSON(
-      `/api/espn-nba?${params.toString()}`,
-      15000
-    );
-
-    const normalized=normalizeESPNCalendarGames(payload);
+    const data=await fetchBDLGames(params,2);
+    const normalized=data.map(normEvent);
     const quality=validateCalendarGames(normalized);
 
     state.dataQuality={
@@ -1608,7 +1607,7 @@ async function loadCalendar(){
 
     games=dedupe(quality.valid);
     state.scheduleVerification={
-      source:"ESPN",
+      source:"BALLDONTLIE",
       current:games.length,
       official:games.length,
       matched:games.map(game=>({game})),
@@ -1621,37 +1620,26 @@ async function loadCalendar(){
     render();
     renderCalendarQuality();
 
-    if(games.length){
-      status.textContent=
-        games.length+
-        " partidos válidos · calendario NBA actualizado.";
-    }else{
-      status.textContent=
-        "No hay partidos publicados en los próximos 45 días.";
-    }
+    status.textContent=games.length
+      ? `${games.length} partidos válidos · calendario NBA actualizado.`
+      : "No hay partidos publicados en los próximos 45 días.";
 
     return games;
 
   }catch(primaryError){
 
-    console.error("WYNTR ESPN calendar:",primaryError);
+    console.error("WYNTR BALLDONTLIE calendar:",primaryError);
 
-    // Segundo intento: BALLDONTLIE.
+    // Respaldo independiente: ESPN.
     try{
-      status.textContent=
-        "Fuente principal no disponible. Intentando BALLDONTLIE...";
+      status.textContent="Fuente principal no disponible. Intentando ESPN...";
 
-      const now=new Date();
-      const endDate=new Date(now);
-      endDate.setDate(endDate.getDate()+45);
+      const payload=await fetchJSON(
+        `/api/espn-nba?${params.toString()}`,
+        45000
+      );
 
-      const params=new URLSearchParams({
-        start_date:now.toISOString().slice(0,10),
-        end_date:endDate.toISOString().slice(0,10)
-      });
-
-      const data=await fetchBDLGames(params,2);
-      const normalized=data.map(normEvent);
+      const normalized=normalizeESPNCalendarGames(payload);
       const quality=validateCalendarGames(normalized);
 
       state.dataQuality={
@@ -1661,26 +1649,34 @@ async function loadCalendar(){
       };
 
       games=dedupe(quality.valid);
-      state.scheduleVerification=null;
+      state.scheduleVerification={
+        source:"ESPN",
+        current:games.length,
+        official:games.length,
+        matched:games.map(game=>({game})),
+        mismatches:[],
+        missing:[],
+        exact:true
+      };
 
       updateTeams();
       render();
       renderCalendarQuality();
 
-      status.textContent=
-        games.length+
-        " partidos válidos · BALLDONTLIE.";
+      status.textContent=games.length
+        ? `${games.length} partidos válidos · ESPN.`
+        : "No hay partidos publicados en los próximos 45 días.";
 
       return games;
 
-    }catch(error){
+    }catch(fallbackError){
 
-      console.error("WYNTR calendar fallback:",error);
+      console.error("WYNTR ESPN calendar fallback:",fallbackError);
       games=[];
       state.scheduleVerification=null;
       render();
 
-      const detail=error?.message||primaryError?.message||"Error desconocido";
+      const detail=fallbackError?.message||primaryError?.message||"Error desconocido";
 
       status.innerHTML=`
         <span class="error">
@@ -1696,7 +1692,6 @@ async function loadCalendar(){
     }
   }
 }
-
 
 /* =========================================================
    RENDER PARTIDOS
