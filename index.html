@@ -3194,18 +3194,18 @@ async function checkOddsConfig(){
 
   try{
 
-    const response=
-      await fetch(
-        `${ODDS}?regions=us&markets=h2h&oddsFormat=decimal`,
-        {
-          signal:
-            AbortSignal.timeout
-              ?AbortSignal.timeout(8000)
-              :undefined
-        }
+    const data=
+      await fetchJSON(
+        "/api/health",
+        8000
       );
 
-    if(response.status===503){
+    if(data?.oddsConfigured){
+
+      $("oddsConfig").textContent=
+        "Conectada";
+
+    }else{
 
       $("oddsConfig").textContent=
         "No configurada";
@@ -3213,18 +3213,13 @@ async function checkOddsConfig(){
       $("oddsStatus").textContent=
         "Añade ODDS_API_KEY en Vercel para activar cuotas reales.";
 
-      return;
     }
-
-    $("oddsConfig").textContent=
-      response.ok
-        ?"Conectada"
-        :`Error ${response.status}`;
 
   }catch{
 
     $("oddsConfig").textContent=
       "Sin respuesta";
+
   }
 }
 
