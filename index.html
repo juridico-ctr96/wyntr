@@ -4,6 +4,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
 <meta name="theme-color" content="#070b14">
+<link rel="manifest" href="/manifest.webmanifest">
+<link rel="icon" href="/icons/icon.svg" type="image/svg+xml">
 <title>WYNTR — Find the Signal</title>
 
 <style>
@@ -365,6 +367,10 @@ h3{
   font-weight:900
 }
 
+.app-nav{display:flex;gap:8px;overflow-x:auto;margin-top:14px;padding-bottom:3px;scrollbar-width:none}
+.app-nav::-webkit-scrollbar{display:none}
+.app-nav a{flex:0 0 auto;text-decoration:none;color:#b9c3d0;background:#111927;border:1px solid #263246;border-radius:999px;padding:8px 11px;font-size:11px;font-weight:800}
+.app-nav a:hover,.app-nav a:focus{border-color:#63e8ff;color:#fff}
 .footer{
   font-size:10px;
   color:#657184;
@@ -509,6 +515,13 @@ h3{
 
 <header class="header">
   <div class="logo">WYNTR</div>
+  <nav class="app-nav" aria-label="Navegación principal">
+    <a href="#calendar">Calendario</a>
+    <a href="#games-section">Partidos</a>
+    <a href="#analysis-section">Análisis</a>
+    <a href="#market-section">Mercado</a>
+    <a href="#engine-section">Motor</a>
+  </nav>
   <div class="subtitle">
     FIND THE SIGNAL · NBA INTELLIGENCE ENGINE
   </div>
@@ -559,7 +572,7 @@ h3{
      CALENDARIO
      ======================================================= -->
 
-<section class="card">
+<section id="calendar" class="card">
 
 <div class="section-title">
   Calendario
@@ -671,7 +684,7 @@ h3{
      CUOTAS
      ======================================================= -->
 
-<section class="card">
+<section id="market-section" class="card">
 
 <div class="section-title">
   Mercado de cuotas
@@ -711,7 +724,7 @@ h3{
      PARTIDOS
      ======================================================= -->
 
-<section class="card">
+<section id="games-section" class="card">
 
 <div class="section-title">
   Partidos
@@ -733,7 +746,7 @@ h3{
      ANÁLISIS
      ======================================================= -->
 
-<section class="card">
+<section id="analysis-section" class="card">
 
 <div class="section-title">
   Análisis WYNTR
@@ -755,7 +768,7 @@ h3{
      MOTOR
      ======================================================= -->
 
-<section class="card">
+<section id="engine-section" class="card">
 
 <div class="section-title">
   Motor
@@ -787,7 +800,18 @@ y no garantizan resultados.
 </div>
 
 
+<script src="/app/config.js"></script>
+<script src="/app/store.js"></script>
+<script src="/app/api.js"></script>
+<script src="/app/entitlements.js"></script>
 <script>
+
+window.WYNTR_APP = {
+  config: window.WYNTR_CONFIG,
+  store: window.WYNTR_STORE,
+  api: window.WYNTR_API,
+  entitlements: window.WYNTR_ENTITLEMENTS
+};
 
 /* =========================================================
    WYNTR — FIND THE SIGNAL
@@ -3432,6 +3456,14 @@ window.addEventListener(
    ========================================================= */
 
 loadCalendar();
+
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register("/sw.js").catch(error => {
+      console.warn("WYNTR service worker:", error);
+    });
+  });
+}
 
 </script>
 
