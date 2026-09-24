@@ -798,6 +798,7 @@ const BDL =
 
 const ODDS="/api/odds";
 const INJURIES="/api/injuries";
+const NBA_SCHEDULE="/api/nba-schedule";
 
 const NBA_LOGO =
 "https://cdn.nba.com/logos/leagues/L/logo-nba-logoman.svg";
@@ -819,7 +820,8 @@ const state = {
   analysis:null,
   injuries:null,
   odds:null,
-  dataQuality:null
+  dataQuality:null,
+  scheduleVerification:null
 };
 
 
@@ -1169,6 +1171,77 @@ async function fetchBDLGames(
    DEDUPLICAR
    ========================================================= */
 
+function normalizeTeamCode(value){
+  return String(value||"").toUpperCase().replace(/[^A-Z]/g,"").trim();
+}
+
+function officialNBAGames(payload){
+  const dates=payload?.leagueSchedule?.gameDates;
+  if(!Array.isArray(dates)) return [];
+  const rows=[];
+  dates.forEach(block=>{
+    (block?.games||[]).forEach(game=>{
+      const home=game?.homeTeam||{};
+      const away=game?.awayTeam||{};
+      const homeCode=normalizeTeamCode(home.teamTricode||home.teamAbbreviation||home.teamName);
+      const awayCode=normalizeTeamCode(away.teamTricode||away.teamAbbreviation||away.teamName);
+      if(!homeCode||!awayCode) return;
+      rows.push({
+        id:String(game?.gameId||""),
+        date:game?.gameDateTimeUTC||game?.gameDateTimeEst||block?.gameDate||"",
+        homeCode, awayCode,
+        status:Number(game?.gameStatus||0),
+        statusText:String(game?.gameStatusText||""),
+        postponed:String(game?.postponedStatus||"").toLowerCase()
+      });
+    });
+  });
+  return rows;
+}
+
+function verifyCalendarAgainstNBA(currentGames,payload){
+  const official=officialNBAGames(payload);
+  const byKey=new Map();
+  official.forEach(game=>{
+    const date=new Date(game.date);
+    const day=Number.isFinite(date.getTime())?date.toISOString().slice(0,10):String(game.date).slice(0,10);
+    const key=day+"|"+game.awayCode+"|"+game.homeCode;
+    if(!byKey.has(key)) byKey.set(key,[]);
+    byKey.get(key).push(game);
+  });
+  const matched=[],mismatches=[],missing=[];
+  currentGames.forEach(game=>{
+    const date=new Date(game.date);
+    const day=Number.isFinite(date.getTime())?date.toISOString().slice(0,10):String(game.date).slice(0,10);
+    const key=day+"|"+normalizeTeamCode(game.away.abbr)+"|"+normalizeTeamCode(game.home.abbr);
+    const candidates=byKey.get(key)||[];
+    if(!candidates.length){
+      missing.push({game,reason:"No aparece en el calendario oficial NBA para esa fecha y local/visitante."});
+      return;
+    }
+    const officialGame=candidates[0];
+    const currentMs=new Date(game.date).getTime();
+    const officialMs=new Date(officialGame.date).getTime();
+    const minuteDiff=Number.isFinite(currentMs)&&Number.isFinite(officialMs)?Math.abs(currentMs-officialMs)/60000:null;
+    const postponed=/postpon|cancel|abandon/i.test(officialGame.postponed);
+    const timeOk=minuteDiff===null||minuteDiff<=15;
+    if(postponed||!timeOk){
+      mismatches.push({game,official:officialGame,reason:postponed?"Fuente oficial indica estado diferido/cancelado: "+officialGame.postponed:"Hora distinta: "+minuteDiff.toFixed(0)+" minutos"});
+    }else{
+      matched.push({game,official:officialGame,minuteDiff});
+    }
+  });
+  return {source:"NBA.com",current:currentGames.length,official:official.length,matched,mismatches,missing,exact:matched.length===currentGames.length};
+}
+
+async function verifySchedule(currentGames){
+  if(!currentGames.length) return null;
+  const response=await fetch(NBA_SCHEDULE,{headers:{Accept:"application/json"},signal:AbortSignal.timeout?AbortSignal.timeout(15000):undefined});
+  if(!response.ok) throw new Error("NBA official schedule HTTP "+response.status);
+  const payload=await response.json();
+  return verifyCalendarAgainstNBA(currentGames,payload);
+}
+
 function dedupe(arr){
 
   const map =
@@ -1241,22 +1314,27 @@ async function loadCalendar(){
     };
 
     games=dedupe(quality.valid);
-
     updateTeams();
     render();
 
     if(games.length){
-
-      status.textContent=
-        `${games.length} partido(s) válidos · ${quality.rejected} registro(s) descartados · BALLDONTLIE.`;
-
+      status.textContent=games.length+" partido(s) válidos · "+quality.rejected+" descartados · BALLDONTLIE. Verificando con NBA.com…";
+      try{
+        const verification=await verifySchedule(games);
+        state.scheduleVerification=verification;
+        if(verification.exact){
+          status.textContent=games.length+" partidos válidos · 0 descartados · verificados contra NBA.com: "+verification.matched.length+"/"+verification.current+" coinciden en equipos y fecha/hora.";
+        }else{
+          status.innerHTML="<span class=\"error\">"+games.length+" partidos cargados · verificación NBA.com: "+verification.matched.length+"/"+verification.current+" coinciden.<br>"+verification.mismatches.length+" discrepancia(s) y "+verification.missing.length+" partido(s) no encontrados.</span>";
+        }
+      }catch(verifyError){
+        console.error("WYNTR NBA verification:",verifyError);
+        state.scheduleVerification=null;
+        status.textContent=games.length+" partidos válidos · BALLDONTLIE. Verificación secundaria NBA.com no disponible ahora.";
+      }
     }else{
-
-      status.textContent =
-        "No hay partidos publicados en los próximos 45 días.";
-
+      status.textContent="No hay partidos publicados en los próximos 45 días.";
     }
-
     return games;
 
   }catch(error){
