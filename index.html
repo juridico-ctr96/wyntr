@@ -676,6 +676,7 @@ h3{
 <div id="calendarStatus" class="status">
   Preparando...
 </div>
+<div id="calendarQuality" class="status"></div>
 
 </section>
 
@@ -1268,27 +1269,32 @@ async function verifySchedule(currentGames){
 
 function dedupe(arr){
 
-  const map =
-    new Map();
+  const map=new Map();
 
-  arr.forEach(
-    item =>
-      map.set(
-        item.id,
-        item
-      )
-  );
+  arr.forEach(item=>{
+    const d=new Date(item.date);
+    const day=Number.isFinite(d.getTime())?d.toISOString().slice(0,10):String(item.date).slice(0,10);
+    const home=normalizeTeamCode(item.home?.abbr||item.home?.name);
+    const away=normalizeTeamCode(item.away?.abbr||item.away?.name);
+    const key=item.id?"id:"+String(item.id):"game:"+day+"|"+away+"|"+home;
+    if(!map.has(key))map.set(key,item);
+  });
 
-  return [
-    ...map.values()
-  ].sort(
-    (a,b) =>
-      new Date(a.date) -
-      new Date(b.date)
-  );
-
+  return [...map.values()].sort((a,b)=>new Date(a.date)-new Date(b.date));
 }
 
+
+function renderCalendarQuality(){
+  const el=$("calendarQuality");
+  if(!el)return;
+  const q=state.dataQuality;
+  const v=state.scheduleVerification;
+  if(!q){el.textContent="";return;}
+  const base="Fuente primaria: "+q.valid+" válidos · "+q.rejected+" descartados";
+  if(!v){el.textContent=base;return;}
+  el.textContent=base+" · NBA.com: "+v.matched.length+"/"+v.current+" coinciden"+
+    ((v.mismatches.length||v.missing.length)?" · "+(v.mismatches.length+v.missing.length)+" requieren revisión":" · sin discrepancias detectadas");
+}
 
 /* =========================================================
    CALENDARIO
@@ -1340,12 +1346,14 @@ async function loadCalendar(){
     games=dedupe(quality.valid);
     updateTeams();
     render();
+    renderCalendarQuality();
 
     if(games.length){
       status.textContent=games.length+" partido(s) válidos · "+quality.rejected+" descartados · BALLDONTLIE. Verificando con NBA.com…";
       try{
         const verification=await verifySchedule(games);
         state.scheduleVerification=verification;
+        renderCalendarQuality();
         if(verification.exact){
           status.textContent=games.length+" partidos válidos · 0 descartados · verificados contra NBA.com: "+verification.matched.length+"/"+verification.current+" coinciden en equipos y fecha/hora.";
         }else{
@@ -1354,6 +1362,7 @@ async function loadCalendar(){
       }catch(verifyError){
         console.error("WYNTR NBA verification:",verifyError);
         state.scheduleVerification=null;
+        renderCalendarQuality();
         status.textContent=games.length+" partidos válidos · BALLDONTLIE. Verificación secundaria NBA.com no disponible ahora.";
       }
     }else{
@@ -2046,83 +2055,76 @@ function fitPlattCalibration(rows){
   return {calibrated:true,predict:p=>clamp(sigmoid(a*logitProbability(p)+b),.01,.99)};
 }
 function trainGradientBoosting(rows){
+  if(rows.length<30)return null;
 
-  if(rows.length<20)return null;
+  const trainEnd=Math.max(15,Math.floor(rows.length*.60));
+  const calEnd=Math.max(trainEnd+5,Math.floor(rows.length*.80));
+  if(calEnd>=rows.length)return null;
 
-  const split=Math.max(12,Math.floor(rows.length*.70));
-  const train=rows.slice(0,split),test=rows.slice(split);
+  const train=rows.slice(0,trainEnd);
+  const calibration=rows.slice(trainEnd,calEnd);
+  const test=rows.slice(calEnd);
+
   const base=train.reduce((s,r)=>s+r.y,0)/train.length;
   let pred=train.map(()=>base);
   const stumps=[];
 
   for(let round=0;round<40;round++){
-
     let best={error:Infinity,feature:0,threshold:0,left:0,right:0};
 
     for(let f=0;f<train[0].x.length;f++){
-
       const values=train.map(r=>r.x[f]).sort((a,b)=>a-b);
       const thresholds=[20,35,50,65,80].map(q=>values[Math.min(values.length-1,Math.floor(values.length*q/100))]);
 
       for(const threshold of new Set(thresholds)){
-
         const left=[],right=[];
-
         train.forEach((r,i)=>{
           const residual=r.y-pred[i];
-          (r.x[f]<=threshold?left:right).push(residual);
+          if(r.x[f]<=threshold)left.push(residual); else right.push(residual);
         });
 
         const lm=left.length?left.reduce((a,b)=>a+b,0)/left.length:0;
         const rm=right.length?right.reduce((a,b)=>a+b,0)/right.length:0;
-
         let error=0;
 
         train.forEach((r,i)=>{
-          const u=r.x[f]<=threshold?lm:rm;
-          error+=(r.y-pred[i]-u)**2;
+          const update=r.x[f]<=threshold?lm:rm;
+          error+=(r.y-pred[i]-update)**2;
         });
 
         if(error<best.error)best={error,feature:f,threshold,left:lm,right:rm};
-
       }
-
     }
 
     stumps.push(best);
-
     train.forEach((r,i)=>{
-      pred[i]=clamp(
-        pred[i]+.06*(r.x[best.feature]<=best.threshold?best.left:best.right),
-        .001,.999
-      );
+      pred[i]=clamp(pred[i]+.06*(r.x[best.feature]<=best.threshold?best.left:best.right),.001,.999);
     });
-
   }
 
   function predict(x){
     let p=base;
-    stumps.forEach(t=>p+=.06*(x[t.feature]<=t.threshold?t.left:t.right));
+    stumps.forEach(t=>{p+=.06*(x[t.feature]<=t.threshold?t.left:t.right);});
     return clamp(p,.001,.999);
   }
 
-  const testRows=test.map(r=>({y:r.y,p:predict(r.x)}));
+  const calibrationRows=calibration.map(r=>({y:r.y,p:predict(r.x)}));
+  const cal=fitPlattCalibration(calibrationRows);
+  const testRows=test.map(r=>({y:r.y,p:cal.predict(predict(r.x))}));
   const correct=testRows.filter(r=>(r.p>=.5)===(r.y===1)).length;
-  const cal=fitPlattCalibration(testRows);
-  const calibrated=testRows.map(r=>({y:r.y,p:cal.predict(r.p)}));
 
   return {
     predict,
     calibrate:cal.predict,
     train:train.length,
+    calibration:calibration.length,
     test:test.length,
     accuracy:test.length?correct/test.length:null,
-    brier:calibrated.length?calibrated.reduce((s,r)=>s+(r.p-r.y)**2,0)/calibrated.length:null,
-    logLoss:calibrated.length?calibrated.reduce((s,r)=>s+logLoss(r.p,r.y),0)/calibrated.length:null,
+    brier:testRows.length?testRows.reduce((s,r)=>s+(r.p-r.y)**2,0)/testRows.length:null,
+    logLoss:testRows.length?testRows.reduce((s,r)=>s+logLoss(r.p,r.y),0)/testRows.length:null,
     calibrated:cal.calibrated
   };
 }
-
 
 /* =========================================================
    ANÁLISIS/* =========================================================
@@ -2678,7 +2680,7 @@ function renderAnalysis(
       <div class="grid">
         <div class="metric"><div class="metric-label">Señal</div><div class="metric-value">${esc(result.confidence)}</div></div>
         <div class="metric"><div class="metric-label">Muestra</div><div class="metric-value">${result.sample}</div></div>
-        <div class="metric"><div class="metric-label">Validación</div><div class="metric-value">${result.validation}</div></div>
+        <div class="metric"><div class="metric-label">Test</div><div class="metric-value">${result.testSample}</div></div>
         <div class="metric"><div class="metric-label">ELO diferencial</div><div class="metric-value">${result.eloDiff>=0?"+":""}${result.eloDiff.toFixed(0)}</div></div>
       </div>
       <div class="muted" style="margin-top:12px">
