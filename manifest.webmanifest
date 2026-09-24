@@ -1,7 +1,7 @@
 {
-  "name": "WYNTR — Find the Signal",
-  "short_name": "WYNTR",
-  "description": "NBA intelligence, analysis, market data and model diagnostics.",
+  "name": "Prime Score — Sports Intelligence",
+  "short_name": "Prime Score",
+  "description": "NBA sports intelligence, analysis, market data and model diagnostics.",
   "lang": "es",
   "start_url": "/",
   "display": "standalone",
