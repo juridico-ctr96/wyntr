@@ -2997,8 +2997,14 @@ function normalCurveSvg(mean, sd, label, accent="#18d7b0"){
 function renderAnalysis(game,result){
 
   const analysis = $("analysis");
-  const homeScore = Math.round(result.lambdaHome);
-  const awayScore = Math.round(result.lambdaAway);
+  // The displayed score must use the same reconciled probability as the win percentages.
+  // Keep lambdaHome/lambdaAway only as raw scoring expectations for the model internals.
+  const homeScore = Number.isFinite(Number(result.projectedHomeScore))
+    ? Math.round(result.projectedHomeScore)
+    : Math.round(result.lambdaHome);
+  const awayScore = Number.isFinite(Number(result.projectedAwayScore))
+    ? Math.round(result.projectedAwayScore)
+    : Math.round(result.lambdaAway);
 
   const formDiff = result.hs.w10 - result.as.w10;
   const venueDiff = result.homeHome.w10 - result.awayRoad.w10;
