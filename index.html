@@ -1331,6 +1331,106 @@ function normalizeESPNCalendarGames(payload){
   return rows;
 }
 
+function normalizeFixtureCalendarGames(payload,fromDate,toDate){
+
+  const rows =
+    Array.isArray(payload)
+      ? payload
+      : payload?.games ||
+        payload?.fixtures ||
+        payload?.data ||
+        payload?.matches ||
+        [];
+
+  const from=new Date(fromDate);
+  const to=new Date(toDate);
+
+  const value=(row,keys)=>{
+    for(const key of keys){
+      if(row && row[key]!==undefined && row[key]!==null && row[key]!==""){
+        return row[key];
+      }
+    }
+    return "";
+  };
+
+  const teamValue=(row,side)=>{
+    const objectKey=side==="home"
+      ? ["home_team","homeTeam","home"]
+      : ["away_team","awayTeam","away"];
+
+    const raw=value(row,objectKey);
+
+    if(raw && typeof raw==="object"){
+      return {
+        id:String(raw.id||raw.team_id||raw.teamId||""),
+        name:raw.name||raw.full_name||raw.fullName||raw.display_name||raw.displayName||"",
+        abbr:raw.abbreviation||raw.abbr||raw.short_name||raw.shortName||""
+      };
+    }
+
+    const prefix=side==="home"?"home":"away";
+    return {
+      id:String(value(row,[prefix+"_team_id",prefix+"TeamId",prefix+"_id"])||""),
+      name:String(value(row,[prefix+"_team",prefix+"_team_name",prefix+"Team",prefix+"TeamName",prefix+"_name",prefix+"Name"])||""),
+      abbr:String(value(row,[prefix+"_team_abbr",prefix+"_team_abbreviation",prefix+"Abbreviation",prefix+"_abbr"])||"")
+    };
+  };
+
+  return rows.map((row,index)=>{
+    const date=value(row,[
+      "date","Date","datetime","date_time","start_date","startDate",
+      "game_date","gameDate","kickoff","Kickoff"
+    ]);
+
+    const home=teamValue(row,"home");
+    const away=teamValue(row,"away");
+
+    const homeCode=normalizeTeamCode(home.abbr||home.name);
+    const awayCode=normalizeTeamCode(away.abbr||away.name);
+
+    const dateObj=new Date(date);
+    if(!Number.isFinite(dateObj.getTime())||dateObj<from||dateObj>to||!homeCode||!awayCode){
+      return null;
+    }
+
+    const homeId=home.id||BDL_TEAM_IDS[homeCode]||homeCode;
+    const awayId=away.id||BDL_TEAM_IDS[awayCode]||awayCode;
+
+    const homeScore=Number(value(row,["home_score","homeScore","Home Score"]));
+    const awayScore=Number(value(row,["away_score","awayScore","Away Score"]));
+    const statusRaw=String(value(row,["status","Status","game_status","gameStatus"])||"scheduled").toLowerCase();
+    const completed=Number.isFinite(homeScore)&&Number.isFinite(awayScore) &&
+      !/scheduled|upcoming|preseason|preview/i.test(statusRaw);
+
+    return {
+      id:String(value(row,["id","game_id","gameId","Game ID"])||`fixture-${index}-${dateObj.getTime()}-${awayCode}-${homeCode}`),
+      date:dateObj.toISOString(),
+      name:`${awayCode} @ ${homeCode}`,
+      home:{
+        id:String(homeId),
+        name:home.name||homeCode,
+        short:home.name||homeCode,
+        abbr:homeCode,
+        logo:teamLogoUrl(homeCode)
+      },
+      away:{
+        id:String(awayId),
+        name:away.name||awayCode,
+        short:away.name||awayCode,
+        abbr:awayCode,
+        logo:teamLogoUrl(awayCode)
+      },
+      homeScore:completed?homeScore:null,
+      awayScore:completed?awayScore:null,
+      completed,
+      statusState:completed?"final":"scheduled",
+      postponed:/postpon|cancel|abandon/i.test(statusRaw),
+      status:statusRaw
+    };
+  }).filter(Boolean);
+}
+
 function validateCalendarGames(list){
   const valid=list.filter(validateGameRecord);
   return {valid,total:list.length,rejected:list.length-valid.length};
@@ -1660,14 +1760,11 @@ async function loadCalendar(force=false){
       end_date:endDate.toISOString().slice(0,10)
     });
 
+    // Fuente 1: NBA.com.
     try{
       status.textContent="Consultando calendario oficial NBA...";
 
-      const payload=await fetchJSON(
-        NBA_SCHEDULE,
-        20000
-      );
-
+      const payload=await fetchJSON(NBA_SCHEDULE,20000);
       const official=normalizeOfficialCalendarGames(
         payload,
         now.toISOString(),
@@ -1676,19 +1773,10 @@ async function loadCalendar(force=false){
 
       if(official.length){
         games=dedupe(official);
-        state.dataQuality={
-          total:games.length,
-          valid:games.length,
-          rejected:0
-        };
+        state.dataQuality={total:games.length,valid:games.length,rejected:0};
         state.scheduleVerification={
-          source:"NBA.com",
-          current:games.length,
-          official:games.length,
-          matched:games.map(game=>({game})),
-          mismatches:[],
-          missing:[],
-          exact:true
+          source:"NBA.com",current:games.length,official:games.length,
+          matched:games.map(game=>({game})),mismatches:[],missing:[],exact:true
         };
         updateTeams();
         render();
@@ -1698,28 +1786,36 @@ async function loadCalendar(force=false){
         return games;
       }
 
-      throw new Error("NBA.com no devolvió partidos en el rango solicitado.");
+      throw new Error("NBA.com no devolvió partidos.");
 
     }catch(officialError){
 
-      console.warn("WYNTR official NBA calendar:",officialError);
+      console.warn("WYNTR NBA.com calendar:",officialError);
 
+      // Fuente 2: feed de calendario completo, con caché server-side.
       try{
-        status.textContent="NBA.com no disponible. Consultando BALLDONTLIE...";
+        status.textContent="NBA.com no disponible. Consultando calendario NBA alternativo...";
 
-        const data=await fetchBDLGames(params,2);
-        const normalized=data.map(normEvent);
+        const payload=await fetchJSON("/api/fixture-calendar",20000);
+        const normalized=normalizeFixtureCalendarGames(
+          payload,
+          now.toISOString(),
+          endDate.toISOString()
+        );
         const quality=validateCalendarGames(normalized);
 
+        if(!quality.valid.length){
+          throw new Error("El calendario alternativo no devolvió partidos válidos.");
+        }
+
+        games=dedupe(quality.valid);
         state.dataQuality={
           total:quality.total,
           valid:quality.valid.length,
           rejected:quality.rejected
         };
-
-        games=dedupe(quality.valid);
         state.scheduleVerification={
-          source:"BALLDONTLIE",
+          source:"NBA fixture feed",
           current:games.length,
           official:games.length,
           matched:games.map(game=>({game})),
@@ -1733,25 +1829,19 @@ async function loadCalendar(force=false){
         renderCalendarQuality();
         writeCalendarCache(games);
 
-        status.textContent=games.length
-          ? `${games.length} partidos válidos · BALLDONTLIE.`
-          : "No hay partidos publicados en los próximos 45 días.";
-
+        status.textContent=`${games.length} partidos válidos · calendario NBA actualizado.`;
         return games;
 
-      }catch(primaryError){
+      }catch(fixtureError){
 
-        console.error("WYNTR BALLDONTLIE calendar:",primaryError);
+        console.warn("WYNTR fixture calendar:",fixtureError);
 
+        // Fuente 3: BALLDONTLIE, el flujo original de WYNTR.
         try{
-          status.textContent="BALLDONTLIE no disponible. Intentando ESPN...";
+          status.textContent="Calendario alternativo no disponible. Consultando BALLDONTLIE...";
 
-          const payload=await fetchJSON(
-            `/api/espn-nba?${params.toString()}`,
-            45000
-          );
-
-          const normalized=normalizeESPNCalendarGames(payload);
+          const data=await fetchBDLGames(params,2);
+          const normalized=data.map(normEvent);
           const quality=validateCalendarGames(normalized);
 
           state.dataQuality={
@@ -1762,7 +1852,7 @@ async function loadCalendar(force=false){
 
           games=dedupe(quality.valid);
           state.scheduleVerification={
-            source:"ESPN",
+            source:"BALLDONTLIE",
             current:games.length,
             official:games.length,
             matched:games.map(game=>({game})),
@@ -1777,35 +1867,81 @@ async function loadCalendar(force=false){
           writeCalendarCache(games);
 
           status.textContent=games.length
-            ? `${games.length} partidos válidos · ESPN.`
+            ? `${games.length} partidos válidos · BALLDONTLIE.`
             : "No hay partidos publicados en los próximos 45 días.";
 
           return games;
 
-        }catch(fallbackError){
+        }catch(primaryError){
 
-          console.error("WYNTR ESPN calendar fallback:",fallbackError);
-          games=[];
-          state.scheduleVerification=null;
-          render();
+          console.error("WYNTR BALLDONTLIE calendar:",primaryError);
 
-          const detail=
-            fallbackError?.message||
-            primaryError?.message||
-            officialError?.message||
-            "Error desconocido";
+          // Último respaldo: ESPN.
+          try{
+            status.textContent="BALLDONTLIE no disponible. Intentando ESPN...";
 
-          status.innerHTML=`
-            <span class="error">
-              No se pudo cargar el calendario.
-              <br>
-              <small>${esc(detail)}</small>
-            </span>
-            <br><br>
-            Pulsa "Actualizar partidos" para intentarlo nuevamente.
-          `;
+            const payload=await fetchJSON(
+              `/api/espn-nba?${params.toString()}`,
+              45000
+            );
 
-          return [];
+            const normalized=normalizeESPNCalendarGames(payload);
+            const quality=validateCalendarGames(normalized);
+
+            state.dataQuality={
+              total:quality.total,
+              valid:quality.valid.length,
+              rejected:quality.rejected
+            };
+
+            games=dedupe(quality.valid);
+            state.scheduleVerification={
+              source:"ESPN",
+              current:games.length,
+              official:games.length,
+              matched:games.map(game=>({game})),
+              mismatches:[],
+              missing:[],
+              exact:true
+            };
+
+            updateTeams();
+            render();
+            renderCalendarQuality();
+            writeCalendarCache(games);
+
+            status.textContent=games.length
+              ? `${games.length} partidos válidos · ESPN.`
+              : "No hay partidos publicados en los próximos 45 días.";
+
+            return games;
+
+          }catch(fallbackError){
+
+            console.error("WYNTR ESPN calendar fallback:",fallbackError);
+            games=[];
+            state.scheduleVerification=null;
+            render();
+
+            const detail=
+              fallbackError?.message||
+              primaryError?.message||
+              fixtureError?.message||
+              officialError?.message||
+              "Error desconocido";
+
+            status.innerHTML=`
+              <span class="error">
+                No se pudo cargar el calendario.
+                <br>
+                <small>${esc(detail)}</small>
+              </span>
+              <br><br>
+              Pulsa "Actualizar partidos" para intentarlo nuevamente.
+            `;
+
+            return [];
+          }
         }
       }
     }
