@@ -9,6 +9,8 @@ export default function handler(req, res) {
   return res.status(200).json({
     ok: true,
     balldontlieConfigured:
-      Boolean(process.env.BALLDONTLIE_API_KEY)
+      Boolean(process.env.BALLDONTLIE_API_KEY),
+    oddsConfigured:
+      Boolean(process.env.ODDS_API_KEY)
   });
 }
