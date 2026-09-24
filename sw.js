@@ -1,4 +1,4 @@
-const CACHE = "wyntr-shell-v4";
+const CACHE = "wyntr-shell-v5";
 const SHELL = [
   "/",
   "/index.html",
