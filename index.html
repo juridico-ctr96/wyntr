@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
 <meta name="theme-color" content="#070b14">
 <link rel="manifest" href="/manifest.webmanifest">
-<link rel="icon" href="/icons/icon.svg" type="image/svg+xml">
+<link rel="icon" href="/icons/prime-score.svg" type="image/svg+xml">\n<link rel="apple-touch-icon" href="/icons/prime-score.svg">
 <title>PRIME SCORE — Sports Intelligence</title>
 
 <style>
@@ -566,7 +566,7 @@ h3{
 
 }
 
-/* WYNTR MATCH INTELLIGENCE CARD */
+/* PRIME SCORE MATCH INTELLIGENCE CARD */
 .match-hero{position:relative;overflow:hidden;padding:20px;background:radial-gradient(circle at 18% 15%,rgba(99,232,255,.10),transparent 32%),radial-gradient(circle at 82% 15%,rgba(255,140,66,.10),transparent 32%),linear-gradient(145deg,#0d1322,#090e19);border-color:#263550}
 .match-topline{display:flex;justify-content:space-between;align-items:center;gap:10px;color:#7f8da2;font-size:10px;font-weight:900;letter-spacing:1.5px;text-transform:uppercase}
 .match-visual{display:grid;grid-template-columns:1fr 110px 1fr;align-items:center;gap:10px;margin:18px 0}
@@ -652,7 +652,7 @@ h3{
 }
 
 /* =========================================================
-   WYNTR VISUAL SYSTEM v2 · mobile sports intelligence
+   PRIME SCORE VISUAL SYSTEM v2 · mobile sports intelligence
    ========================================================= */
 :root{
   --wyntr-bg:#050912;
@@ -750,7 +750,7 @@ body{background:
 
 
 /* =========================================================
-   WYNTR VISUAL PASS 3 · hierarchy, status, micro-interactions
+   PRIME SCORE VISUAL PASS 3 · hierarchy, status, micro-interactions
    ========================================================= */
 .brand-mark{display:inline-grid;place-items:center;width:27px;height:27px;margin-right:7px;border-radius:9px;background:linear-gradient(145deg,#18d7b0,#63e8ff);color:#061018;font-size:13px;font-weight:950;letter-spacing:-1px;box-shadow:0 0 22px rgba(24,215,176,.18)}
 .header .logo{display:flex;align-items:center}
@@ -809,7 +809,7 @@ body{background:
 <header class="header">
   <div class="header-inner">
     <div class="brand-block">
-      <div class="logo"><span class="brand-mark prime-mark">P</span>PRIME SCORE</div>
+      <div class="logo"><img class="brand-logo" src="/icons/prime-score.svg" alt="Prime Score"> <span>PRIME SCORE</span></div>
       <div class="subtitle">SPORTS INTELLIGENCE · NBA ANALYSIS ENGINE</div>
     </div>
   </div>
@@ -1131,7 +1131,7 @@ window.WYNTR_APP = {
 };
 
 /* =========================================================
-   WYNTR — FIND THE SIGNAL
+   PRIME SCORE — SPORTS INTELLIGENCE
    ========================================================= */
 
 const BDL =
@@ -3278,7 +3278,7 @@ function renderAnalysis(game,result){
           ${normalCurveSvg(result.lambdaHome,result.scoreStd,game.home.short,"#ff9b4a")}
           ${normalCurveSvg(result.lambdaAway,result.scoreStd,game.away.short,"#63e8ff")}
         </div>
-        <div class="muted" style="margin-top:8px">Visualización estadística basada en la media y desviación estándar calculadas por WYNTR.</div>
+        <div class="muted" style="margin-top:8px">Visualización estadística basada en la media y desviación estándar calculadas por Prime Score.</div>
       </div>
 
       <div class="card">
@@ -3312,7 +3312,7 @@ function renderAnalysis(game,result){
           <div class="market-chip"><strong>Total proyectado</strong><span>${result.pace.toFixed(1)} puntos</span></div>
         </div>
         <div id="marketComparison" class="market-comparison"><div class="empty">Cargando probabilidad de mercado…</div></div>
-        <div class="muted" style="margin-top:10px">Probabilidad de mercado = moneyline implícito normalizado entre los dos precios disponibles. Edge = WYNTR − mercado.</div>
+        <div class="muted" style="margin-top:10px">Probabilidad de mercado = moneyline implícito normalizado entre los dos precios disponibles. Edge = Prime Score − mercado.</div>
       </div>
     </div>
 
