@@ -8,7 +8,7 @@ export default async function handler(req, res) {
   const startRaw = String(input.searchParams.get("start_date") || "");
   const endRaw = String(input.searchParams.get("end_date") || "");
 
-  if (!/^\\d{4}-\\d{2}-\\d{2}$/.test(startRaw) || !/^\\d{4}-\\d{2}-\\d{2}$/.test(endRaw)) {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(startRaw) || !/^\d{4}-\d{2}-\d{2}$/.test(endRaw)) {
     return res.status(400).json({ error: "Invalid date range" });
   }
 
