@@ -1384,28 +1384,45 @@ async function fetchBDLGames(
       );
     }
 
-    const data =
-      await fetchJSON(
-        `${BDL}?${query.toString()}`,
-        20000
+    try{
+
+      const data =
+        await fetchJSON(
+          `${BDL}?${query.toString()}`,
+          20000
+        );
+
+      result.push(
+        ...(data.data || [])
       );
 
-    result.push(
-      ...(data.data || [])
-    );
+      const next =
+        data?.meta?.next_cursor;
 
-    const next =
-      data?.meta?.next_cursor;
+      if(
+        next === null ||
+        next === undefined ||
+        String(next) === String(cursor)
+      ){
+        break;
+      }
 
-    if(
-      next === null ||
-      next === undefined ||
-      String(next) === String(cursor)
-    ){
-      break;
+      cursor=next;
+
+    }catch(error){
+
+      // Si la primera página falla, la fuente primaria realmente no está disponible.
+      // Si una página posterior falla (por ejemplo 429), conservamos las páginas
+      // ya obtenidas en vez de descartar todo el calendario.
+      if(result.length && page>0){
+        console.warn("WYNTR BDL pagination stopped:",error);
+        break;
+      }
+
+      throw error;
+
     }
 
-    cursor=next;
   }
 
   return result;
@@ -1576,7 +1593,53 @@ function renderCalendarQuality(){
    CALENDARIO
    ========================================================= */
 
-async function loadCalendar(){
+let calendarLoadPromise=null;
+const CALENDAR_CACHE_KEY="wyntr_calendar_cache_v2";
+const CALENDAR_CACHE_TTL=5*60*1000;
+
+function readCalendarCache(){
+  try{
+    const raw=localStorage.getItem(CALENDAR_CACHE_KEY);
+    if(!raw)return null;
+    const cached=JSON.parse(raw);
+    if(!cached?.time||!Array.isArray(cached.games))return null;
+    if(Date.now()-cached.time>CALENDAR_CACHE_TTL)return null;
+    return cached.games;
+  }catch{
+    return null;
+  }
+}
+
+function writeCalendarCache(list){
+  try{
+    localStorage.setItem(
+      CALENDAR_CACHE_KEY,
+      JSON.stringify({
+        time:Date.now(),
+        games:list
+      })
+    );
+  }catch{}
+}
+
+async function loadCalendar(force=false){
+
+  if(calendarLoadPromise)return calendarLoadPromise;
+
+  if(!force){
+    const cached=readCalendarCache();
+    if(cached?.length){
+      games=cached;
+      updateTeams();
+      render();
+      renderCalendarQuality();
+      $("calendarStatus").textContent=
+        `${cached.length} partidos válidos · calendario NBA en caché.`;
+      return games;
+    }
+  }
+
+  calendarLoadPromise=(async()=>{
 
   const status=$("calendarStatus");
   status.textContent="Consultando calendario NBA...";
@@ -1619,6 +1682,7 @@ async function loadCalendar(){
     updateTeams();
     render();
     renderCalendarQuality();
+    writeCalendarCache(games);
 
     status.textContent=games.length
       ? `${games.length} partidos válidos · calendario NBA actualizado.`
@@ -3423,7 +3487,7 @@ $("oddsRefresh").onclick=()=>{
 };
 
 $("reload").onclick =
-  loadCalendar;
+  ()=>loadCalendar(true);
 
 $("team").onchange =
   render;
