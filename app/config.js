@@ -1,13 +1,13 @@
 window.WYNTR_CONFIG = Object.freeze({
   appName: "PRIME SCORE",
-  version: "0.3.2",
+  version: "0.4.0",
   sport: "nba",
   api: {
     games: "/api/balldontlie",
     odds: "/api/odds",
     injuries: "/api/injuries",
     news: "/api/nba-news",
-    tennis: "/api/tennis-scoreboard",
+    tennis: "/api/live-tennis",
     officialSchedule: "/api/nba-schedule",
     health: "/api/health"
   },
