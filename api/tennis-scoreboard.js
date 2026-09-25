@@ -5,118 +5,186 @@ export default async function handler(req, res) {
   startDate.setUTCHours(0,0,0,0);
   const endDate = new Date(startDate);
   endDate.setUTCDate(endDate.getUTCDate() + days);
-  const start = startDate.toISOString().slice(0,10).replaceAll("-","");
-  const end = endDate.toISOString().slice(0,10).replaceAll("-","");
+  const start = startDate.toISOString().slice(0,10).replaceAll("-", "");
+  const end = endDate.toISOString().slice(0,10).replaceAll("-", "");
 
-  const tours = [
-    { slug: "atp", tour: "ATP" },
-    { slug: "wta", tour: "WTA" }
-  ];
+  const headers = {
+    "User-Agent": "Prime-Score/0.3.2",
+    "Accept": "application/json"
+  };
 
-  const headers = { "User-Agent": "Prime-Score/0.3.2" };
+  function tourFromGrouping(groupingName) {
+    const value = String(groupingName || "").toLowerCase();
+    if (value.includes("women") || value.includes("wta")) return "WTA";
+    if (value.includes("men") || value.includes("atp")) return "ATP";
+    return "";
+  }
 
-  const fetchTour = async ({slug,tour}) => {
+  function normalizeMatch(competition, context = {}) {
+    const competitors = Array.isArray(competition?.competitors)
+      ? competition.competitors.filter(c => c?.athlete?.displayName || c?.athlete?.fullName)
+      : [];
+
+    if (competitors.length !== 2) return null;
+
+    const grouping = String(context.groupingName || "");
+    const groupingLower = grouping.toLowerCase();
+
+    // We only want singles for the first tennis release.
+    if (grouping && !groupingLower.includes("singles")) return null;
+
+    const tour = context.tour || tourFromGrouping(grouping);
+    if (!tour) return null;
+
+    const ordered = [...competitors].sort(
+      (a, b) => Number(a.order || 0) - Number(b.order || 0)
+    );
+
+    const [p1, p2] = ordered;
+
+    const sets = (player) =>
+      (Array.isArray(player?.linescores) ? player.linescores : []).map(s => ({
+        value: Number.isFinite(Number(s.value)) ? Number(s.value) : null,
+        displayValue: s.displayValue ?? null,
+        tiebreak: s.tiebreak ?? null,
+        winner: Boolean(s.winner)
+      }));
+
+    const status = competition.status || {};
+    const type = status.type || {};
+    const venue = competition.venue || {};
+
+    return {
+      id: String(competition.id || context.eventId || crypto.randomUUID()),
+      eventId: String(context.eventId || competition.id || ""),
+      tour,
+      tournament: context.tournamentName || competition.name || tour,
+      date: competition.startDate || competition.date || context.eventDate || null,
+      status: type.state === "in" ? "live" : type.completed ? "final" : "upcoming",
+      statusDetail: type.detail || type.shortDetail || type.description || "Programado",
+      period: Number(status.period || 0),
+      round: competition.round?.displayName || "",
+      grouping: grouping || "Singles",
+      venue: venue.fullName || "",
+      court: venue.court || "",
+      formatSets: Number(competition.format?.regulation?.periods || 3),
+      players: [
+        {
+          id: String(p1.id || p1.athlete.id),
+          name: p1.athlete.displayName || p1.athlete.fullName,
+          shortName: p1.athlete.shortName || p1.athlete.displayName || p1.athlete.fullName,
+          country: p1.athlete.flag?.alt || "",
+          flag: p1.athlete.flag?.href || "",
+          winner: Boolean(p1.winner),
+          sets: sets(p1)
+        },
+        {
+          id: String(p2.id || p2.athlete.id),
+          name: p2.athlete.displayName || p2.athlete.fullName,
+          shortName: p2.athlete.shortName || p2.athlete.displayName || p2.athlete.fullName,
+          country: p2.athlete.flag?.alt || "",
+          flag: p2.athlete.flag?.href || "",
+          winner: Boolean(p2.winner),
+          sets: sets(p2)
+        }
+      ]
+    };
+  }
+
+  function collectBoardMatches(board) {
+    const matches = [];
+    const seen = new Set();
+
+    const add = (competition, context) => {
+      const match = normalizeMatch(competition, context);
+      if (!match || seen.has(match.id)) return;
+      seen.add(match.id);
+      matches.push(match);
+    };
+
+    for (const event of Array.isArray(board?.events) ? board.events : []) {
+      const base = {
+        eventId: String(event.id || ""),
+        eventDate: event.date || null,
+        tournamentName: event.name || event.shortName || "Tennis"
+      };
+
+      // Current ESPN tennis shape: tournament -> grouping -> competitions.
+      for (const grouping of Array.isArray(event.groupings) ? event.groupings : []) {
+        const groupingName =
+          grouping?.grouping?.displayName ||
+          grouping?.grouping?.name ||
+          grouping?.name ||
+          "";
+
+        for (const competition of Array.isArray(grouping.competitions) ? grouping.competitions : []) {
+          add(competition, {
+            ...base,
+            groupingName,
+            tour: tourFromGrouping(groupingName)
+          });
+        }
+      }
+
+      // Defensive fallback: event.competitions[].
+      for (const competition of Array.isArray(event.competitions) ? event.competitions : []) {
+        const groupingName =
+          competition?.grouping?.displayName ||
+          competition?.grouping?.name ||
+          "";
+        add(competition, {
+          ...base,
+          groupingName,
+          tour: tourFromGrouping(groupingName)
+        });
+      }
+
+      // Defensive fallback: event itself is a match.
+      if (Array.isArray(event.competitors)) {
+        add(event, {
+          ...base,
+          groupingName: event.grouping?.displayName || event.grouping?.name || "Singles",
+          tour: tourFromGrouping(event.grouping?.displayName || event.grouping?.name)
+        });
+      }
+    }
+
+    return matches;
+  }
+
+  async function fetchBoard() {
     const urls = [
-      `https://site.api.espn.com/apis/site/v2/sports/tennis/${slug}/scoreboard`,
-      `https://site.api.espn.com/apis/site/v2/sports/tennis/${slug}/scoreboard?dates=${start}-${end}`
+      `https://site.api.espn.com/apis/site/v2/sports/tennis/all/scoreboard?dates=${start}-${end}`,
+      `https://site.api.espn.com/apis/site/v2/sports/tennis/all/scoreboard`
     ];
 
-    let data = null;
     let lastError = null;
 
     for (const url of urls) {
       try {
         const response = await fetch(url, { headers });
         if (!response.ok) {
-          lastError = new Error(`${tour} HTTP ${response.status}`);
+          lastError = new Error(`ESPN HTTP ${response.status}`);
           continue;
         }
-        data = await response.json();
-        if (Array.isArray(data?.events) && data.events.length) break;
+
+        const board = await response.json();
+        const items = collectBoardMatches(board);
+        if (items.length || Array.isArray(board?.events)) {
+          return { board, items };
+        }
       } catch (error) {
         lastError = error;
       }
     }
 
-    if (!data) throw lastError || new Error(`${tour} sin respuesta`);
-
-    const matches = [];
-    const seen = new Set();
-
-    for (const event of Array.isArray(data.events) ? data.events : []) {
-      for (const grouping of Array.isArray(event.groupings) ? event.groupings : []) {
-        const groupingName = grouping.grouping?.displayName || grouping.grouping?.slug || "Singles";
-        for (const competition of Array.isArray(grouping.competitions) ? grouping.competitions : []) {
-          const competitors = Array.isArray(competition.competitors)
-            ? competition.competitors.filter(c => c?.athlete?.displayName)
-            : [];
-          if (competitors.length !== 2) continue;
-
-          const ordered = [...competitors].sort((a,b) => Number(a.order || 0) - Number(b.order || 0));
-          const p1 = ordered[0], p2 = ordered[1];
-          const sets = (p) => (Array.isArray(p.linescores) ? p.linescores : []).map(s => ({
-            value: Number.isFinite(Number(s.value)) ? Number(s.value) : null,
-            tiebreak: s.tiebreak ?? null,
-            winner: Boolean(s.winner)
-          }));
-
-          const status = competition.status || {};
-          const type = status.type || {};
-          const round = competition.round?.displayName || "";
-          const venue = competition.venue || {};
-          const matchId = String(competition.id || event.id);
-          if (seen.has(matchId)) continue;
-          seen.add(matchId);
-
-          matches.push({
-            id: matchId,
-            eventId: String(event.id),
-            tour,
-            tournament: event.name || event.shortName || tour,
-            date: competition.startDate || competition.date || event.date || null,
-            status: type.state === "in" ? "live" : type.completed ? "final" : "upcoming",
-            statusDetail: type.detail || type.shortDetail || type.description || "Programado",
-            period: Number(status.period || 0),
-            round,
-            grouping: groupingName,
-            venue: venue.fullName || "",
-            court: venue.court || "",
-            formatSets: Number(competition.format?.regulation?.periods || 3),
-            players: [
-              {
-                id: String(p1.id || p1.athlete.id),
-                name: p1.athlete.displayName,
-                shortName: p1.athlete.shortName || p1.athlete.displayName,
-                country: p1.athlete.flag?.alt || "",
-                flag: p1.athlete.flag?.href || "",
-                winner: Boolean(p1.winner),
-                sets: sets(p1)
-              },
-              {
-                id: String(p2.id || p2.athlete.id),
-                name: p2.athlete.displayName,
-                shortName: p2.athlete.shortName || p2.athlete.displayName,
-                country: p2.athlete.flag?.alt || "",
-                flag: p2.athlete.flag?.href || "",
-                winner: Boolean(p2.winner),
-                sets: sets(p2)
-              }
-            ]
-          });
-        }
-      }
-    }
-
-    return matches;
-  };
+    throw lastError || new Error("ESPN Tennis sin respuesta");
+  }
 
   try {
-    const settled = await Promise.allSettled(tours.map(fetchTour));
-    const items = settled.flatMap(r => r.status === "fulfilled" ? r.value : []);
-    const errors = settled
-      .filter(r => r.status === "rejected")
-      .map(r => r.reason?.message || "Error desconocido");
-    items.sort((a,b) => new Date(a.date || 0) - new Date(b.date || 0));
+    const { board, items } = await fetchBoard();
+
+    items.sort((a, b) => new Date(a.date || 0) - new Date(b.date || 0));
 
     res.setHeader("Cache-Control", "s-maxage=120, stale-while-revalidate=600");
     res.status(200).json({
@@ -125,12 +193,13 @@ export default async function handler(req, res) {
       end,
       updatedAt: new Date().toISOString(),
       source: "ESPN",
-      errors,
+      eventCount: Array.isArray(board?.events) ? board.events.length : 0,
       items
     });
   } catch (error) {
     res.status(502).json({
       sport: "tennis",
+      source: "ESPN",
       error: error?.message || "No se pudo consultar tenis"
     });
   }
