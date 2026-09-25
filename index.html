@@ -4837,19 +4837,28 @@ function renderHomeDashboard(){
     const key=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
     return key===localDayKey;
   });
-  const list=(today.length?today:games.filter(g=>!g.completed)).slice(0,3);
+  const upcoming=games
+    .filter(g=>!g.completed && new Date(g.date).getTime()>=now.getTime())
+    .sort((a,b)=>new Date(a.date)-new Date(b.date));
+  const hasToday=today.length>0;
+  const list=(hasToday?today:upcoming).slice(0,3);
+  if($("dashboardTitle")){
+    $("dashboardTitle").textContent=hasToday?"Partidos de hoy":"Próximos partidos";
+  }
   if($("dashboardDate")){
-    $("dashboardDate").textContent=now.toLocaleDateString("es-CO",{weekday:"short",day:"2-digit",month:"short"}).toUpperCase();
+    $("dashboardDate").textContent=hasToday
+      ? now.toLocaleDateString("es-CO",{weekday:"short",day:"2-digit",month:"short"}).toUpperCase()
+      : (upcoming[0] ? "SIGUIENTE JORNADA · "+new Date(upcoming[0].date).toLocaleDateString("es-CO",{day:"2-digit",month:"short"}).toUpperCase() : "SIN PARTIDOS PROGRAMADOS");
   }
   if(!list.length){
-    root.innerHTML='<div class="dashboard-empty">No hay partidos NBA disponibles para hoy. Revisa el calendario completo.</div>';
+    root.innerHTML='<div class="dashboard-empty"><strong>Temporada NBA en pausa</strong><br>No hay partidos NBA programados en este momento. El calendario completo sigue disponible abajo.</div>';
     return;
   }
   root.innerHTML=list.map((game,index)=>`
     <button class="today-game ${index===0?"featured":""}" type="button" data-dashboard-id="${esc(game.id)}">
       <div class="today-game-head">
         <span>${game.completed?"FINAL":"NBA · "+esc(fmtDate(game.date))}</span>
-        <span class="${game.completed?"":"today-live"}">${game.completed?"RESULTADO":"PRIME SIGNAL"}</span>
+        <span class="${game.completed?"":"today-live"}">${game.completed?"RESULTADO":(hasToday?"PRIME SIGNAL":"PRÓXIMO")}</span>
       </div>
       <div class="today-matchup">
         <div class="today-team">${game.away.logo?`<img src="${esc(game.away.logo)}" alt="">`:""}${esc(game.away.short)}</div>
