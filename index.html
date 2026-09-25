@@ -1251,7 +1251,7 @@ button.secondary{
     </div>
   </div>
   <nav class="app-nav" aria-label="Navegación principal">
-    <a href="#nba" data-route="nba" data-href="/nba.html" data-nav="nba" aria-label="Abrir partidos NBA">🏀 NBA</a>
+    <a href="/nba.html" data-route="nba" data-nav="nba" aria-label="Abrir NBA">🏀 NBA</a>
     <a href="#tennis" data-route="tennis" data-nav="tennis" aria-label="Abrir Tennis ATP y WTA">🎾 Tennis</a>
     <a href="#calendar" data-route="calendar" data-nav="calendar" aria-label="Abrir calendario completo">▦ Partidos</a>
     <a href="#analysis" data-route="analysis" data-nav="analysis" aria-label="Abrir Prime Score Intelligence">◈ Intelligence</a>
@@ -5019,8 +5019,15 @@ function routeFromHash(){
 
 function navigateRoute(route){
   const key=APP_ROUTES[route]!==undefined ? route : "home";
-  if(key==="nba"){ window.location.href="/nba.html"; return key; }
-  openDashboardSection(APP_ROUTES[key], {updateHash:true,scroll:true});
+  if(key==="nba"){
+    window.location.href="/nba.html";
+    return key;
+  }
+  if(key==="home"){
+    openDashboardSection(null,{updateHash:true,scroll:true});
+    return key;
+  }
+  openDashboardSection(APP_ROUTES[key],{updateHash:true,scroll:true});
   return key;
 }
 
@@ -5216,10 +5223,10 @@ if ("serviceWorker" in navigator) {
 
 <nav class="bottom-nav" aria-label="Navegación móvil">
   <a class="active" href="/" data-route="home" aria-label="Volver al inicio"><span>⌂</span>Inicio</a>
-  <a href="#calendar" data-route="calendar" aria-label="Abrir calendario"><span>▦</span>Calendario</a>
-  <a href="#analysis" data-route="analysis" aria-label="Abrir Intelligence"><span>⌁</span>Análisis</a>
-  <a href="#market" data-route="market" aria-label="Abrir Market"><span>◈</span>Market</a>
-  <a href="#more" data-route="more" aria-label="Abrir más opciones"><span>⋯</span>Más</a>
+  <a href="#calendar" data-route="calendar" aria-label="Abrir calendario completo"><span>▦</span>Calendario</a>
+  <a href="#analysis" data-route="analysis" aria-label="Abrir Prime Score Intelligence"><span>◈</span>Intelligence</a>
+  <a href="#market" data-route="market" aria-label="Abrir mercado"><span>↗</span>Market</a>
+  <a href="#more" data-route="more" aria-label="Abrir más herramientas"><span>⋯</span>Más</a>
 </nav>
 
 </body>
