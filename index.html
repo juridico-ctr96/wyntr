@@ -496,7 +496,8 @@ h3{
 .app-nav{display:flex;gap:8px;overflow-x:auto;margin-top:14px;padding-bottom:3px;scrollbar-width:none}
 .app-nav::-webkit-scrollbar{display:none}
 .app-nav a{flex:0 0 auto;text-decoration:none;color:#b9c3d0;background:#111927;border:1px solid #263246;border-radius:999px;padding:8px 11px;font-size:11px;font-weight:800}
-.app-nav a:hover,.app-nav a:focus{border-color:#63e8ff;color:#fff}
+.app-nav a:hover,.app-nav a:focus,.app-nav a.active{border-color:#18d7b0;color:#fff;background:rgba(24,215,176,.10);box-shadow:0 0 0 1px rgba(24,215,176,.10)}
+.app-nav a{cursor:pointer;transition:.18s ease}
 .footer{
   font-size:10px;
   color:#657184;
@@ -1209,12 +1210,12 @@ button.secondary{
     </div>
   </div>
   <nav class="app-nav" aria-label="Navegación principal">
-    <a href="#games-section" data-open="games-section">NBA</a>
-    <a href="#tennis-section" data-open="tennis-section">Tennis</a>
-    <a href="#games-section" data-open="games-section">Partidos</a>
-    <a href="#analysis-section" data-open="analysis-section">Intelligence</a>
-    <a href="#market-section" data-open="market-section">Market</a>
-    <a href="#engine-section" data-open="engine-section">Engine</a>
+    <a href="#games-section" data-open="games-section" data-nav="games">🏀 NBA</a>
+    <a href="#tennis-section" data-open="tennis-section" data-nav="tennis">🎾 Tennis</a>
+    <a href="#calendar" data-open="calendar" data-nav="calendar">▦ Partidos</a>
+    <a href="#analysis-section" data-open="analysis-section" data-nav="analysis">◈ Intelligence</a>
+    <a href="#market-section" data-open="market-section" data-nav="market">↗ Market</a>
+    <a href="#engine-section" data-open="engine-section" data-nav="engine">⚙ Engine</a>
   </nav>
 </header>
 <section id="home-dashboard" class="home-dashboard" aria-label="Prime Score Dashboard">
@@ -4813,16 +4814,33 @@ newsRefreshTimer = setInterval(loadNews, 5 * 60 * 1000);
    ========================================================= */
 function openDashboardSection(id){
   document.querySelectorAll(".secondary-section").forEach(section=>section.classList.remove("is-open"));
+  document.querySelectorAll("[data-nav]").forEach(el=>el.classList.remove("active"));
   const target=$(id);
   if(target){
     target.classList.add("is-open");
     target.scrollIntoView({behavior:"smooth",block:"start"});
   }
+  document.querySelectorAll("[data-nav]").forEach(el=>{
+    if(el.dataset.nav===({
+      "games-section":"games",
+      "tennis-section":"tennis",
+      "calendar":"calendar",
+      "analysis-section":"analysis",
+      "market-section":"market",
+      "engine-section":"engine"
+    })[id]) el.classList.add("active");
+  });
 }
 document.querySelectorAll("[data-open]").forEach(el=>{
   el.addEventListener("click",event=>{
     event.preventDefault();
     openDashboardSection(el.dataset.open);
+  });
+});
+document.querySelectorAll(".bottom-nav a[data-open]").forEach(el=>{
+  el.addEventListener("click",()=>{
+    document.querySelectorAll(".bottom-nav a").forEach(item=>item.classList.remove("active"));
+    el.classList.add("active");
   });
 });
 
