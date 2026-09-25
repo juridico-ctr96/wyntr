@@ -1,10 +1,27 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
-  <defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fff"/><stop offset=".55" stop-color="#63e8ff"/><stop offset="1" stop-color="#1677ff"/></linearGradient></defs>
-  <rect width="512" height="512" rx="112" fill="#050912"/>
-  <path d="M116 112h244c38 0 68 30 68 68s-30 68-68 68H270l-73 118h-78l83-138H116z" fill="url(#g)"/>
-  <path d="M293 176h70c12 0 22 10 22 22s-10 22-22 22h-70z" fill="#07101d"/>
-  <circle cx="347" cy="200" r="55" fill="none" stroke="#1677ff" stroke-width="14"/>
-  <path d="M298 200h98M347 145c20 18 31 37 31 55s-11 37-31 55M347 145c-20 18-31 37-31 55s11 37 31 55" fill="none" stroke="#63e8ff" stroke-width="9" stroke-linecap="round"/>
-  <path d="M92 340h145" stroke="#18d7b0" stroke-width="16" stroke-linecap="round"/>
-  <path d="M92 372h90" stroke="#63e8ff" stroke-width="10" stroke-linecap="round"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-labelledby="title desc">
+<title id="title">Prime Score</title>
+<desc id="desc">Prime Score monogram combining a stylized P, speed lines and a basketball arc.</desc>
+<defs>
+  <linearGradient id="p" x1="92" y1="390" x2="390" y2="92" gradientUnits="userSpaceOnUse">
+    <stop offset="0" stop-color="#dce8f5"/>
+    <stop offset=".48" stop-color="#ffffff"/>
+    <stop offset=".72" stop-color="#36d9ff"/>
+    <stop offset="1" stop-color="#1478ff"/>
+  </linearGradient>
+  <linearGradient id="s" x1="82" y1="330" x2="220" y2="330" gradientUnits="userSpaceOnUse">
+    <stop offset="0" stop-color="#18cfff"/>
+    <stop offset="1" stop-color="#1478ff"/>
+  </linearGradient>
+  <filter id="glow" x="-30%" y="-30%" width="160%" height="160%">
+    <feGaussianBlur stdDeviation="7" result="b"/>
+    <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+  </filter>
+</defs>
+<rect width="512" height="512" rx="112" fill="#050912"/>
+<path d="M112 138h145c57 0 94 29 94 76 0 45-35 74-90 74h-57l-62 102h-72l83-136h-41z" fill="url(#p)"/>
+<path d="M203 195h53c19 0 31 8 31 22 0 15-12 23-31 23h-80z" fill="#07101c"/>
+<path d="M82 333h132" stroke="url(#s)" stroke-width="17" stroke-linecap="round" filter="url(#glow)"/>
+<path d="M82 371h88" stroke="#4fe4ff" stroke-width="10" stroke-linecap="round"/>
+<circle cx="351" cy="213" r="70" fill="none" stroke="#1586ff" stroke-width="13"/>
+<path d="M287 213h128M351 143c25 21 38 45 38 70s-13 49-38 70M351 143c-25 21-38 45-38 70s13 49 38 70" fill="none" stroke="#39dcff" stroke-width="8" stroke-linecap="round"/>
 </svg>
