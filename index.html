@@ -1143,7 +1143,58 @@ button.secondary{
   .news-image{width:96px;height:68px}
 }
 
-.game-open-label{display:flex;justify-content:space-between;align-items:center;margin-top:10px;padding-top:9px;border-top:1px solid rgba(126,151,184,.12);color:#8eead7;font-size:9px;font-weight:900;letter-spacing:.4px}.game-open-label span{color:#62e7ff}.upcoming-prob b{color:#8eead7;font-size:9px}</style>
+.game-open-label{display:flex;justify-content:space-between;align-items:center;margin-top:10px;padding-top:9px;border-top:1px solid rgba(126,151,184,.12);color:#8eead7;font-size:9px;font-weight:900;letter-spacing:.4px}.game-open-label span{color:#62e7ff}.upcoming-prob b{color:#8eead7;font-size:9px}
+/* =========================================================
+   PRIME SCORE HOME DASHBOARD · app-first layout
+   ========================================================= */
+.home-dashboard{display:block;margin:14px 0 18px}
+.dashboard-shell{padding:18px;background:linear-gradient(145deg,#0b1422,#07101b);border:1px solid #1e3046;border-radius:22px;box-shadow:0 22px 60px rgba(0,0,0,.24)}
+.dashboard-top{display:flex;justify-content:space-between;align-items:flex-end;gap:16px;margin-bottom:15px}
+.dashboard-eyebrow{font-size:9px;letter-spacing:1.8px;text-transform:uppercase;color:#18d7b0;font-weight:950}
+.dashboard-title{font-size:clamp(25px,5vw,38px);font-weight:950;letter-spacing:-1.5px;margin:5px 0 0}
+.dashboard-date{font-size:10px;color:#74839a;white-space:nowrap}
+.dashboard-sport-grid{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-bottom:16px}
+.dashboard-sport{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:13px 14px;border:1px solid #26364c;border-radius:15px;background:#0d1726;color:#fff;text-decoration:none;cursor:pointer}
+.dashboard-sport:hover{border-color:#63e8ff;transform:translateY(-1px)}
+.dashboard-sport-main{display:flex;align-items:center;gap:10px}
+.dashboard-sport-icon{width:34px;height:34px;border-radius:11px;display:grid;place-items:center;background:#142235;font-size:17px}
+.dashboard-sport strong{display:block;font-size:12px}
+.dashboard-sport span{display:block;color:#74839a;font-size:9px;margin-top:3px}
+.dashboard-sport-arrow{color:#63e8ff;font-size:15px}
+.today-heading{display:flex;justify-content:space-between;align-items:center;margin:0 0 9px}
+.today-heading strong{font-size:15px}
+.today-heading button{padding:7px 10px;font-size:9px;background:#111d2c;color:#aab7c8;border:1px solid #26364c;box-shadow:none}
+.today-games{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.today-game{position:relative;width:100%;min-height:168px;text-align:left;padding:15px;border:1px solid #293a51;border-radius:17px;background:linear-gradient(145deg,#101c2c,#0a121f);color:#fff;cursor:pointer;overflow:hidden}
+.today-game:hover{border-color:#18d7b0;transform:translateY(-2px);box-shadow:0 16px 35px rgba(0,0,0,.22)}
+.today-game.featured{border-color:rgba(99,232,255,.34);background:radial-gradient(circle at 80% 10%,rgba(99,232,255,.08),transparent 35%),linear-gradient(145deg,#101d2f,#0a121f)}
+.today-game-head{display:flex;justify-content:space-between;gap:8px;font-size:8px;text-transform:uppercase;letter-spacing:1px;color:#7f8da2}
+.today-live{color:#18d7b0;font-weight:950}
+.today-matchup{display:grid;grid-template-columns:1fr 32px 1fr;align-items:center;gap:4px;margin-top:15px}
+.today-team{text-align:center;font-size:12px;font-weight:900}
+.today-team img{display:block;width:42px;height:42px;object-fit:contain;margin:0 auto 7px}
+.today-vs{text-align:center;color:#53627a;font-size:8px;font-weight:950}
+.today-card-bottom{display:flex;justify-content:space-between;align-items:center;margin-top:14px;padding-top:10px;border-top:1px solid rgba(126,151,184,.12)}
+.today-card-bottom span{color:#718096;font-size:9px}
+.today-card-bottom b{color:#63e8ff;font-size:9px}
+.dashboard-empty{padding:22px;text-align:center;border:1px dashed #26364c;border-radius:16px;color:#7f8da2;font-size:11px}
+.dashboard-actions{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;margin-top:11px}
+.dashboard-action-card{padding:12px;border:1px solid #26364c;border-radius:14px;background:#0c1522;color:#fff;text-align:left;cursor:pointer}
+.dashboard-action-card strong{display:block;font-size:11px}.dashboard-action-card span{display:block;color:#718096;font-size:9px;margin-top:4px}
+.dashboard-action-card:hover{border-color:#63e8ff}
+.secondary-section{display:none!important}
+.secondary-section.is-open{display:block!important}
+.dashboard-open-note{margin-top:10px;color:#66758a;font-size:9px;text-align:center}
+@media(max-width:700px){
+  .dashboard-top{align-items:flex-start}.dashboard-date{font-size:9px}
+  .today-games{grid-template-columns:1fr}
+  .today-game{min-height:132px}
+  .today-matchup{grid-template-columns:1fr 28px 1fr;margin-top:10px}
+  .today-team img{width:34px;height:34px}
+  .dashboard-actions{grid-template-columns:1fr 1fr}
+  .dashboard-action-card:last-child{grid-column:1/-1}
+}
+</style>
 </head>
 
 <body>
@@ -1158,20 +1209,71 @@ button.secondary{
     </div>
   </div>
   <nav class="app-nav" aria-label="Navegación principal">
-    <a href="#calendar">NBA</a>
-    <a href="#tennis-section">Tennis</a>
-    <a href="#games-section">Partidos</a>
-    <a href="#analysis-section">Intelligence</a>
-    <a href="#market-section">Market</a>
-    <a href="#engine-section">Engine</a>
+    <a href="#games-section" data-open="games-section">NBA</a>
+    <a href="#tennis-section" data-open="tennis-section">Tennis</a>
+    <a href="#games-section" data-open="games-section">Partidos</a>
+    <a href="#analysis-section" data-open="analysis-section">Intelligence</a>
+    <a href="#market-section" data-open="market-section">Market</a>
+    <a href="#engine-section" data-open="engine-section">Engine</a>
   </nav>
 </header>
+<section id="home-dashboard" class="home-dashboard" aria-label="Prime Score Dashboard">
+  <div class="dashboard-shell">
+    <div class="dashboard-top">
+      <div>
+        <div class="dashboard-eyebrow">PRIME SCORE · HOME</div>
+        <div class="dashboard-title">Partidos de hoy</div>
+      </div>
+      <div id="dashboardDate" class="dashboard-date">HOY</div>
+    </div>
+
+    <div class="dashboard-sport-grid">
+      <button class="dashboard-sport" type="button" data-open="games-section">
+        <div class="dashboard-sport-main">
+          <div class="dashboard-sport-icon">🏀</div>
+          <div><strong>NBA Intelligence</strong><span>Partidos · modelos · mercado</span></div>
+        </div>
+        <div class="dashboard-sport-arrow">→</div>
+      </button>
+      <button class="dashboard-sport" type="button" data-open="tennis-section">
+        <div class="dashboard-sport-main">
+          <div class="dashboard-sport-icon">🎾</div>
+          <div><strong>Tennis Intelligence</strong><span>ATP · WTA · en vivo</span></div>
+        </div>
+        <div class="dashboard-sport-arrow">→</div>
+      </button>
+    </div>
+
+    <div class="today-heading">
+      <strong>Destacados</strong>
+      <button type="button" data-open="calendar">Calendario completo</button>
+    </div>
+
+    <div id="todayGames" class="today-games">
+      <div class="dashboard-empty">Cargando los partidos destacados…</div>
+    </div>
+
+    <div class="dashboard-actions">
+      <button class="dashboard-action-card" type="button" data-open="games-section">
+        <strong>Todos los partidos</strong><span>Explorar NBA</span>
+      </button>
+      <button class="dashboard-action-card" type="button" data-open="tennis-section">
+        <strong>ATP · WTA</strong><span>Ver tenis</span>
+      </button>
+      <button class="dashboard-action-card" type="button" data-open="calendar">
+        <strong>Calendario</strong><span>Filtros e histórico</span>
+      </button>
+    </div>
+    <div id="dashboardNote" class="dashboard-open-note">El calendario completo queda como sección secundaria.</div>
+  </div>
+</section>
+
 
 <!-- =======================================================
      HERO NBA
      ======================================================= -->
 
-<section class="card nba-hero">
+<section class="card nba-hero secondary-section">
 
   <img
     src="https://cdn.nba.com/manage/2026/09/brunson-hart-090126-scaled.jpg"
@@ -1203,7 +1305,7 @@ button.secondary{
       <div class="hero-eyebrow"><span class="hero-dot"></span> PRIME SCORE · INTELLIGENCE</div>
       <div class="nba-hero-title">FIND<br>THE SIGNAL.</div>
       <div class="hero-description">Una interfaz deportiva premium para explorar partidos, probabilidades, contexto, mercado y señales del modelo en un solo lugar.</div>
-      <a class="hero-cta" href="#games-section">Explorar partidos <span>→</span></a>
+      <button class="hero-cta" type="button" data-open="games-section">Explorar partidos <span>→</span></button>
     </div>
     <div class="data-strip">
       <div class="data-strip-item"><strong>REAL DATA</strong><span>Fuentes conectadas</span></div>
@@ -1215,7 +1317,7 @@ button.secondary{
 
 </section>
 
-<section id="news-section" class="card news-ticker" aria-label="Noticias NBA">
+<section id="news-section" class="secondary-section class="card news-ticker" aria-label="Noticias NBA">
   <div class="news-ticker-head">
     <div class="news-live"><span class="news-live-dot"></span>NBA NEWS</div>
     <div id="newsRefreshStatus" class="news-refresh">Actualizando...</div>
@@ -1228,7 +1330,7 @@ button.secondary{
 
 
 
-<section id="tennis-section" class="card tennis-section" aria-label="Tennis Intelligence">
+<section id="tennis-section" class="secondary-section class="card tennis-section" aria-label="Tennis Intelligence">
   <div class="tennis-head">
     <div>
       <div class="section-title">Tennis Intelligence</div>
@@ -1257,7 +1359,7 @@ button.secondary{
      CALENDARIO
      ======================================================= -->
 
-<section id="calendar" class="card">
+<section id="calendar" class="secondary-section class="card">
 
 <div class="section-title">
   Calendario
@@ -1377,7 +1479,7 @@ button.secondary{
      PARTIDOS
      ======================================================= -->
 
-<section id="games-section" class="card">
+<section id="games-section" class="secondary-section class="card">
 
 <div class="section-title">
   Partidos
@@ -1399,7 +1501,7 @@ button.secondary{
      ANÁLISIS
      ======================================================= -->
 
-<section id="analysis-section" class="card">
+<section id="analysis-section" class="secondary-section class="card">
 
 <div class="section-title">
   Análisis PRIME SCORE
@@ -1416,7 +1518,7 @@ button.secondary{
 
 </section>
 
-<section id="market-section" class="card">
+<section id="market-section" class="secondary-section class="card">
 
 <div class="section-title">
   Mercado de cuotas
@@ -1456,7 +1558,7 @@ button.secondary{
      MOTOR
      ======================================================= -->
 
-<section id="engine-section" class="card">
+<section id="engine-section" class="secondary-section class="card">
 
 <div class="section-title">
   Motor
@@ -2564,6 +2666,7 @@ function filtered(){
 
 function render(){
 
+  renderHomeDashboard();
   const container = $("games");
   const list = filtered();
 
@@ -4704,6 +4807,64 @@ loadNews();
 newsRefreshTimer = setInterval(loadNews, 5 * 60 * 1000);
 
 
+
+/* =========================================================
+   HOME DASHBOARD
+   ========================================================= */
+function openDashboardSection(id){
+  document.querySelectorAll(".secondary-section").forEach(section=>section.classList.remove("is-open"));
+  const target=$(id);
+  if(target){
+    target.classList.add("is-open");
+    target.scrollIntoView({behavior:"smooth",block:"start"});
+  }
+}
+document.querySelectorAll("[data-open]").forEach(el=>{
+  el.addEventListener("click",event=>{
+    event.preventDefault();
+    openDashboardSection(el.dataset.open);
+  });
+});
+
+document.addEventListener("click",event=>{\n  const trigger=event.target.closest("[data-open]");\n  if(!trigger)return;\n  if(trigger.dataset.open){ event.preventDefault(); openDashboardSection(trigger.dataset.open); }\n});\n\nfunction renderHomeDashboard(){
+  const root=$("todayGames");
+  if(!root)return;
+  const now=new Date();
+  const dayKey=now.toISOString().slice(0,10);
+  const today=games.filter(g=>{
+    const d=new Date(g.date);
+    return !Number.isNaN(d.getTime()) && d.toISOString().slice(0,10)===dayKey;
+  });
+  const list=(today.length?today:games.filter(g=>!g.completed)).slice(0,3);
+  if($("dashboardDate")){
+    $("dashboardDate").textContent=now.toLocaleDateString("es-CO",{weekday:"short",day:"2-digit",month:"short"}).toUpperCase();
+  }
+  if(!list.length){
+    root.innerHTML='<div class="dashboard-empty">No hay partidos NBA disponibles para hoy. Revisa el calendario completo.</div>';
+    return;
+  }
+  root.innerHTML=list.map((game,index)=>`
+    <button class="today-game ${index===0?"featured":""}" type="button" data-dashboard-id="${esc(game.id)}">
+      <div class="today-game-head">
+        <span>${game.completed?"FINAL":"NBA · "+esc(fmtDate(game.date))}</span>
+        <span class="${game.completed?"":"today-live"}">${game.completed?"RESULTADO":"PRIME SIGNAL"}</span>
+      </div>
+      <div class="today-matchup">
+        <div class="today-team">${game.away.logo?`<img src="${esc(game.away.logo)}" alt="">`:""}${esc(game.away.short)}</div>
+        <div class="today-vs">VS</div>
+        <div class="today-team">${game.home.logo?`<img src="${esc(game.home.logo)}" alt="">`:""}${esc(game.home.short)}</div>
+      </div>
+      <div class="today-card-bottom">
+        <span>${game.completed?esc((game.away.score??"")+" — "+(game.home.score??"")):"Análisis disponible"}</span>
+        <b>ABRIR FICHA →</b>
+      </div>
+    </button>
+  `).join("");
+  root.querySelectorAll("[data-dashboard-id]").forEach(btn=>{
+    btn.addEventListener("click",()=>selectGame(btn.dataset.dashboardId));
+  });
+}
+
 /* =========================================================
    ARRANQUE
    ========================================================= */
@@ -4723,10 +4884,10 @@ if ("serviceWorker" in navigator) {
 
 <nav class="bottom-nav" aria-label="Navegación móvil">
   <a class="active" href="#top"><span>⌂</span>Inicio</a>
-  <a href="#games-section"><span>▦</span>Calendario</a>
-  <a href="#analysis-section"><span>⌁</span>Análisis</a>
-  <a href="#market-section"><span>◈</span>Mercado</a>
-  <a href="#engine-section"><span>⋯</span>Más</a>
+  <a href="#games-section" data-open="games-section"><span>▦</span>Calendario</a>
+  <a href="#analysis-section" data-open="analysis-section"><span>⌁</span>Análisis</a>
+  <a href="#market-section" data-open="market-section"><span>◈</span>Mercado</a>
+  <a href="#engine-section" data-open="engine-section"><span>⋯</span>Más</a>
 </nav>
 
 </body>
