@@ -1251,7 +1251,7 @@ button.secondary{
     </div>
   </div>
   <nav class="app-nav" aria-label="Navegación principal">
-    <a href="#nba" data-route="nba" data-nav="nba" aria-label="Abrir partidos NBA">🏀 NBA</a>
+    <a href="#nba" data-route="nba" data-href="/nba.html" data-nav="nba" aria-label="Abrir partidos NBA">🏀 NBA</a>
     <a href="#tennis" data-route="tennis" data-nav="tennis" aria-label="Abrir Tennis ATP y WTA">🎾 Tennis</a>
     <a href="#calendar" data-route="calendar" data-nav="calendar" aria-label="Abrir calendario completo">▦ Partidos</a>
     <a href="#analysis" data-route="analysis" data-nav="analysis" aria-label="Abrir Prime Score Intelligence">◈ Intelligence</a>
@@ -1273,7 +1273,7 @@ button.secondary{
     </div>
 
     <div class="dashboard-sport-grid">
-      <button class="dashboard-sport" type="button" data-open="games-section">
+      <button class="dashboard-sport" type="button" data-href="/nba.html" data-open="games-section">
         <div class="dashboard-sport-main">
           <div class="dashboard-sport-icon">🏀</div>
           <div><strong>NBA Intelligence</strong><span>Partidos · modelos · mercado</span></div>
@@ -1299,7 +1299,7 @@ button.secondary{
     </div>
 
     <div class="dashboard-actions">
-      <button class="dashboard-action-card" type="button" data-open="games-section">
+      <button class="dashboard-action-card" type="button" data-href="/nba.html" data-open="games-section">
         <span class="dashboard-action-icon">🏀</span><strong>NBA</strong><span>Partidos y fichas</span>
       </button>
       <button class="dashboard-action-card" type="button" data-open="tennis-section">
@@ -1359,7 +1359,7 @@ button.secondary{
       <div class="hero-eyebrow"><span class="hero-dot"></span> PRIME SCORE · INTELLIGENCE</div>
       <div class="nba-hero-title">FIND<br>THE SIGNAL.</div>
       <div class="hero-description">Una interfaz deportiva premium para explorar partidos, probabilidades, contexto, mercado y señales del modelo en un solo lugar.</div>
-      <button class="hero-cta" type="button" data-open="games-section">Explorar partidos <span>→</span></button>
+      <button class="hero-cta" type="button" data-href="/nba.html" data-open="games-section">Explorar partidos <span>→</span></button>
     </div>
     <div class="data-strip">
       <div class="data-strip-item"><strong>REAL DATA</strong><span>Fuentes conectadas</span></div>
@@ -1632,7 +1632,7 @@ button.secondary{
     </div>
     <div class="intel-action">
       <span>¿Quieres ver este desglose aplicado a un partido concreto?</span>
-      <button type="button" data-open="games-section">Elegir partido →</button>
+      <button type="button" data-href="/nba.html" data-open="games-section">Elegir partido →</button>
     </div>
   </div>
 
@@ -5004,6 +5004,7 @@ function routeFromHash(){
 
 function navigateRoute(route){
   const key=APP_ROUTES[route]!==undefined ? route : "home";
+  if(key==="nba"){ window.location.href="/nba.html"; return key; }
   openDashboardSection(APP_ROUTES[key], {updateHash:true,scroll:true});
   return key;
 }
