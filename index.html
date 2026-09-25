@@ -4236,7 +4236,7 @@ function tennisScoreMarkup(match, side){
 function renderTennis(){
   const root = $("tennisMatches");
   if(!root) return;
-  let list = tennisItems.filter(m => tennisTourFilter === "all" || m.tour === tennisTourFilter);
+  let list = tennisItems.filter(m => (m.tour === "ATP" || m.tour === "WTA") && (tennisTourFilter === "all" || m.tour === tennisTourFilter));
   // La fuente ya limita cada match a dos competidores; evitamos depender del nombre del grouping de ESPN.
   list = list.filter(m => Array.isArray(m.players) && m.players.length === 2);
   if(!list.length){
@@ -4311,8 +4311,9 @@ async function loadTennis(){
     const data = await response.json();
     tennisItems = Array.isArray(data.items) ? data.items : [];
     renderTennis();
-    const live=tennisItems.filter(m=>m.status==="live").length;
-    const upcoming=tennisItems.filter(m=>m.status==="upcoming").length;
+    const tennisTourItems=tennisItems.filter(m=>m.tour==="ATP"||m.tour==="WTA");
+    const live=tennisTourItems.filter(m=>m.status==="live").length;
+    const upcoming=tennisTourItems.filter(m=>m.status==="upcoming").length;
     const final=tennisItems.filter(m=>m.status==="completed" || m.status==="final").length;
     const source = data.source || "Live Tennis API";
     if(status) status.textContent=live + " en vivo · " + upcoming + " próximos · " + final + " resultados · " + source;
