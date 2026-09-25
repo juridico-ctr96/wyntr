@@ -4282,8 +4282,8 @@ async function loadTennis(){
     if(status) status.textContent=live + " en vivo · " + upcoming + " próximos · " + final + " resultados · " + source;
   }catch(error){
     console.warn("PRIME SCORE Tennis:",error);
-    if(status) status.textContent="Sin conexión";
-    if($("tennisMatches")) $("tennisMatches").innerHTML='<div class="tennis-empty error">No se pudo cargar el calendario ATP/WTA.</div>';
+    if(status) status.textContent = error?.message || "No se pudo conectar";
+    if($("tennisMatches")) $("tennisMatches").innerHTML = '<div class="tennis-empty error">No se pudo cargar el calendario ATP/WTA. Revisa la conexión del proveedor.</div>';
   }
 }
 
