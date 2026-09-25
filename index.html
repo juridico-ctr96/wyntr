@@ -614,6 +614,39 @@ h3{
 .game.selected{border-color:#18d7b0;box-shadow:0 0 0 1px rgba(24,215,176,.18),0 0 22px rgba(24,215,176,.08)}
 @media(max-width:650px){.match-visual{grid-template-columns:1fr 62px 1fr}.team-portrait{width:82px;height:82px}.match-team-name{font-size:13px}.match-score{font-size:25px}.signal-grid,.distribution-grid{grid-template-columns:1fr}.prob-value{font-size:21px}}
 
+
+/* =========================================================
+   PRIME SCORE INTELLIGENCE HUB
+   ========================================================= */
+.intel-hero{padding:20px;border:1px solid rgba(99,232,255,.16);border-radius:18px;background:radial-gradient(circle at 10% 0%,rgba(99,232,255,.10),transparent 32%),radial-gradient(circle at 90% 0%,rgba(24,215,176,.08),transparent 30%),linear-gradient(145deg,#0d1726,#080f19);margin-bottom:12px}
+.intel-kicker{font-size:9px;letter-spacing:2px;text-transform:uppercase;color:#18d7b0;font-weight:950}
+.intel-title{font-size:clamp(24px,4vw,38px);font-weight:950;letter-spacing:-1px;margin-top:7px}
+.intel-copy{max-width:760px;color:#8290a4;font-size:11px;line-height:1.6;margin-top:7px}
+.intel-final{display:grid;grid-template-columns:1.05fr .95fr;gap:12px;margin-top:14px}
+.intel-prob{border:1px solid #26364c;border-radius:16px;padding:15px;background:#0a121e}
+.intel-prob-head{display:flex;justify-content:space-between;gap:10px;align-items:center}
+.intel-prob-label{font-size:10px;color:#8492a7;text-transform:uppercase;letter-spacing:1px;font-weight:900}
+.intel-prob-value{font-size:30px;font-weight:950;margin-top:4px}
+.intel-bar{height:9px;border-radius:99px;background:#1b2637;overflow:hidden;margin-top:10px}
+.intel-bar span{display:block;height:100%;border-radius:99px;background:linear-gradient(90deg,#18d7b0,#63e8ff)}
+.intel-methods{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;margin-top:12px}
+.intel-method{border:1px solid rgba(126,151,184,.15);border-radius:14px;padding:12px;background:#0b1421}
+.intel-method-head{display:flex;justify-content:space-between;gap:8px;align-items:center}
+.intel-method-name{font-size:11px;font-weight:900}
+.intel-weight{font-size:10px;color:#18d7b0;font-weight:950}
+.intel-method p{color:#718096;font-size:9px;line-height:1.45;margin:6px 0 0}
+.intel-flow{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:12px}
+.intel-flow-step{position:relative;padding:12px;border:1px solid #26364c;border-radius:13px;background:#0b1421}
+.intel-flow-step strong{display:block;font-size:11px}
+.intel-flow-step span{display:block;color:#718096;font-size:9px;line-height:1.4;margin-top:4px}
+.intel-number{display:grid;place-items:center;width:22px;height:22px;border-radius:7px;background:rgba(99,232,255,.1);color:#63e8ff;font-size:10px;font-weight:950;margin-bottom:8px}
+.intel-note{padding:11px 12px;border-radius:12px;background:#0a111c;border:1px solid #23334a;color:#7f8da2;font-size:9px;line-height:1.55;margin-top:12px}
+.intel-action{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-top:12px;padding:13px;border-radius:14px;border:1px solid rgba(24,215,176,.2);background:rgba(24,215,176,.045)}
+.intel-action span{font-size:10px;color:#9aa7b9}
+.intel-action button{white-space:nowrap}
+@media(max-width:760px){.intel-final{grid-template-columns:1fr}.intel-methods{grid-template-columns:1fr 1fr}.intel-flow{grid-template-columns:1fr 1fr}}
+@media(max-width:520px){.intel-methods{grid-template-columns:1fr}.intel-flow{grid-template-columns:1fr}.intel-title{font-size:27px}}
+
 .market-intel{display:grid;grid-template-columns:1.15fr .85fr;gap:12px}
 .market-hero{border:1px solid #26374f;border-radius:16px;padding:16px;background:linear-gradient(145deg,#101b2b,#0c1420)}
 .market-hero-label{font-size:10px;text-transform:uppercase;letter-spacing:1.4px;color:#7f8da2;font-weight:900}
@@ -1512,20 +1545,86 @@ button.secondary{
      ANÁLISIS
      ======================================================= -->
 
-<section id="analysis-section" class="secondary-section card">
+<section id="analysis-section" class="secondary-section card section-anchor">
 
-<div class="section-title">
-  Análisis PRIME SCORE
-</div>
+  <div class="intel-hero">
+    <div class="intel-kicker">PRIME SCORE · INTELLIGENCE</div>
+    <div class="intel-title">¿Por qué el modelo llega a esta probabilidad?</div>
+    <div class="intel-copy">
+      Prime Score combina varias señales estadísticas y las integra en una probabilidad final.
+      La pantalla separa cada componente para que puedas ver qué información está empujando el resultado,
+      qué peso tiene y qué tan consistente es la evidencia disponible.
+    </div>
 
+    <div class="intel-final">
+      <div class="intel-prob">
+        <div class="intel-prob-head">
+          <span class="intel-prob-label">Probabilidad final</span>
+          <span class="badge">Modelo combinado</span>
+        </div>
+        <div class="intel-prob-value">40% + 20% + 15% + 10% + 10% + 5%</div>
+        <div class="intel-bar"><span style="width:100%"></span></div>
+        <div class="muted" style="margin-top:8px">Los porcentajes representan los pesos del motor, no una garantía de acierto.</div>
+      </div>
 
-<div id="analysis">
+      <div class="intel-prob">
+        <div class="intel-prob-head">
+          <span class="intel-prob-label">Salida del motor</span>
+          <span class="badge">0–100%</span>
+        </div>
+        <div class="intel-prob-value">Probabilidad + confianza</div>
+        <div class="muted" style="margin-top:8px">
+          La probabilidad se obtiene después de combinar las señales; la confianza se calcula por acuerdo entre señales,
+          tamaño de muestra y validación.
+        </div>
+      </div>
+    </div>
 
-<div class="empty">
-  Selecciona un partido.
-</div>
+    <div class="intel-methods">
+      <div class="intel-method">
+        <div class="intel-method-head"><span class="intel-method-name">Gradient Boosting</span><span class="intel-weight">40%</span></div>
+        <p>Aprende patrones a partir del histórico disponible y pasa por calibración antes de entrar al resultado final.</p>
+      </div>
+      <div class="intel-method">
+        <div class="intel-method-head"><span class="intel-method-name">ELO</span><span class="intel-weight">20%</span></div>
+        <p>Compara la fuerza relativa de los equipos e incorpora la ventaja de localía usada por el motor.</p>
+      </div>
+      <div class="intel-method">
+        <div class="intel-method-head"><span class="intel-method-name">Distribución</span><span class="intel-weight">15%</span></div>
+        <p>Convierte el entorno esperado de anotación y diferencia proyectada en una señal de resultado.</p>
+      </div>
+      <div class="intel-method">
+        <div class="intel-method-head"><span class="intel-method-name">Forma</span><span class="intel-weight">10%</span></div>
+        <p>Compara rendimiento reciente, incluyendo W10 y el contexto casa/carretera.</p>
+      </div>
+      <div class="intel-method">
+        <div class="intel-method-head"><span class="intel-method-name">Producción</span><span class="intel-weight">10%</span></div>
+        <p>Utiliza diferencias de margen y producción ofensiva para aportar contexto al enfrentamiento.</p>
+      </div>
+      <div class="intel-method">
+        <div class="intel-method-head"><span class="intel-method-name">Disponibilidad</span><span class="intel-weight">5%</span></div>
+        <p>Cuando existe información de lesiones, incorpora una señal de disponibilidad relativa.</p>
+      </div>
+    </div>
+  </div>
 
-</div>
+  <div class="card">
+    <div class="section-title">Cómo se construye una señal</div>
+    <div class="intel-flow">
+      <div class="intel-flow-step"><div class="intel-number">01</div><strong>Datos</strong><span>Histórico, equipos, contexto y disponibilidad.</span></div>
+      <div class="intel-flow-step"><div class="intel-number">02</div><strong>Modelos</strong><span>Cada componente genera su propia probabilidad.</span></div>
+      <div class="intel-flow-step"><div class="intel-number">03</div><strong>Ensemble</strong><span>Las seis señales se combinan con pesos definidos.</span></div>
+      <div class="intel-flow-step"><div class="intel-number">04</div><strong>Validación</strong><span>Se muestran muestra, Brier, Log Loss y confianza cuando están disponibles.</span></div>
+    </div>
+    <div class="intel-note">
+      <strong>Lectura correcta:</strong> una probabilidad alta significa que las señales disponibles están inclinadas hacia un lado bajo el modelo.
+      No significa certeza ni garantiza el resultado. Si las señales discrepan, la confianza puede disminuir.
+    </div>
+    <div class="intel-action">
+      <span>¿Quieres ver este desglose aplicado a un partido concreto?</span>
+      <button type="button" data-open="games-section">Elegir partido →</button>
+    </div>
+  </div>
 
 </section>
 
@@ -4930,7 +5029,7 @@ if ("serviceWorker" in navigator) {
 <nav class="bottom-nav" aria-label="Navegación móvil">
   <a class="active" href="#top"><span>⌂</span>Inicio</a>
   <a href="#games-section" data-open="games-section"><span>▦</span>Calendario</a>
-  <a href="#analysis-section" data-open="analysis-section"><span>⌁</span>Análisis</a>
+  <a href="#analysis-section" data-open="analysis-section"><span>⌁</span>Intelligence</a>
   <a href="#market-section" data-open="market-section"><span>◈</span>Mercado</a>
   <a href="#engine-section" data-open="engine-section"><span>⋯</span>Más</a>
 </nav>
