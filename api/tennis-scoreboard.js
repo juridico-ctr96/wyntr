@@ -1,9 +1,25 @@
 export default async function handler(req, res) {
   const now = new Date();
-  const start = req.query?.start || now.toISOString().slice(0,10).replaceAll("-","");
-  const endDate = new Date(now);
-  endDate.setUTCDate(endDate.getUTCDate() + Number(req.query?.days || 7));
-  const end = endDate.toISOString().slice(0,10).replaceAll("-","");
+  const days = Math.min(Math.max(Number(req.query?.days || 7), 1), 14);
+  const startDate = new Date(now);
+  startDate.setUTCHours(0,0,0,0);
+  if (req.query?.start) {
+    const raw = String(req.query.start);
+    const parsed = raw.length === 8
+      ? new Date(Date.UTC(Number(raw.slice(0,4)), Number(raw.slice(4,6)) - 1, Number(raw.slice(6,8))))
+      : new Date(raw);
+    if (!Number.isNaN(parsed.getTime())) {
+      startDate.setTime(parsed.getTime());
+      startDate.setUTCHours(0,0,0,0);
+    }
+  }
+  const dateKeys = Array.from({length: days + 1}, (_, i) => {
+    const d = new Date(startDate);
+    d.setUTCDate(d.getUTCDate() + i);
+    return d.toISOString().slice(0,10).replaceAll("-","");
+  });
+  const start = dateKeys[0];
+  const end = dateKeys[dateKeys.length - 1];
 
   const tours = [
     { slug: "atp", tour: "ATP" },
@@ -13,13 +29,19 @@ export default async function handler(req, res) {
   const headers = { "User-Agent": "Prime-Score/0.3.2" };
 
   const fetchTour = async ({slug,tour}) => {
-    const url = `https://site.api.espn.com/apis/site/v2/sports/tennis/${slug}/scoreboard?dates=${start}-${end}`;
-    const response = await fetch(url, { headers });
-    if (!response.ok) throw new Error(`${tour} HTTP ${response.status}`);
-    const data = await response.json();
+    const responses = await Promise.all(
+      dateKeys.map(async date => {
+        const url = `https://site.api.espn.com/apis/site/v2/sports/tennis/${slug}/scoreboard?dates=${date}`;
+        const response = await fetch(url, { headers });
+        if (!response.ok) throw new Error(`${tour} HTTP ${response.status}`);
+        return response.json();
+      })
+    );
 
     const matches = [];
-    for (const event of Array.isArray(data.events) ? data.events : []) {
+    const seen = new Set();
+    for (const data of responses) {
+      for (const event of Array.isArray(data.events) ? data.events : []) {
       for (const grouping of Array.isArray(event.groupings) ? event.groupings : []) {
         const groupingName = grouping.grouping?.displayName || grouping.grouping?.slug || "";
         for (const competition of Array.isArray(grouping.competitions) ? grouping.competitions : []) {
@@ -41,8 +63,12 @@ export default async function handler(req, res) {
           const round = competition.round?.displayName || "";
           const venue = competition.venue || {};
 
+          const matchId = String(competition.id || event.id);
+          if (seen.has(matchId)) continue;
+          seen.add(matchId);
+
           matches.push({
-            id: String(competition.id || event.id),
+            id: matchId,
             eventId: String(event.id),
             tour,
             tournament: event.name || event.shortName || tour,
