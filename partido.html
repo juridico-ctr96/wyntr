@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
+<meta name="theme-color" content="#05070d">
+<title>Partido · PRIME SCORE</title>
+<link rel="icon" href="/icons/prime-score.svg" type="image/svg+xml">
+<style>
+:root{
+  --bg:#05070d;--panel:#0b111c;--panel2:#0e1725;--line:rgba(126,151,184,.16);
+  --text:#f7f9fc;--muted:#8290a4;--cyan:#62e7ff;--green:#22e0b2;
+  --blue:#477cff;--orange:#ff9d4d;--red:#ff6475;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;min-height:100vh;color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;background:
+radial-gradient(circle at 50% -10%,rgba(71,124,255,.16),transparent 30%),var(--bg)}
+body:before{content:"";position:fixed;inset:0;pointer-events:none;opacity:.18;background-image:linear-gradient(rgba(255,255,255,.025) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.025) 1px,transparent 1px);background-size:40px 40px;z-index:-1}
+a{text-decoration:none;color:inherit}
+.container{width:min(1120px,92%);margin:auto;padding:18px 0 80px}
+.topbar{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:5px 0 16px}
+.brand{display:flex;align-items:center;gap:9px;font-weight:950;letter-spacing:2px;font-size:15px}
+.brand img{width:32px;height:32px;border-radius:9px}
+.back{border:1px solid var(--line);background:#0c1421;color:#b8c4d4;border-radius:999px;padding:8px 12px;font-size:10px;font-weight:900}
+.eyebrow{font-size:9px;letter-spacing:1.8px;color:#8debd3;font-weight:950;text-transform:uppercase}
+.hero{margin-top:8px;padding:22px;border:1px solid rgba(98,231,255,.15);border-radius:24px;background:
+radial-gradient(circle at 20% 0,rgba(98,231,255,.09),transparent 30%),
+radial-gradient(circle at 85% 0,rgba(255,157,77,.08),transparent 28%),linear-gradient(145deg,#0c1523,#070c15);box-shadow:0 28px 80px rgba(0,0,0,.32)}
+.match-meta{display:flex;justify-content:space-between;gap:10px;color:var(--muted);font-size:9px;margin-bottom:20px}
+.teams{display:grid;grid-template-columns:1fr 90px 1fr;align-items:center;gap:12px}
+.team{text-align:center}
+.logo{width:100px;height:100px;margin:auto;border-radius:50%;display:grid;place-items:center;background:#0a111d;border:1px solid #263a55;box-shadow:0 0 0 8px rgba(98,231,255,.025)}
+.logo img{width:68%;height:68%;object-fit:contain}
+.initials{font-size:27px;font-weight:950;color:var(--cyan)}
+.team-name{font-size:17px;font-weight:950;margin-top:10px}
+.team-sub{color:var(--muted);font-size:9px;margin-top:4px}
+.vs{text-align:center;color:#64738a;font-size:10px;font-weight:950;letter-spacing:2px}
+.score{font-size:30px;color:#fff;font-weight:950;margin-top:10px}
+.status{color:#9eacbe;font-size:9px;margin-top:3px}
+.probs{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:20px}
+.prob{background:rgba(7,13,22,.72);border:1px solid var(--line);border-radius:15px;padding:12px;text-align:center}
+.label{color:var(--muted);font-size:9px;text-transform:uppercase;letter-spacing:1px}
+.value{font-size:25px;font-weight:950;margin-top:4px}
+.bar{height:5px;background:#1a2637;border-radius:99px;overflow:hidden;margin-top:8px}
+.fill{height:100%;background:linear-gradient(90deg,var(--green),var(--cyan));border-radius:99px}
+.section{margin-top:14px;padding:17px;border:1px solid var(--line);border-radius:18px;background:linear-gradient(145deg,rgba(13,19,31,.94),rgba(7,11,19,.94))}
+.section-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:12px}
+.section-title{font-size:10px;letter-spacing:2px;color:#aab6c8;font-weight:950;text-transform:uppercase}
+.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.metric{background:#0a121e;border:1px solid var(--line);border-radius:13px;padding:11px}
+.metric .label{font-size:8px}.metric .value{font-size:19px}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.signal{border:1px solid var(--line);background:#0a121e;border-radius:14px;padding:11px;margin-bottom:8px}
+.signal:last-child{margin-bottom:0}
+.signal-top{display:flex;justify-content:space-between;gap:10px;font-size:10px;font-weight:900}
+.signal-desc{color:#8190a5;font-size:9px;line-height:1.45;margin-top:4px}
+.track{height:5px;background:#1a2637;border-radius:99px;overflow:hidden;margin-top:7px}.track span{display:block;height:100%;background:var(--green)}
+.notice{color:#74839a;font-size:9px;line-height:1.55}
+.loading{text-align:center;padding:80px 20px;color:var(--muted)}
+.error{color:#ff8c9a;text-align:center}
+.footer{text-align:center;color:#58667a;font-size:9px;line-height:1.6;margin-top:18px}
+@media(max-width:700px){.teams{grid-template-columns:1fr 55px 1fr}.logo{width:78px;height:78px}.team-name{font-size:13px}.score{font-size:24px}.grid{grid-template-columns:1fr 1fr}.two{grid-template-columns:1fr}.hero{padding:16px}.probs{gap:5px}.value{font-size:21px}}
+</style>
+</head>
+<body>
+<div class="container">
+  <header class="topbar">
+    <a class="brand" href="/"><img src="/icons/prime-score.svg" alt="">PRIME SCORE</a>
+    <a class="back" href="/">← Volver al inicio</a>
+  </header>
+  <main id="app"><div class="loading">Cargando ficha del partido…</div></main>
+</div>
+<script>
+const app=document.getElementById("app");
+const esc=x=>String(x??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m]));
+const pct=x=>Number.isFinite(Number(x))?Number(x).toFixed(1)+"%":"—";
+const fmtDate=x=>{const d=new Date(x);return Number.isFinite(d.getTime())?d.toLocaleString("es-CO",{weekday:"short",day:"2-digit",month:"short",hour:"2-digit",minute:"2-digit"}):"Horario pendiente"};
+function getStored(id){try{return JSON.parse(localStorage.getItem("prime_score_match_"+id)||"null")}catch{return null}}
+function teamLogo(t){return t?.logo||""}
+function metric(label,value){return '<div class="metric"><div class="label">'+esc(label)+'</div><div class="value">'+esc(value)+'</div></div>'}
+function signal(title,text,value){const v=Math.max(8,Math.min(100,Number(value)||8));return '<div class="signal"><div class="signal-top"><span>'+esc(title)+'</span><span>'+Math.round(v)+'%</span></div><div class="signal-desc">'+esc(text)+'</div><div class="track"><span style="width:'+v+'%"></span></div></div>'}
+function render(payload){
+  const g=payload.game,r=payload.result;
+  const hs=r.hs||{},as=r.as||{},hh=r.homeHome||{},ar=r.awayRoad||{};
+  const formDiff=(hs.w10||0)-(as.w10||0),venueDiff=(hh.w10||0)-(ar.w10||0);
+  const eff=(hs.margin||0)-(as.margin||0),prod=(hs.total||0)-(as.total||0);
+  const h2h=r.h2h||[],inj=r.injuryData||{};
+  const homeScore=Number.isFinite(Number(r.projectedHomeScore))?Math.round(r.projectedHomeScore):"—";
+  const awayScore=Number.isFinite(Number(r.projectedAwayScore))?Math.round(r.projectedAwayScore):"—";
+  const hl=teamLogo(g.home),al=teamLogo(g.away);
+  const logo=(t,l)=>'<div class="logo">'+(l?'<img src="'+esc(l)+'" alt="">':'<span class="initials">'+esc(t.abbr||t.short||"")+'</span>')+'</div>';
+  app.innerHTML=
+  '<section class="hero">'+
+    '<div class="match-meta"><span>PRIME SCORE · MATCH INTELLIGENCE</span><span>'+esc(fmtDate(g.date))+'</span></div>'+
+    '<div class="teams">'+
+      '<div class="team">'+logo(g.home,hl)+'<div class="team-name">'+esc(g.home.name)+'</div><div class="team-sub">W10 · '+Math.round((hs.w10||0)*10)+'/10</div></div>'+
+      '<div class="vs"><div>VS</div><div class="score">'+homeScore+' - '+awayScore+'</div><div class="status">'+esc(g.status||"Próximo")+'</div></div>'+
+      '<div class="team">'+logo(g.away,al)+'<div class="team-name">'+esc(g.away.name)+'</div><div class="team-sub">W10 · '+Math.round((as.w10||0)*10)+'/10</div></div>'+
+    '</div>'+
+    '<div class="probs">'+
+      '<div class="prob"><div class="label">'+esc(g.home.short)+'</div><div class="value">'+pct(r.home)+'</div><div class="bar"><div class="fill" style="width:'+Math.max(0,Math.min(100,Number(r.home)||0))+'%"></div></div></div>'+
+      '<div class="prob"><div class="label">Confianza</div><div class="value">'+pct(r.confidenceScore)+'</div><div class="bar"><div class="fill" style="width:'+Math.max(0,Math.min(100,Number(r.confidenceScore)||0))+'%"></div></div></div>'+
+      '<div class="prob"><div class="label">'+esc(g.away.short)+'</div><div class="value">'+pct(r.away)+'</div><div class="bar"><div class="fill" style="width:'+Math.max(0,Math.min(100,Number(r.away)||0))+'%"></div></div></div>'+
+    '</div>'+
+  '</section>'+
+  '<section class="section"><div class="section-head"><div class="section-title">Proyección</div><span class="eyebrow">Model output</span></div><div class="grid">'+
+    metric(g.home.short,homeScore)+metric(g.away.short,awayScore)+metric("Total proyectado",Number(r.pace||0).toFixed(1))+metric("Muestra histórica",r.sample||0)+
+  '</div></section>'+
+  '<section class="section"><div class="section-head"><div class="section-title">Señales principales</div><span class="eyebrow">Prime Score</span></div>'+
+    signal("Forma reciente",formDiff>=0?g.home.short+" presenta mejor W10":g.away.short+" presenta mejor W10",Math.abs(formDiff)*100)+
+    signal("Localía / carretera",venueDiff>=0?g.home.short+" tiene mejor rendimiento en casa":g.away.short+" tiene mejor rendimiento fuera",Math.abs(venueDiff)*100)+
+    signal("Margen medio",eff>=0?g.home.short+" tiene mejor margen medio":g.away.short+" tiene mejor margen medio",Math.abs(eff)*5)+
+    signal("Producción de puntos",prod>=0?g.home.short+" registra mayor total medio":g.away.short+" registra mayor total medio",Math.abs(prod)*3)+
+    signal("H2H",h2h.length?(h2h.length+" enfrentamientos disponibles"):"Sin enfrentamientos recientes suficientes",Math.min(100,h2h.length*12))+
+  '</section>'+
+  '<section class="section"><div class="section-head"><div class="section-title">Componentes del modelo</div></div><div class="grid">'+
+    metric("Gradient Boosting",pct((r.gb||0)*100))+metric("ELO",pct((r.elo||0)*100))+metric("Distribución",pct((r.scoreDistribution||0)*100))+metric("Forma",pct((r.form||0)*100))+
+  '</div></section>'+
+  '<section class="section"><div class="section-head"><div class="section-title">Calidad del modelo</div></div><div class="grid">'+
+    metric("Confianza",r.confidenceScore+"%")+metric("Test",r.testSample||0)+metric("Brier",r.brier==null?"N/D":Number(r.brier).toFixed(3))+metric("Log loss",r.logLoss==null?"N/D":Number(r.logLoss).toFixed(3))+
+  '</div><p class="notice">La confianza mostrada es una medida interna de consistencia del modelo y no representa una probabilidad de acierto.</p></section>'+
+  '<section class="section"><div class="section-head"><div class="section-title">Disponibilidad</div></div>'+
+    (inj.available&&Array.isArray(inj.records)&&inj.records.length?
+      '<div class="two">'+inj.records.slice(0,12).map(x=>'<div class="signal"><div class="signal-top"><span>'+esc((x.player?.first_name||"Jugador")+" "+(x.player?.last_name||""))+'</span><span>'+esc(x.status||"")+'</span></div><div class="signal-desc">'+esc(x.description||x.injury||"Estado reportado")+'</div></div>').join("")+'</div>':
+      '<p class="notice">'+esc(inj.reason||"No hay datos de lesiones disponibles para este partido.")+'</p>')+
+  '</section>'+
+  '<div class="footer">Datos y probabilidades generados por Prime Score. Las estimaciones estadísticas no garantizan resultados.</div>';
+}
+(async()=>{
+  const id=new URLSearchParams(location.search).get("id");
+  if(!id){app.innerHTML='<div class="loading error">No se especificó un partido.</div>';return}
+  const payload=getStored(id);
+  if(!payload){app.innerHTML='<div class="loading error">La ficha de este partido ya no está en la sesión.<br><br><a class="back" href="/">Volver al inicio</a></div>';return}
+  render(payload);
+})();
+</script>
+</body>
+</html>
