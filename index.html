@@ -1244,12 +1244,12 @@ button.secondary{
     </div>
   </div>
   <nav class="app-nav" aria-label="Navegación principal">
-    <a href="#games-section" data-open="games-section" data-nav="games">🏀 NBA</a>
-    <a href="#tennis-section" data-open="tennis-section" data-nav="tennis">🎾 Tennis</a>
-    <a href="#calendar" data-open="calendar" data-nav="calendar">▦ Partidos</a>
-    <a href="#analysis-section" data-open="analysis-section" data-nav="analysis">◈ Intelligence</a>
-    <a href="#market-section" data-open="market-section" data-nav="market">↗ Market</a>
-    <a href="#engine-section" data-open="engine-section" data-nav="engine">⚙ Engine</a>
+    <a href="#nba" data-route="nba" data-nav="nba">🏀 NBA</a>
+    <a href="#tennis" data-route="tennis" data-nav="tennis">🎾 Tennis</a>
+    <a href="#calendar" data-route="calendar" data-nav="calendar">▦ Partidos</a>
+    <a href="#analysis" data-route="analysis" data-nav="analysis">◈ Intelligence</a>
+    <a href="#market" data-route="market" data-nav="market">↗ Market</a>
+    <a href="#engine" data-route="engine" data-nav="engine">⚙ Engine</a>
   </nav>
 </header>
 <section id="home-dashboard" class="home-dashboard" aria-label="Prime Score Dashboard">
@@ -1699,6 +1699,30 @@ y no garantizan resultados.
 
 </div>
 
+
+
+<section id="more-section" class="secondary-section card" aria-label="Más opciones">
+  <div class="section-title">Más</div>
+  <div class="status" style="margin:0 0 14px">Accesos rápidos de Prime Score.</div>
+  <div class="more-grid">
+    <button class="more-card" type="button" data-open="tennis-section">
+      <span class="more-icon">🎾</span>
+      <span class="more-copy"><strong>Tennis Intelligence</strong><span>ATP · WTA · partidos y análisis</span></span>
+    </button>
+    <button class="more-card" type="button" data-open="news-section">
+      <span class="more-icon">📰</span>
+      <span class="more-copy"><strong>NBA News</strong><span>Noticias relevantes y actualidad</span></span>
+    </button>
+    <button class="more-card" type="button" data-open="engine-section">
+      <span class="more-icon">⚙</span>
+      <span class="more-copy"><strong>Engine</strong><span>Modelos, señales y metodología</span></span>
+    </button>
+    <button class="more-card" type="button" data-open="calendar">
+      <span class="more-icon">▦</span>
+      <span class="more-copy"><strong>Calendario completo</strong><span>Filtros y rango de partidos</span></span>
+    </button>
+  </div>
+</section>
 
 <script src="/app/config.js"></script>
 <script src="/app/store.js"></script>
@@ -4919,48 +4943,92 @@ newsRefreshTimer = setInterval(loadNews, 5 * 60 * 1000);
 
 
 /* =========================================================
-   HOME DASHBOARD
+   PRIME SCORE · APP ROUTER
    ========================================================= */
-function openDashboardSection(id){
-  document.querySelectorAll(".secondary-section").forEach(section=>section.classList.remove("is-open"));
-  document.querySelectorAll("[data-nav]").forEach(el=>el.classList.remove("active"));
-  const target=$(id);
-  if(target){
-    target.classList.add("is-open");
-    target.scrollIntoView({behavior:"smooth",block:"start"});
-  }
+const APP_ROUTES = {
+  home: null,
+  nba: "games-section",
+  tennis: "tennis-section",
+  calendar: "calendar",
+  analysis: "analysis-section",
+  market: "market-section",
+  engine: "engine-section",
+  more: "more-section",
+  news: "news-section"
+};
+
+function setActiveNavigation(route){
   document.querySelectorAll("[data-nav]").forEach(el=>{
-    if(el.dataset.nav===({
-      "games-section":"games",
-      "tennis-section":"tennis",
-      "calendar":"calendar",
-      "analysis-section":"analysis",
-      "market-section":"market",
-      "engine-section":"engine"
-    })[id]) el.classList.add("active");
+    el.classList.toggle("active", el.dataset.nav===route);
+  });
+  document.querySelectorAll(".bottom-nav a").forEach(el=>{
+    el.classList.toggle("active", el.dataset.route===route);
   });
 }
-document.querySelectorAll("[data-home]").forEach(el=>el.addEventListener("click",()=>{
+
+function openDashboardSection(id, options={}){
+  const route = Object.keys(APP_ROUTES).find(key=>APP_ROUTES[key]===id) || "home";
   document.querySelectorAll(".secondary-section").forEach(section=>section.classList.remove("is-open"));
-  document.querySelectorAll("[data-nav]").forEach(item=>item.classList.remove("active"));
-  window.scrollTo({top:0,behavior:"smooth"});
-}));
+  if(id){
+    const target=$(id);
+    if(target) target.classList.add("is-open");
+  }
+  setActiveNavigation(route);
+  if(options.updateHash !== false){
+    const hash = route==="home" ? "" : "#"+route;
+    history.pushState({route}, "", window.location.pathname + hash);
+  }
+  if(id && options.scroll !== false){
+    const target=$(id);
+    if(target) requestAnimationFrame(()=>target.scrollIntoView({behavior:"smooth",block:"start"}));
+  }else if(route==="home" && options.scroll !== false){
+    window.scrollTo({top:0,behavior:"smooth"});
+  }
+}
+
+function routeFromHash(){
+  const raw=window.location.hash.replace(/^#/,"").toLowerCase();
+  return APP_ROUTES[raw]!==undefined ? raw : "home";
+}
+
+function navigateRoute(route){
+  const key=APP_ROUTES[route]!==undefined ? route : "home";
+  openDashboardSection(APP_ROUTES[key], {updateHash:true,scroll:true});
+}
 
 document.querySelectorAll("[data-open]").forEach(el=>{
   el.addEventListener("click",event=>{
     event.preventDefault();
-    openDashboardSection(el.dataset.open);
-  });
-});
-document.querySelectorAll(".bottom-nav a[data-open]").forEach(el=>{
-  el.addEventListener("click",()=>{
-    document.querySelectorAll(".bottom-nav a").forEach(item=>item.classList.remove("active"));
-    el.classList.add("active");
+    const id=el.dataset.open;
+    const route=Object.keys(APP_ROUTES).find(key=>APP_ROUTES[key]===id) || "home";
+    navigateRoute(route);
   });
 });
 
+document.querySelectorAll("[data-home]").forEach(el=>{
+  el.addEventListener("click",event=>{
+    event.preventDefault();
+    navigateRoute("home");
+  });
+});
+
+document.querySelectorAll("[data-route]").forEach(el=>{
+  el.addEventListener("click",event=>{
+    event.preventDefault();
+    navigateRoute(el.dataset.route);
+  });
+});
+
+window.addEventListener("popstate",()=>navigateRoute(routeFromHash()));
+window.addEventListener("hashchange",()=>openDashboardSection(APP_ROUTES[routeFromHash()],{updateHash:false,scroll:true}));
+
+function initAppRoute(){
+  const route=routeFromHash();
+  openDashboardSection(APP_ROUTES[route],{updateHash:false,scroll:false});
+}
+
 function renderHomeDashboard(){
-  const root=$("todayGames");
+  const root=$( "todayGames" );
   if(!root)return;
   const now=new Date();
   const localDayKey=`${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,"0")}-${String(now.getDate()).padStart(2,"0")}`;
@@ -4975,11 +5043,11 @@ function renderHomeDashboard(){
     .sort((a,b)=>new Date(a.date)-new Date(b.date));
   const hasToday=today.length>0;
   const list=(hasToday?today:upcoming).slice(0,3);
-  if($("dashboardTitle")){
-    $("dashboardTitle").textContent=hasToday?"Partidos de hoy":"Próximos partidos";
+  if($( "dashboardTitle" )){
+    $( "dashboardTitle" ).textContent=hasToday?"Partidos de hoy":"Próximos partidos";
   }
-  if($("dashboardDate")){
-    $("dashboardDate").textContent=hasToday
+  if($( "dashboardDate" )){
+    $( "dashboardDate" ).textContent=hasToday
       ? now.toLocaleDateString("es-CO",{weekday:"short",day:"2-digit",month:"short"}).toUpperCase()
       : (upcoming[0] ? "SIGUIENTE JORNADA · "+new Date(upcoming[0].date).toLocaleDateString("es-CO",{day:"2-digit",month:"short"}).toUpperCase() : "SIN PARTIDOS PROGRAMADOS");
   }
@@ -5027,11 +5095,11 @@ if ("serviceWorker" in navigator) {
 
 
 <nav class="bottom-nav" aria-label="Navegación móvil">
-  <a class="active" href="#top"><span>⌂</span>Inicio</a>
-  <a href="#games-section" data-open="games-section"><span>▦</span>Calendario</a>
-  <a href="#analysis-section" data-open="analysis-section"><span>⌁</span>Intelligence</a>
-  <a href="#market-section" data-open="market-section"><span>◈</span>Mercado</a>
-  <a href="#engine-section" data-open="engine-section"><span>⋯</span>Más</a>
+  <a class="active" href="/" data-route="home"><span>⌂</span>Inicio</a>
+  <a href="#calendar" data-route="calendar"><span>▦</span>Calendario</a>
+  <a href="#analysis" data-route="analysis"><span>⌁</span>Análisis</a>
+  <a href="#market" data-route="market"><span>◈</span>Market</a>
+  <a href="#more" data-route="more"><span>⋯</span>Más</a>
 </nav>
 
 </body>
