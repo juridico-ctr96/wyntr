@@ -100,6 +100,20 @@ function normalizeFixture(row) {
   };
 }
 
+async function fetchMatch(key, matchId) {
+  const url = new URL(BASE + "/matches/" + encodeURIComponent(matchId));
+  const response = await fetch(url, {
+    headers: { "X-API-Key": key, "Accept": "application/json", "User-Agent": "Prime-Score/0.4.1" }
+  });
+  const body = await response.json().catch(() => ({}));
+  if (!response.ok) {
+    const error = new Error(body?.message || body?.error || ("Live Tennis API HTTP " + response.status));
+    error.status = response.status;
+    throw error;
+  }
+  return body?.data || body;
+}
+
 async function fetchPlayer(key, playerId) {
   const url = new URL(BASE + "/players/" + encodeURIComponent(playerId));
   const response = await fetch(url, {
@@ -153,6 +167,16 @@ export default async function handler(req, res) {
       configured: false,
       error: "Falta LIVE_TENNIS_API_KEY en Vercel."
     });
+  }
+
+  const matchId = req?.query?.matchId;
+  if (matchId) {
+    try {
+      const match = await fetchMatch(key, matchId);
+      return res.status(200).json({ sport: "tennis", source: "Live Tennis API", configured: true, updatedAt: new Date().toISOString(), match: normalizeMatch(match) });
+    } catch (error) {
+      return res.status(error?.status || 502).json({ sport: "tennis", source: "Live Tennis API", configured: true, error: error?.message || "No se pudo consultar el partido" });
+    }
   }
 
   const playerId = req?.query?.playerId;
