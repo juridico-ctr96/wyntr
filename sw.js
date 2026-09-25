@@ -1,8 +1,9 @@
-const CACHE = "prime-score-shell-v36";
+const CACHE = "prime-score-shell-v37";
 const SHELL = [
   "/",
   "/index.html",
   "/partido.html",
+  "/nba.html",
   "/manifest.webmanifest",
   "/offline.html",
   "/app/config.js",
@@ -47,10 +48,10 @@ self.addEventListener("fetch", event => {
       fetch(request)
         .then(response => {
           const copy = response.clone();
-          caches.open(CACHE).then(cache => cache.put("/index.html", copy));
+          caches.open(CACHE).then(cache => cache.put(request, copy));
           return response;
         })
-        .catch(() => caches.match("/index.html").then(cached => cached || caches.match("/offline.html")))
+        .catch(() => caches.match(request).then(cached => cached || caches.match("/index.html")).then(cached => cached || caches.match("/offline.html")))
     );
     return;
   }
