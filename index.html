@@ -1251,12 +1251,12 @@ button.secondary{
     </div>
   </div>
   <nav class="app-nav" aria-label="Navegación principal">
-    <a href="#nba" data-route="nba" data-nav="nba">🏀 NBA</a>
-    <a href="#tennis" data-route="tennis" data-nav="tennis">🎾 Tennis</a>
-    <a href="#calendar" data-route="calendar" data-nav="calendar">▦ Partidos</a>
-    <a href="#analysis" data-route="analysis" data-nav="analysis">◈ Intelligence</a>
-    <a href="#market" data-route="market" data-nav="market">↗ Market</a>
-    <a href="#engine" data-route="engine" data-nav="engine">⚙ Engine</a>
+    <a href="#nba" data-route="nba" data-nav="nba" aria-label="Abrir partidos NBA">🏀 NBA</a>
+    <a href="#tennis" data-route="tennis" data-nav="tennis" aria-label="Abrir Tennis ATP y WTA">🎾 Tennis</a>
+    <a href="#calendar" data-route="calendar" data-nav="calendar" aria-label="Abrir calendario completo">▦ Partidos</a>
+    <a href="#analysis" data-route="analysis" data-nav="analysis" aria-label="Abrir Prime Score Intelligence">◈ Intelligence</a>
+    <a href="#market" data-route="market" data-nav="market" aria-label="Abrir mercado y cuotas">↗ Market</a>
+    <a href="#engine" data-route="engine" data-nav="engine" aria-label="Abrir motor Prime Score">⚙ Engine</a>
   </nav>
 </header>
 <section id="home-dashboard" class="home-dashboard" aria-label="Prime Score Dashboard">
@@ -5005,6 +5005,19 @@ function routeFromHash(){
 function navigateRoute(route){
   const key=APP_ROUTES[route]!==undefined ? route : "home";
   openDashboardSection(APP_ROUTES[key], {updateHash:true,scroll:true});
+  return key;
+}
+
+/* Prime Score: every primary access is a real app route. */
+function bindNavigationFeedback(){
+  document.querySelectorAll("[data-route]").forEach(el=>{
+    el.addEventListener("keydown",event=>{
+      if(event.key==="Enter" || event.key===" "){
+        event.preventDefault();
+        navigateRoute(el.dataset.route);
+      }
+    });
+  });
 }
 
 document.querySelectorAll("[data-open]").forEach(el=>{
@@ -5165,6 +5178,7 @@ window.addEventListener("online",()=>runSmartRefresh(true));
    ARRANQUE
    ========================================================= */
 
+bindNavigationFeedback();
 initAppRoute();
 loadCalendar().finally(()=>{
   lastCalendarRefresh=Date.now();
@@ -5185,11 +5199,11 @@ if ("serviceWorker" in navigator) {
 
 
 <nav class="bottom-nav" aria-label="Navegación móvil">
-  <a class="active" href="/" data-route="home"><span>⌂</span>Inicio</a>
-  <a href="#calendar" data-route="calendar"><span>▦</span>Calendario</a>
-  <a href="#analysis" data-route="analysis"><span>⌁</span>Análisis</a>
-  <a href="#market" data-route="market"><span>◈</span>Market</a>
-  <a href="#more" data-route="more"><span>⋯</span>Más</a>
+  <a class="active" href="/" data-route="home" aria-label="Volver al inicio"><span>⌂</span>Inicio</a>
+  <a href="#calendar" data-route="calendar" aria-label="Abrir calendario"><span>▦</span>Calendario</a>
+  <a href="#analysis" data-route="analysis" aria-label="Abrir Intelligence"><span>⌁</span>Análisis</a>
+  <a href="#market" data-route="market" aria-label="Abrir Market"><span>◈</span>Market</a>
+  <a href="#more" data-route="more" aria-label="Abrir más opciones"><span>⋯</span>Más</a>
 </nav>
 
 </body>
