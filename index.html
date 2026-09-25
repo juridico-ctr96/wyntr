@@ -1178,7 +1178,7 @@ button.secondary{
   .news-image{width:96px;height:68px}
 }
 
-.game-open-label{display:flex;justify-content:space-between;align-items:center;margin-top:10px;padding-top:9px;border-top:1px solid rgba(126,151,184,.12);color:#8eead7;font-size:9px;font-weight:900;letter-spacing:.4px}.game-open-label span{color:#62e7ff}.upcoming-prob b{color:#8eead7;font-size:9px}
+.game-open-label{display:flex;justify-content:space-between;align-items:center;margin-top:10px;padding-top:9px;border-top:1px solid rgba(126,151,184,.12);color:#8eead7;font-size:9px;font-weight:900;letter-spacing:.4px}.game-open-label span{color:#62e7ff}.upcoming-prob b{color:#8eead7;font-size:9px}.game-open-label{min-height:26px}.game-open-main{color:#f3f7fb!important;display:flex;align-items:center;gap:6px}.game-open-label:hover .game-open-main{color:#8eead7!important}.upcoming-prob{display:flex;align-items:center;justify-content:space-between;gap:8px}.upcoming-prob span{color:#7f8da1;font-size:8px;font-weight:850;letter-spacing:.5px}.upcoming-prob b{white-space:nowrap}
 /* =========================================================
    PRIME SCORE HOME DASHBOARD · app-first layout
    ========================================================= */
@@ -2950,7 +2950,7 @@ function render(){
               ${esc(game.home.short)}
             </div>
           </div>
-          <div class="upcoming-prob"><span>PRIME SCORE</span><b>ABRIR FICHA →</b></div>
+          <div class="upcoming-prob"><span>PRIME SCORE · INTELLIGENCE</span><b>ANALIZAR PARTIDO →</b></div>
         </button>
       `).join("")}
     </div>` : "";
@@ -2977,7 +2977,7 @@ function render(){
             ${game.home.logo ? `<img class="game-logo" src="${esc(game.home.logo)}" alt="">` : ""}
           </span>
         </div>
-        <div class="game-open-label">Ver ficha de partido <span>→</span></div>
+        <div class="game-open-label"><span class="game-open-main">🧠 Analizar con Prime Score</span><span>→</span></div>
       </button>
     `).join("")}
   `;
