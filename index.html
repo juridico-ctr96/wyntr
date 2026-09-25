@@ -5,7 +5,8 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
 <meta name="theme-color" content="#070b14">
 <link rel="manifest" href="/manifest.webmanifest">
-<link rel="icon" href="/icons/prime-score.svg" type="image/svg+xml">\n<link rel="apple-touch-icon" href="/icons/prime-score.svg">
+<link rel="icon" href="/icons/prime-score.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="/icons/prime-score.svg">
 <title>PRIME SCORE — Sports Intelligence</title>
 
 <style>
@@ -841,6 +842,307 @@ body{background:
 .tennis-intel p{margin:5px 0 0;color:#8290a4;font-size:10px;line-height:1.5}
 @media(max-width:650px){.tennis-head{align-items:start}.tennis-title{font-size:19px}.tennis-players{grid-template-columns:1fr 36px 1fr}.tennis-player-name{font-size:11px}}
 
+
+/* =========================================================
+   PRIME SCORE VISUAL SYSTEM v3 · premium sports dashboard
+   ========================================================= */
+:root{
+  --ps-bg:#05070d;
+  --ps-surface:rgba(11,16,27,.82);
+  --ps-surface-2:#0d1421;
+  --ps-line:rgba(126,151,184,.18);
+  --ps-text:#f7f9fc;
+  --ps-muted:#8290a4;
+  --ps-cyan:#62e7ff;
+  --ps-green:#22e0b2;
+  --ps-blue:#477cff;
+  --ps-orange:#ff9d4d;
+  --ps-red:#ff6475;
+}
+html{scroll-behavior:smooth}
+body{
+  background:
+    radial-gradient(circle at 50% -12%,rgba(71,124,255,.16),transparent 28%),
+    radial-gradient(circle at 8% 28%,rgba(34,224,178,.05),transparent 22%),
+    var(--ps-bg);
+}
+body:before{
+  content:"";
+  position:fixed;
+  inset:0;
+  pointer-events:none;
+  opacity:.22;
+  background-image:
+    linear-gradient(rgba(255,255,255,.025) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(255,255,255,.025) 1px,transparent 1px);
+  background-size:40px 40px;
+  mask-image:linear-gradient(to bottom,#000,transparent 75%);
+  z-index:-1;
+}
+.container{width:min(1240px,92%);padding-bottom:96px}
+.header{
+  position:sticky;
+  top:0;
+  z-index:50;
+  padding:11px 0 10px;
+  background:rgba(5,7,13,.78);
+  border-bottom:1px solid rgba(126,151,184,.12);
+  backdrop-filter:blur(20px) saturate(150%);
+}
+.header-inner{align-items:center}
+.logo{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  font-size:20px;
+  letter-spacing:2.8px;
+  color:#fff;
+}
+.brand-logo{
+  width:34px;
+  height:34px;
+  border-radius:10px;
+  box-shadow:0 8px 24px rgba(34,224,178,.10);
+}
+.subtitle{font-size:8px;letter-spacing:2px;margin:5px 0 0 44px;color:#69788e}
+.app-nav{margin-top:10px;gap:6px}
+.app-nav a{
+  background:rgba(14,21,34,.76);
+  border:1px solid rgba(126,151,184,.14);
+  color:#9eabbc;
+  padding:7px 10px;
+  font-size:10px;
+  transition:.18s ease;
+}
+.app-nav a:first-child{border-color:rgba(34,224,178,.34);color:#f4f8ff}
+.app-nav a:hover{transform:translateY(-1px);background:#111b2b;border-color:rgba(98,231,255,.45)}
+
+.card{
+  background:linear-gradient(145deg,rgba(13,19,31,.94),rgba(7,11,19,.94));
+  border:1px solid var(--ps-line);
+  border-radius:22px;
+  box-shadow:0 18px 60px rgba(0,0,0,.20);
+  backdrop-filter:blur(12px);
+}
+.nba-hero{
+  min-height:560px;
+  margin-top:14px;
+  border:1px solid rgba(98,231,255,.15);
+  border-radius:26px;
+  box-shadow:0 28px 90px rgba(0,0,0,.38);
+}
+.nba-hero img{
+  height:560px;
+  filter:brightness(.34) saturate(.82);
+  transform:scale(1.015);
+}
+.nba-hero-overlay{
+  padding:34px;
+  background:
+    radial-gradient(circle at 80% 30%,rgba(71,124,255,.16),transparent 28%),
+    linear-gradient(180deg,rgba(3,6,11,.04) 12%,rgba(3,6,11,.12) 34%,rgba(3,6,11,.94) 100%);
+}
+.nba-brand{gap:13px;margin-bottom:24px}
+.nba-brand img{width:32px;height:44px}
+.nba-brand .section-title{font-size:10px;letter-spacing:2px;color:#d6deea}
+.nba-hero-subtitle{font-size:10px;letter-spacing:.8px}
+.hero-copy{max-width:700px}
+.hero-eyebrow{
+  display:inline-flex;
+  align-items:center;
+  gap:7px;
+  padding:6px 9px;
+  border:1px solid rgba(34,224,178,.22);
+  border-radius:999px;
+  background:rgba(5,13,20,.62);
+  color:#a9f4df;
+  font-size:8px;
+  font-weight:950;
+  letter-spacing:1.5px;
+  text-transform:uppercase;
+}
+.hero-dot{width:6px;height:6px;border-radius:50%;background:var(--ps-green);box-shadow:0 0 0 5px rgba(34,224,178,.08)}
+.nba-hero-title{
+  margin:14px 0 10px;
+  font-size:clamp(42px,7vw,76px);
+  line-height:.88;
+  letter-spacing:-3px;
+  max-width:700px;
+  text-shadow:0 12px 40px rgba(0,0,0,.55);
+}
+.hero-description{
+  max-width:590px;
+  color:#a9b5c7;
+  font-size:13px;
+  line-height:1.65;
+}
+.hero-cta{
+  display:inline-flex;
+  align-items:center;
+  gap:12px;
+  margin-top:18px;
+  padding:12px 15px;
+  border-radius:12px;
+  background:linear-gradient(135deg,var(--ps-green),var(--ps-cyan));
+  color:#041018;
+  text-decoration:none;
+  font-size:11px;
+  font-weight:950;
+  box-shadow:0 12px 32px rgba(34,224,178,.16);
+  transition:.18s ease;
+}
+.hero-cta:hover{transform:translateY(-2px);box-shadow:0 16px 38px rgba(34,224,178,.24)}
+.data-strip{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:7px;
+  max-width:700px;
+  margin-top:24px;
+}
+.data-strip-item{
+  padding:10px 11px;
+  border:1px solid rgba(126,151,184,.15);
+  border-radius:13px;
+  background:rgba(5,10,18,.66);
+  backdrop-filter:blur(10px);
+}
+.data-strip-item strong{display:block;font-size:9px;letter-spacing:1.4px;color:#dfe7f2}
+.data-strip-item span{display:block;margin-top:4px;color:#6f7f95;font-size:8px}
+
+.news-ticker{
+  margin-top:14px;
+  border-radius:18px;
+  border-color:rgba(98,231,255,.12);
+}
+.news-ticker-head{padding:12px 15px 7px}
+.news-slide{padding:11px 15px 15px}
+.news-image{width:132px;height:82px;border-radius:12px;border-color:rgba(126,151,184,.18)}
+.news-title{font-size:13px}
+.news-kicker{color:var(--ps-green)}
+
+.tennis-section{
+  margin-top:14px;
+  border-color:rgba(34,224,178,.16);
+  background:
+    radial-gradient(circle at 92% 0%,rgba(34,224,178,.08),transparent 25%),
+    linear-gradient(145deg,rgba(12,23,28,.96),rgba(7,13,20,.96));
+}
+.tennis-head{padding-bottom:13px}
+.tennis-title{font-size:27px;font-weight:950;letter-spacing:-.7px}
+.tennis-subtitle{color:#78879c;font-size:10px;margin-top:4px}
+.tennis-status{
+  padding:6px 9px;
+  border-radius:999px;
+  border:1px solid rgba(34,224,178,.18);
+  background:rgba(34,224,178,.05);
+  color:#8debd3;
+  font-size:9px;
+  font-weight:850;
+}
+.tennis-tabs{gap:6px;margin:10px 0 12px}
+.tennis-tab{
+  border:1px solid rgba(126,151,184,.15);
+  background:#0c1421;
+  color:#8c9aae;
+  border-radius:999px;
+  padding:7px 12px;
+  font-size:9px;
+  font-weight:900;
+}
+.tennis-tab.active{
+  color:#06120f;
+  border-color:transparent;
+  background:linear-gradient(135deg,var(--ps-green),var(--ps-cyan));
+}
+.tennis-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.tennis-match{
+  padding:14px;
+  border-radius:17px;
+  border-color:rgba(126,151,184,.14);
+  background:linear-gradient(145deg,#0d1925,#091119);
+  transition:.18s ease;
+}
+.tennis-match:hover{transform:translateY(-2px);border-color:rgba(34,224,178,.5);box-shadow:0 15px 35px rgba(0,0,0,.24)}
+.tennis-player-name{font-size:13px}
+.tennis-tour{color:#8eead7}
+.tennis-vs{font-size:8px}
+.tennis-upcoming{color:var(--ps-cyan)}
+
+#calendar,#games-section,#analysis-section,#market-section,#engine-section{
+  margin-top:14px;
+}
+#calendar .controls{margin-top:2px}
+.field input,.field select{
+  background:#0a111c;
+  border-color:rgba(126,151,184,.18);
+  padding:12px;
+  border-radius:12px;
+}
+button{
+  background:linear-gradient(135deg,var(--ps-green),var(--ps-cyan));
+  box-shadow:0 8px 24px rgba(34,224,178,.10);
+}
+button.secondary{
+  background:#101a2a;
+  border-color:rgba(126,151,184,.2);
+  color:#dbe3ee;
+  box-shadow:none;
+}
+.section-title{font-size:10px;letter-spacing:2px;color:#aab6c8}
+.section-title:before{background:var(--ps-green)}
+.status{font-size:10px;color:#718096}
+
+.games{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.game{
+  padding:15px;
+  border-radius:17px;
+  border-color:rgba(126,151,184,.14);
+  background:linear-gradient(145deg,#0d1726,#09111d);
+  transition:.18s ease;
+}
+.game:hover{transform:translateY(-2px);border-color:rgba(98,231,255,.45);box-shadow:0 16px 35px rgba(0,0,0,.22)}
+.game-date{color:var(--ps-cyan);font-size:9px;letter-spacing:.5px}
+.game-teams{min-height:54px}
+.team{font-size:13px}
+.game-logo{width:38px;height:38px}
+
+.match-hero{
+  border-radius:20px;
+  border-color:rgba(98,231,255,.16);
+  background:
+    radial-gradient(circle at 20% 10%,rgba(98,231,255,.08),transparent 25%),
+    radial-gradient(circle at 80% 10%,rgba(255,157,77,.07),transparent 25%),
+    linear-gradient(145deg,#0b1421,#070c15);
+}
+.prob-card{border-radius:16px}
+.signal-card,.distribution,.market-hero,.market-side,.market-stat,.score-card{
+  border-color:rgba(126,151,184,.14);
+  background:#0a121e;
+  border-radius:15px;
+}
+.market-select{gap:7px}
+.market-chip{background:#0b1421;border-color:rgba(126,151,184,.14)}
+.market-chip.active{border-color:rgba(34,224,178,.6);box-shadow:0 0 0 1px rgba(34,224,178,.16)}
+.metric{background:#0a121e;border-color:rgba(126,151,184,.14)}
+.footer{color:#59677a}
+
+@media(max-width:800px){
+  .games,.tennis-grid{grid-template-columns:1fr}
+}
+@media(max-width:650px){
+  .container{width:94%}
+  .header-inner{display:block}
+  .nba-hero,.nba-hero img{min-height:520px;height:520px}
+  .nba-hero-overlay{padding:22px 18px}
+  .nba-hero-title{font-size:46px;letter-spacing:-2.3px}
+  .hero-description{font-size:12px}
+  .data-strip{gap:5px}
+  .data-strip-item{padding:8px}
+  .data-strip-item strong{font-size:8px}
+  .data-strip-item span{font-size:7px}
+  .news-image{width:96px;height:68px}
+}
+
 </style>
 </head>
 
@@ -852,16 +1154,16 @@ body{background:
   <div class="header-inner">
     <div class="brand-block">
       <div class="logo"><img class="brand-logo" src="/icons/prime-score.svg" alt="Prime Score"> <span>PRIME SCORE</span></div>
-      <div class="subtitle">SPORTS INTELLIGENCE · NBA ANALYSIS ENGINE</div>
+      <div class="subtitle">SPORTS INTELLIGENCE · NBA + TENNIS · FREE ACCESS</div>
     </div>
   </div>
   <nav class="app-nav" aria-label="Navegación principal">
     <a href="#calendar">NBA</a>
-    <a href="#tennis-section">🎾 Tennis</a>
+    <a href="#tennis-section">Tennis</a>
     <a href="#games-section">Partidos</a>
-    <a href="#analysis-section">Análisis</a>
-    <a href="#market-section">Mercado</a>
-    <a href="#engine-section">Motor</a>
+    <a href="#analysis-section">Intelligence</a>
+    <a href="#market-section">Market</a>
+    <a href="#engine-section">Engine</a>
   </nav>
 </header>
 
@@ -898,10 +1200,10 @@ body{background:
     </div>
 
     <div class="hero-copy">
-      <div class="hero-eyebrow"><span class="hero-dot"></span> NBA Intelligence Engine</div>
-      <div class="nba-hero-title">FIND THE SIGNAL</div>
-      <div class="hero-description">Analiza cada partido con datos reales, modelos estadísticos, contexto de equipo y mercado en una sola ficha.</div>
-      <a class="hero-cta" href="#games-section">Ver partidos <span>→</span></a>
+      <div class="hero-eyebrow"><span class="hero-dot"></span> PRIME SCORE · INTELLIGENCE</div>
+      <div class="nba-hero-title">FIND<br>THE SIGNAL.</div>
+      <div class="hero-description">Una interfaz deportiva premium para explorar partidos, probabilidades, contexto, mercado y señales del modelo en un solo lugar.</div>
+      <a class="hero-cta" href="#games-section">Explorar partidos <span>→</span></a>
     </div>
     <div class="data-strip">
       <div class="data-strip-item"><strong>REAL DATA</strong><span>Fuentes conectadas</span></div>
