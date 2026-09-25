@@ -1317,7 +1317,7 @@ button.secondary{
 
 </section>
 
-<section id="news-section" class="secondary-section class="card news-ticker" aria-label="Noticias NBA">
+<section id="news-section" class="secondary-section card news-ticker" aria-label="Noticias NBA">
   <div class="news-ticker-head">
     <div class="news-live"><span class="news-live-dot"></span>NBA NEWS</div>
     <div id="newsRefreshStatus" class="news-refresh">Actualizando...</div>
@@ -1330,7 +1330,7 @@ button.secondary{
 
 
 
-<section id="tennis-section" class="secondary-section class="card tennis-section" aria-label="Tennis Intelligence">
+<section id="tennis-section" class="secondary-section card tennis-section" aria-label="Tennis Intelligence">
   <div class="tennis-head">
     <div>
       <div class="section-title">Tennis Intelligence</div>
@@ -1359,7 +1359,7 @@ button.secondary{
      CALENDARIO
      ======================================================= -->
 
-<section id="calendar" class="secondary-section class="card">
+<section id="calendar" class="secondary-section card">
 
 <div class="section-title">
   Calendario
@@ -1479,7 +1479,7 @@ button.secondary{
      PARTIDOS
      ======================================================= -->
 
-<section id="games-section" class="secondary-section class="card">
+<section id="games-section" class="secondary-section card">
 
 <div class="section-title">
   Partidos
@@ -1501,7 +1501,7 @@ button.secondary{
      ANÁLISIS
      ======================================================= -->
 
-<section id="analysis-section" class="secondary-section class="card">
+<section id="analysis-section" class="secondary-section card">
 
 <div class="section-title">
   Análisis PRIME SCORE
@@ -1518,7 +1518,7 @@ button.secondary{
 
 </section>
 
-<section id="market-section" class="secondary-section class="card">
+<section id="market-section" class="secondary-section card">
 
 <div class="section-title">
   Mercado de cuotas
@@ -1558,7 +1558,7 @@ button.secondary{
      MOTOR
      ======================================================= -->
 
-<section id="engine-section" class="secondary-section class="card">
+<section id="engine-section" class="secondary-section card">
 
 <div class="section-title">
   Motor
@@ -4830,10 +4830,12 @@ document.addEventListener("click",event=>{\n  const trigger=event.target.closest
   const root=$("todayGames");
   if(!root)return;
   const now=new Date();
-  const dayKey=now.toISOString().slice(0,10);
+  const localDayKey=`${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,"0")}-${String(now.getDate()).padStart(2,"0")}`;
   const today=games.filter(g=>{
     const d=new Date(g.date);
-    return !Number.isNaN(d.getTime()) && d.toISOString().slice(0,10)===dayKey;
+    if(Number.isNaN(d.getTime())) return false;
+    const key=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
+    return key===localDayKey;
   });
   const list=(today.length?today:games.filter(g=>!g.completed)).slice(0,3);
   if($("dashboardDate")){
