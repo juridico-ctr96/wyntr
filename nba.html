@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
+<meta name="theme-color" content="#070b14">
+<link rel="manifest" href="/manifest.webmanifest">
+<link rel="icon" href="/icons/prime-score.svg" type="image/svg+xml">
+<title>NBA Intelligence — Prime Score</title>
+<style>
+*{box-sizing:border-box}html,body{margin:0;background:#070b14;color:#f5f7fb;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif}
+body{min-height:100vh}.wrap{width:min(1100px,94%);margin:auto;padding:14px 0 90px}
+.top{position:sticky;top:0;z-index:20;background:rgba(7,11,20,.9);backdrop-filter:blur(18px);border-bottom:1px solid #202b3b}
+.topin{width:min(1100px,94%);margin:auto;padding:12px 0;display:flex;align-items:center;justify-content:space-between;gap:12px}
+.brand{display:flex;align-items:center;gap:10px}.brand img{width:34px;height:34px}.brand strong{letter-spacing:3px;font-size:14px}.brand small{display:block;color:#718096;font-size:8px;letter-spacing:1.5px;margin-top:2px}
+.back{color:#b9c3d0;text-decoration:none;border:1px solid #29364b;background:#101827;border-radius:999px;padding:8px 12px;font-size:11px;font-weight:800}
+.hero{margin-top:16px;padding:22px;border:1px solid rgba(99,232,255,.18);border-radius:22px;background:radial-gradient(circle at 10% 0%,rgba(99,232,255,.13),transparent 34%),radial-gradient(circle at 90% 0%,rgba(24,215,176,.10),transparent 32%),linear-gradient(145deg,#0d1726,#080f19);overflow:hidden}
+.kicker{color:#18d7b0;font-size:9px;font-weight:950;letter-spacing:2px;text-transform:uppercase}.hero h1{font-size:clamp(30px,6vw,52px);line-height:.98;margin:8px 0}.hero p{color:#8290a4;font-size:12px;line-height:1.6;max-width:680px}
+.kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:16px}.kpi{padding:12px;border:1px solid #25344a;background:#0a121e;border-radius:14px}.kpi b{font-size:20px}.kpi span{display:block;color:#718096;font-size:8px;text-transform:uppercase;letter-spacing:1px;margin-top:3px}
+.section{margin-top:18px}.sectionhead{display:flex;justify-content:space-between;align-items:end;gap:10px;margin-bottom:10px}.sectionhead h2{font-size:18px;margin:0}.sectionhead span{color:#718096;font-size:10px}
+.tabs{display:flex;gap:7px;overflow:auto;padding-bottom:3px}.tab{flex:0 0 auto;border:1px solid #29364b;background:#101827;color:#aeb9c8;border-radius:999px;padding:8px 12px;font-size:10px;font-weight:850}.tab.active{border-color:#18d7b0;color:#fff;background:rgba(24,215,176,.1)}
+.games{display:grid;gap:10px}.game{display:block;text-decoration:none;color:#fff;border:1px solid #26364c;background:linear-gradient(145deg,#0e1725,#0b121e);border-radius:18px;padding:15px;transition:.18s}.game:hover{border-color:#18d7b0;transform:translateY(-1px)}
+.meta{display:flex;justify-content:space-between;color:#718096;font-size:9px;font-weight:850;letter-spacing:1px;text-transform:uppercase}.status{color:#18d7b0}.match{display:grid;grid-template-columns:1fr 60px 1fr;align-items:center;gap:8px;margin:16px 0}.team{text-align:center;font-weight:900;font-size:14px}.logo{width:44px;height:44px;border-radius:50%;display:grid;place-items:center;margin:0 auto 7px;background:#121e30;border:1px solid #30415a;color:#63e8ff;font-size:12px}.vs{text-align:center;color:#56657b;font-size:9px;font-weight:900}.time{margin-top:5px;color:#aab5c5;font-size:10px;font-weight:700}.foot{display:flex;justify-content:space-between;border-top:1px solid #202c3f;padding-top:10px;color:#718096;font-size:9px}.foot b{color:#63e8ff}
+.empty{text-align:center;color:#8290a4;border:1px dashed #29364b;border-radius:16px;padding:28px 15px;background:#0b121e}.loading{text-align:center;padding:30px;color:#718096}
+.tools{display:grid;grid-template-columns:repeat(4,1fr);gap:9px}.tool{border:1px solid #26364c;background:#0e1725;border-radius:15px;padding:14px;text-decoration:none;color:#fff}.tool b{display:block;font-size:11px}.tool span{display:block;color:#718096;font-size:9px;line-height:1.4;margin-top:5px}
+.note{margin-top:14px;padding:12px;border:1px solid #23334a;border-radius:13px;color:#718096;font-size:9px;line-height:1.5}
+.bottom{position:fixed;left:50%;bottom:12px;transform:translateX(-50%);z-index:30;width:min(520px,92%);display:grid;grid-template-columns:repeat(4,1fr);gap:3px;padding:6px;border:1px solid #29364b;background:rgba(10,16,27,.92);backdrop-filter:blur(18px);border-radius:20px;box-shadow:0 15px 45px rgba(0,0,0,.4)}
+.bottom a{text-decoration:none;color:#718096;text-align:center;padding:8px 4px;border-radius:14px;font-size:9px;font-weight:800}.bottom a.active{background:#14202f;color:#fff}.bottom i{display:block;font-style:normal;font-size:15px;margin-bottom:2px}
+@media(max-width:650px){.wrap{width:92%}.kpis{grid-template-columns:repeat(3,1fr)}.kpi{padding:9px 7px}.kpi b{font-size:15px}.kpi span{font-size:7px}.tools{grid-template-columns:1fr 1fr}.match{grid-template-columns:1fr 50px 1fr}.team{font-size:12px}}
+</style>
+</head>
+<body>
+<header class="top"><div class="topin">
+<a class="back" href="/">← Inicio</a>
+<div class="brand"><img src="/icons/prime-score.svg" alt=""><div><strong>PRIME SCORE</strong><small>NBA INTELLIGENCE</small></div></div>
+<a class="back" href="/partido.html">LIVE</a>
+</div></header>
+<main class="wrap">
+<section class="hero">
+<div class="kicker">Prime Score · NBA</div>
+<h1>NBA<br>INTELLIGENCE.</h1>
+<p>Una pantalla dedicada para explorar partidos, calendario, estado en vivo y acceso directo al análisis Prime Score. Aquí NBA deja de ser una sección y se convierte en una experiencia propia.</p>
+<div class="kpis"><div class="kpi"><b id="count">—</b><span>Partidos cargados</span></div><div class="kpi"><b id="next">—</b><span>Próximo partido</span></div><div class="kpi"><b>24/7</b><span>Acceso</span></div></div>
+</section>
+<section class="section">
+<div class="sectionhead"><h2>NBA Board</h2><span id="status">Conectando…</span></div>
+<div class="tabs"><button class="tab active" data-filter="all">Todos</button><button class="tab" data-filter="today">Hoy</button><button class="tab" data-filter="upcoming">Próximos</button><button class="tab" data-filter="completed">Resultados</button></div>
+</section>
+<section class="section"><div id="games" class="games"><div class="loading">Cargando calendario NBA…</div></div></section>
+<section class="section">
+<div class="sectionhead"><h2>Accesos NBA</h2><span>Funciones</span></div>
+<div class="tools">
+<a class="tool" href="/#analysis"><b>⌁ Intelligence</b><span>Modelo, señales y probabilidades.</span></a>
+<a class="tool" href="/#market"><b>◈ Market</b><span>Cuotas y contexto de mercado.</span></a>
+<a class="tool" href="/#calendar"><b>▦ Calendario</b><span>Vista completa de jornadas.</span></a>
+<a class="tool" href="/#more"><b>⋯ Más</b><span>Lesiones y herramientas.</span></a>
+</div>
+<div class="note">Los datos y probabilidades son informativos. Prime Score no garantiza resultados.</div>
+</section>
+</main>
+<nav class="bottom"><a href="/" ><i>⌂</i>Inicio</a><a class="active" href="/nba.html"><i>🏀</i>NBA</a><a href="/#analysis"><i>⌁</i>Analysis</a><a href="/#market"><i>◈</i>Market</a></nav>
+<script>
+const gamesEl=document.getElementById("games"),statusEl=document.getElementById("status"),countEl=document.getElementById("count"),nextEl=document.getElementById("next");let games=[],filter="all";
+const esc=v=>String(v??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+function dateOf(g){return new Date(g.DateUtc||g.date||g.Date||g.StartTime||g.startTime||g.dateUtc||0)}
+function teamName(v){return String(v??"").replace(/^\s+|\s+$/g,"")}
+function key(g){return String(g.GameId||g.gameId||g.id||g.EventId||g.eventId||Math.random())}
+function completed(g){return String(g.Status||g.status||"").toLowerCase().includes("final")||g.HomeTeamScore!=null&&g.AwayTeamScore!=null&&dateOf(g)<new Date()}
+function render(){
+ const now=new Date(), todayKey=now.toLocaleDateString("en-CA");
+ let list=games.filter(g=>{const d=dateOf(g);if(filter==="today")return d.toLocaleDateString("en-CA")===todayKey; if(filter==="completed")return completed(g); if(filter==="upcoming")return !completed(g)&&d>=now; return true}).sort((a,b)=>dateOf(a)-dateOf(b));
+ countEl.textContent=games.length;
+ const upcoming=games.filter(g=>!completed(g)&&dateOf(g)>=now).sort((a,b)=>dateOf(a)-dateOf(b))[0]; nextEl.textContent=upcoming?dateOf(upcoming).toLocaleTimeString("es-CO",{hour:"2-digit",minute:"2-digit"}):"—";
+ if(!list.length){gamesEl.innerHTML='<div class="empty"><strong>No hay partidos en esta vista.</strong><br>Prueba otra pestaña o revisa el calendario completo.</div>';return}
+ gamesEl.innerHTML=list.slice(0,40).map(g=>{const id=key(g),d=dateOf(g),home=teamName(g.HomeTeam||g.homeTeam||g.home||g.HomeTeamName),away=teamName(g.AwayTeam||g.awayTeam||g.away||g.AwayTeamName),hs=g.HomeTeamScore,as=g.AwayTeamScore;return '<a class="game" href="/partido.html?id='+encodeURIComponent(id)+'"><div class="meta"><span>'+esc(d.toLocaleDateString("es-CO",{weekday:"short",day:"2-digit",month:"short"}))+' · '+esc(d.toLocaleTimeString("es-CO",{hour:"2-digit",minute:"2-digit"}))+'</span><span class="status">'+(completed(g)?"FINAL":"PRÓXIMO")+'</span></div><div class="match"><div class="team"><div class="logo">'+esc(away.slice(0,3).toUpperCase())+'</div>'+esc(away)+'</div><div class="vs">VS</div><div class="team"><div class="logo">'+esc(home.slice(0,3).toUpperCase())+'</div>'+esc(home)+'</div></div><div class="foot"><span>'+ (completed(g)?esc((as??"")+" — "+(hs??"")):"Análisis Prime Score")+'</span><b>ABRIR FICHA →</b></div></a>'}).join("");
+}
+async function load(){
+ try{statusEl.textContent="Actualizando…";let r=await fetch("/api/fixture-calendar",{cache:"no-store"});if(!r.ok)throw Error("HTTP "+r.status);let data=await r.json();games=Array.isArray(data)?data:(data.games||data.items||[]);statusEl.textContent=games.length+" partidos · datos calendario";render()}
+ catch(e){statusEl.textContent="Sin conexión";gamesEl.innerHTML='<div class="empty">No se pudo cargar el calendario NBA. Intenta nuevamente.</div>'}
+}
+document.querySelectorAll(".tab").forEach(b=>b.onclick=()=>{filter=b.dataset.filter;document.querySelectorAll(".tab").forEach(x=>x.classList.toggle("active",x===b));render()});load();setInterval(load,15*60*1000);
+</script>
+</body></html>
