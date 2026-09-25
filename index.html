@@ -4826,7 +4826,7 @@ document.querySelectorAll("[data-open]").forEach(el=>{
   });
 });
 
-document.addEventListener("click",event=>{\n  const trigger=event.target.closest("[data-open]");\n  if(!trigger)return;\n  if(trigger.dataset.open){ event.preventDefault(); openDashboardSection(trigger.dataset.open); }\n});\n\nfunction renderHomeDashboard(){
+function renderHomeDashboard(){
   const root=$("todayGames");
   if(!root)return;
   const now=new Date();
