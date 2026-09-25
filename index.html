@@ -5046,6 +5046,8 @@ function bindNavigationFeedback(){
 /* Every dashboard shortcut is a real navigation control. */
 document.querySelectorAll("[data-route]").forEach(el=>{
   el.addEventListener("click",event=>{
+    /* data-open controls are handled by the legacy section router below. */
+    if(el.dataset.open) return;
     if(el.tagName==="A") event.preventDefault();
     const route=el.dataset.route;
     if(route) navigateRoute(route);
