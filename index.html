@@ -931,7 +931,7 @@ body{background:
     <div>
       <div class="section-title">Tennis Intelligence</div>
       <div class="tennis-title">ATP · WTA</div>
-      <div class="tennis-subtitle">Partidos en vivo, próximos y resultados · datos ESPN</div>
+      <div class="tennis-subtitle">Partidos en vivo, próximos y resultados · datos Live Tennis API</div>
     </div>
     <div id="tennisStatus" class="tennis-status">Cargando…</div>
   </div>
@@ -945,7 +945,7 @@ body{background:
   </div>
   <div class="tennis-intel">
     <strong>Prime Score Tennis · Fase 1</strong>
-    <p>Base de datos de partidos ATP/WTA activa. La siguiente capa incorporará Elo específico por superficie, forma reciente, head-to-head, cuotas y calibración histórica antes de mostrar probabilidades.</p>
+    <p>Feed ATP/WTA conectado a Live Tennis API. Próxima capa: Elo por superficie, forma, head-to-head, cuotas y calibración histórica.</p>
   </div>
 </section>
 
@@ -4205,7 +4205,7 @@ window.addEventListener(
 /* =========================================================
    TENNIS · ATP / WTA
    ========================================================= */
-const TENNIS_API = "/api/tennis-scoreboard";
+const TENNIS_API = "/api/live-tennis";
 let tennisItems = [];
 let tennisTourFilter = "all";
 
@@ -4270,15 +4270,16 @@ async function loadTennis(){
   const status = $("tennisStatus");
   try{
     if(status) status.textContent = "Actualizando…";
-    const response = await fetch(TENNIS_API + "?days=7",{cache:"no-store",headers:{Accept:"application/json"}});
+    const response = await fetch(TENNIS_API,{cache:"no-store",headers:{Accept:"application/json"}});
     if(!response.ok) throw new Error("HTTP " + response.status);
     const data = await response.json();
     tennisItems = Array.isArray(data.items) ? data.items : [];
     renderTennis();
     const live=tennisItems.filter(m=>m.status==="live").length;
     const upcoming=tennisItems.filter(m=>m.status==="upcoming").length;
-    const final=tennisItems.filter(m=>m.status==="final").length;
-    if(status) status.textContent=`${live} en vivo · ${upcoming} próximos · ${final} finalizados`;
+    const final=tennisItems.filter(m=>m.status==="completed" || m.status==="final").length;
+    const source = data.source || "Live Tennis API";
+    if(status) status.textContent=live + " en vivo · " + upcoming + " próximos · " + final + " resultados · " + source;
   }catch(error){
     console.warn("PRIME SCORE Tennis:",error);
     if(status) status.textContent="Sin conexión";
@@ -4295,7 +4296,7 @@ document.querySelectorAll("[data-tennis-tour]").forEach(button=>{
 });
 
 loadTennis();
-setInterval(loadTennis,2*60*1000);
+setInterval(loadTennis,15*60*1000);
 
 
 /* =========================================================
