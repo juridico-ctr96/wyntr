@@ -3988,14 +3988,29 @@ async function selectGame(id){
   try{
     const result=await analyzeGame(selected);
 
-    localStorage.setItem(
-      "prime_score_match_"+String(selected.id),
-      JSON.stringify({
-        savedAt:Date.now(),
-        game:selected,
-        result
-      })
-    );
+    const payload={
+      savedAt:Date.now(),
+      game:selected,
+      result
+    };
+    const serialized=JSON.stringify(payload);
+
+    // Persistimos en dos capas. window.name acompaña la navegación incluso
+    // cuando Safari/iOS no conserva correctamente el storage entre vistas.
+    try{
+      localStorage.setItem(
+        "prime_score_match_"+String(selected.id),
+        serialized
+      );
+    }catch(storageError){
+      console.warn("Prime Score localStorage:",storageError);
+    }
+
+    try{
+      window.name="PRIME_SCORE_MATCH:"+serialized;
+    }catch(nameError){
+      console.warn("Prime Score window.name:",nameError);
+    }
 
     window.location.href="/partido.html?id="+encodeURIComponent(String(selected.id));
 
