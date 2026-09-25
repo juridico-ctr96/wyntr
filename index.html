@@ -1236,6 +1236,107 @@ button.secondary{
   .dashboard-actions{grid-template-columns:1fr 1fr}
   .dashboard-action-card:last-child{grid-column:auto}
 }
+
+/* PRIME SCORE — PREMIUM IPHONE DESIGN PASS */
+:root{
+  --ps-bg:#05070c;--ps-surface:#0b1019;--ps-surface2:#101722;
+  --ps-line:#1d2939;--ps-text:#f7f9fc;--ps-muted:#7f8da1;
+  --ps-cyan:#63e8ff;--ps-mint:#18d7b0;
+}
+html{background:var(--ps-bg);-webkit-text-size-adjust:100%}
+body{
+  background:
+    radial-gradient(900px 420px at 50% -180px,rgba(99,232,255,.13),transparent 65%),
+    linear-gradient(180deg,#060a11 0%,#05070c 70%);
+  letter-spacing:-.01em;
+}
+.container{width:min(1120px,100%);padding:10px 14px 104px}
+.header{
+  padding:10px 0 9px;
+  background:rgba(5,7,12,.82);
+  border-bottom:1px solid rgba(255,255,255,.055);
+}
+.header-inner{align-items:center}
+.brand-home{gap:8px}
+.prime-mark{width:30px;height:30px;border-radius:10px}
+.logo{font-size:22px;letter-spacing:2.2px}
+.subtitle{font-size:8px;letter-spacing:1.7px}
+.app-nav{gap:6px;margin-top:9px}
+.app-nav a{
+  padding:7px 10px;
+  border-radius:10px;
+  font-size:10px;
+  background:#0c121c;
+  border-color:#1a2636;
+}
+.card{
+  border-radius:18px;
+  border-color:rgba(255,255,255,.075);
+  background:linear-gradient(145deg,rgba(13,19,30,.97),rgba(8,12,19,.97));
+  box-shadow:0 18px 50px rgba(0,0,0,.20);
+}
+.section-title{font-size:10px;letter-spacing:1.8px}
+.game{
+  border-radius:16px;
+  background:linear-gradient(145deg,#0e1622,#0a1019);
+  border-color:#1c293a;
+  padding:13px;
+}
+.game:active,.tennis-match:active,.upcoming-card:active,.bottom-nav a:active{transform:scale(.985)}
+.status-pill{font-size:7px;padding:5px 7px}
+.bottom-nav{
+  bottom:max(9px,env(safe-area-inset-bottom));
+  width:calc(100% - 18px);
+  padding:6px 5px;
+  border-radius:19px;
+  background:rgba(8,12,19,.91);
+  border-color:rgba(99,232,255,.13);
+  box-shadow:0 16px 45px rgba(0,0,0,.5);
+}
+.bottom-nav a{min-height:42px;padding:6px 2px;font-size:8px}
+.bottom-nav a span{font-size:16px}
+.bottom-nav a.active{
+  color:#fff;
+  background:linear-gradient(180deg,rgba(24,215,176,.14),rgba(99,232,255,.05));
+  border:1px solid rgba(24,215,176,.18);
+}
+.tennis-section{border-radius:18px}
+.tennis-head{align-items:center}
+.tennis-title{font-size:19px}
+.tennis-tab{padding:8px 11px}
+.tennis-match{
+  border-radius:16px;
+  padding:13px;
+  background:linear-gradient(145deg,#0f1724,#090f18);
+}
+.nba-hero{border-radius:20px}
+.hero-eyebrow{backdrop-filter:blur(12px)}
+.hero-cta{border-radius:12px}
+.data-strip-item{border-radius:14px}
+@media(max-width:650px){
+  .container{padding-left:12px;padding-right:12px}
+  .header{top:0}
+  .header-inner{padding:0 2px}
+  .app-nav{margin-left:2px;margin-right:2px}
+  .nba-hero{min-height:350px}
+  .nba-hero img{height:350px}
+  .nba-hero-overlay{padding:17px}
+  .nba-hero-title{font-size:34px}
+  .hero-description{font-size:11px;line-height:1.5}
+  .hero-kpis{gap:6px}
+  .hero-kpi{border-radius:11px}
+  .dashboard-intro{margin-top:16px}
+  .dashboard-intro h2{font-size:18px}
+  .upcoming-strip{gap:8px}
+  .upcoming-card{border-radius:15px}
+  .match-hero{border-radius:18px}
+}
+@media(min-width:651px){
+  .bottom-nav{display:none}
+}
+@media(prefers-reduced-motion:reduce){
+  *,*::before,*::after{scroll-behavior:auto!important;transition:none!important;animation:none!important}
+}
 </style>
 </head>
 
