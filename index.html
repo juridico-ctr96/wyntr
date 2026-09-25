@@ -1273,14 +1273,14 @@ button.secondary{
     </div>
 
     <div class="dashboard-sport-grid">
-      <button class="dashboard-sport" type="button" data-href="/nba.html" data-open="games-section">
+      <button class="dashboard-sport" type="button" data-href="/nba.html" data-open="games-section" data-route="nba" aria-label="Abrir NBA Intelligence">
         <div class="dashboard-sport-main">
           <div class="dashboard-sport-icon">🏀</div>
           <div><strong>NBA Intelligence</strong><span>Partidos · modelos · mercado</span></div>
         </div>
         <div class="dashboard-sport-arrow">→</div>
       </button>
-      <button class="dashboard-sport" type="button" data-open="tennis-section">
+      <button class="dashboard-sport" type="button" data-open="tennis-section" data-route="tennis" aria-label="Abrir Tennis Intelligence">
         <div class="dashboard-sport-main">
           <div class="dashboard-sport-icon">🎾</div>
           <div><strong>Tennis Intelligence</strong><span>ATP · WTA · en vivo</span></div>
@@ -1299,26 +1299,26 @@ button.secondary{
     </div>
 
     <div class="dashboard-actions">
-      <button class="dashboard-action-card" type="button" data-href="/nba.html" data-open="games-section">
+      <button class="dashboard-action-card" type="button" data-href="/nba.html" data-open="games-section" data-route="nba">
         <span class="dashboard-action-icon">🏀</span><strong>NBA</strong><span>Partidos y fichas</span>
       </button>
-      <button class="dashboard-action-card" type="button" data-open="tennis-section">
+      <button class="dashboard-action-card" type="button" data-open="tennis-section" data-route="tennis">
         <span class="dashboard-action-icon">🎾</span><strong>Tennis</strong><span>ATP · WTA</span>
       </button>
-      <button class="dashboard-action-card" type="button" data-open="analysis-section">
+      <button class="dashboard-action-card" type="button" data-open="analysis-section" data-route="analysis">
         <span class="dashboard-action-icon">◈</span><strong>Intelligence</strong><span>Modelo y señales</span>
       </button>
-      <button class="dashboard-action-card" type="button" data-open="market-section">
+      <button class="dashboard-action-card" type="button" data-open="market-section" data-route="market">
         <span class="dashboard-action-icon">↗</span><strong>Market</strong><span>Cuotas y movimiento</span>
       </button>
-      <button class="dashboard-action-card" type="button" data-open="engine-section">
+      <button class="dashboard-action-card" type="button" data-open="engine-section" data-route="engine">
         <span class="dashboard-action-icon">⚙</span><strong>Engine</strong><span>Cómo funciona</span>
       </button>
-      <button class="dashboard-action-card" type="button" data-open="calendar">
+      <button class="dashboard-action-card" type="button" data-open="calendar" data-route="calendar">
         <span class="dashboard-action-icon">▦</span><strong>Calendario</strong><span>Filtros completos</span>
       </button>
     </div>
-    <div id="dashboardNote" class="dashboard-open-note">El calendario completo queda como sección secundaria.</div>
+    <div id="dashboardNote" class="dashboard-open-note">Cada acceso abre su módulo: NBA · Tennis · Intelligence · Market · Engine · Calendario.</div>
   </div>
 </section>
 
@@ -1715,19 +1715,19 @@ y no garantizan resultados.
   <div class="section-title">Más</div>
   <div class="status" style="margin:0 0 14px">Accesos rápidos de Prime Score.</div>
   <div class="more-grid">
-    <button class="more-card" type="button" data-open="tennis-section">
+    <button class="more-card" type="button" data-open="tennis-section" data-route="tennis">
       <span class="more-icon">🎾</span>
       <span class="more-copy"><strong>Tennis Intelligence</strong><span>ATP · WTA · partidos y análisis</span></span>
     </button>
-    <button class="more-card" type="button" data-open="news-section">
+    <button class="more-card" type="button" data-open="news-section" data-route="news">
       <span class="more-icon">📰</span>
       <span class="more-copy"><strong>NBA News</strong><span>Noticias relevantes y actualidad</span></span>
     </button>
-    <button class="more-card" type="button" data-open="engine-section">
+    <button class="more-card" type="button" data-open="engine-section" data-route="engine">
       <span class="more-icon">⚙</span>
       <span class="more-copy"><strong>Engine</strong><span>Modelos, señales y metodología</span></span>
     </button>
-    <button class="more-card" type="button" data-open="calendar">
+    <button class="more-card" type="button" data-open="calendar" data-route="calendar">
       <span class="more-icon">▦</span>
       <span class="more-copy"><strong>Calendario completo</strong><span>Filtros y rango de partidos</span></span>
     </button>
@@ -5043,6 +5043,15 @@ function bindNavigationFeedback(){
   });
 }
 
+/* Every dashboard shortcut is a real navigation control. */
+document.querySelectorAll("[data-route]").forEach(el=>{
+  el.addEventListener("click",event=>{
+    if(el.tagName==="A") event.preventDefault();
+    const route=el.dataset.route;
+    if(route) navigateRoute(route);
+  });
+});
+
 document.querySelectorAll("[data-open]").forEach(el=>{
   el.addEventListener("click",event=>{
     event.preventDefault();
@@ -5059,12 +5068,7 @@ document.querySelectorAll("[data-home]").forEach(el=>{
   });
 });
 
-document.querySelectorAll("[data-route]").forEach(el=>{
-  el.addEventListener("click",event=>{
-    event.preventDefault();
-    navigateRoute(el.dataset.route);
-  });
-});
+/* Keyboard activation is handled separately; click navigation is bound once above. */
 
 window.addEventListener("popstate",()=>navigateRoute(routeFromHash()));
 window.addEventListener("hashchange",()=>openDashboardSection(APP_ROUTES[routeFromHash()],{updateHash:false,scroll:true}));
