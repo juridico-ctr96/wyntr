@@ -158,7 +158,7 @@ async function fetchMatches(key, params) {
 export default async function handler(req, res) {
   const key = getKey();
 
-  res.setHeader("Cache-Control", "s-maxage=30, stale-while-revalidate=120");
+  res.setHeader("Cache-Control", "s-maxage=300, stale-while-revalidate=1800");
 
   if (!key) {
     return res.status(503).json({
@@ -190,37 +190,47 @@ export default async function handler(req, res) {
   }
 
   try {
-    const [liveAtp, liveWta, fixturesAtp, fixturesWta] = await Promise.allSettled([
-      fetchMatches(key, { status: "live", tour: "atp", limit: 100 }),
-      fetchMatches(key, { status: "live", tour: "wta", limit: 100 }),
-      fetchFixtures(key, { tour: "atp", limit: 100 }),
-      fetchFixtures(key, { tour: "wta", limit: 100 })
+    // Dos llamadas consolidadas: el proveedor permite pedir todos los tours
+    // en /matches y luego filtramos ATP/WTA en nuestro servidor. Esto evita
+    // consumir cuatro llamadas por cada actualización del usuario.
+    const [liveAll, upcomingAll] = await Promise.allSettled([
+      fetchMatches(key, { status: "live", limit: 100 }),
+      fetchMatches(key, { status: "upcoming", limit: 100 })
     ]);
 
     const read = result => result.status === "fulfilled"
       ? (Array.isArray(result.value?.data) ? result.value.data : [])
       : [];
 
-    const errors = [liveAtp, liveWta, fixturesAtp, fixturesWta]
+    const errors = [liveAll, upcomingAll]
       .filter(result => result.status === "rejected")
       .map(result => ({
         status: result.reason?.status || 500,
         message: result.reason?.message || "Error consultando tenis"
       }));
 
-    const liveItems = [
-      ...read(liveAtp),
-      ...read(liveWta)
-    ].map(normalizeMatch);
+    const normalizeStatus = value => {
+      const raw = String(value || "").toLowerCase();
+      if (raw.includes("live") || raw.includes("in_play") || raw === "playing") return "live";
+      if (raw.includes("complete") || raw.includes("final") || raw === "finished") return "completed";
+      return "upcoming";
+    };
 
-    const fixtureItems = [
-      ...read(fixturesAtp),
-      ...read(fixturesWta)
-    ].map(normalizeFixture);
+    const liveItems = read(liveAll).map(row => {
+      const match = normalizeMatch(row);
+      match.status = "live";
+      return match;
+    });
+
+    const upcomingItems = read(upcomingAll).map(row => {
+      const match = normalizeMatch(row);
+      match.status = normalizeStatus(match.status);
+      return match;
+    });
 
     const items = [
       ...liveItems,
-      ...fixtureItems
+      ...upcomingItems
     ].filter(match => {
       const tour = String(match.tour || "").toUpperCase();
       return match.id && (tour === "ATP" || tour === "WTA") &&
