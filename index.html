@@ -2396,11 +2396,11 @@ async function loadCalendar(force=false){
   calendarLoadPromise=(async()=>{
 
     const status=$("calendarStatus");
-    status.textContent="Consultando calendario NBA...";
+    status.textContent="Consultando calendario NBA (próximos 120 días)...";
 
     const now=new Date();
     const endDate=new Date(now);
-    endDate.setDate(endDate.getDate()+45);
+    endDate.setDate(endDate.getDate()+120);
 
     const params=new URLSearchParams({
       start_date:now.toISOString().slice(0,10),
