@@ -60,7 +60,7 @@ radial-gradient(circle at 85% 0,rgba(255,157,77,.08),transparent 28%),linear-gra
 .loading{text-align:center;padding:80px 20px;color:var(--muted)}
 .error{color:#ff8c9a;text-align:center}
 .footer{text-align:center;color:#58667a;font-size:9px;line-height:1.6;margin-top:18px}
-@media(max-width:700px){.teams{grid-template-columns:1fr 55px 1fr}.logo{width:78px;height:78px}.team-name{font-size:13px}.score{font-size:24px}.grid{grid-template-columns:1fr 1fr}.two{grid-template-columns:1fr}.hero{padding:16px}.probs{gap:5px}.value{font-size:21px}}
+.breakdown-intro{color:#8290a4;font-size:10px;line-height:1.55;margin:-2px 0 14px}.breakdown-list{display:grid;gap:10px}.breakdown-row{background:#0a121e;border:1px solid var(--line);border-radius:15px;padding:12px}.breakdown-head{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}.breakdown-name{font-size:11px;font-weight:950}.breakdown-weight{font-size:9px;color:#718097;letter-spacing:.6px}.breakdown-meta{display:flex;align-items:center;gap:8px;margin-top:8px}.breakdown-bar{position:relative;flex:1;height:8px;background:#182435;border-radius:99px;overflow:hidden}.breakdown-fill{height:100%;border-radius:99px;background:linear-gradient(90deg,var(--blue),var(--cyan))}.breakdown-fill.away{background:linear-gradient(90deg,var(--orange),var(--red))}.breakdown-pct{font-size:11px;font-weight:950;min-width:42px;text-align:right}.breakdown-impact{font-size:9px;font-weight:900;color:#8debd3;white-space:nowrap}.breakdown-impact.away{color:#ffb078}.breakdown-desc{color:#8290a4;font-size:9px;line-height:1.5;margin-top:7px}.breakdown-summary{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}.breakdown-summary-card{background:#0b1522;border:1px solid var(--line);border-radius:13px;padding:11px}.breakdown-summary-card .label{font-size:8px}.breakdown-summary-card .value{font-size:17px}@media(max-width:700px){.teams{grid-template-columns:1fr 55px 1fr}.logo{width:78px;height:78px}.team-name{font-size:13px}.score{font-size:24px}.grid{grid-template-columns:1fr 1fr}.two{grid-template-columns:1fr}.hero{padding:16px}.probs{gap:5px}.value{font-size:21px}}
 </style>
 </head>
 <body>
@@ -80,6 +80,28 @@ function getStored(id){try{return JSON.parse(localStorage.getItem("prime_score_m
 function teamLogo(t){return t?.logo||""}
 function metric(label,value){return '<div class="metric"><div class="label">'+esc(label)+'</div><div class="value">'+esc(value)+'</div></div>'}
 function signal(title,text,value){const v=Math.max(8,Math.min(100,Number(value)||8));return '<div class="signal"><div class="signal-top"><span>'+esc(title)+'</span><span>'+Math.round(v)+'%</span></div><div class="signal-desc">'+esc(text)+'</div><div class="track"><span style="width:'+v+'%"></span></div></div>'}
+function modelBreakdown(g,r){
+  const factors=[
+    {name:"Gradient Boosting",weight:.40,p:Number(r.gb)||.5,desc:"El modelo supervisado combina las variables históricas disponibles para este cruce."},
+    {name:"ELO",weight:.20,p:Number(r.elo)||.5,desc:"La diferencia de rating ELO ajusta la fuerza relativa de ambos equipos."},
+    {name:"Distribución de puntos",weight:.15,p:Number(r.scoreDistribution)||.5,desc:"Compara las expectativas de anotación proyectadas para ambos equipos."},
+    {name:"Forma reciente",weight:.10,p:Number(r.form)||.5,desc:"Pondera W10 y el rendimiento reciente de cada equipo."},
+    {name:"Producción",weight:.10,p:Number(r.production)||.5,desc:"Considera margen y producción media de puntos."},
+    {name:"Disponibilidad",weight:.05,p:Number(r.availability)||.5,desc:"Ajuste derivado de la disponibilidad reportada de jugadores."}
+  ];
+  return factors.map(f=>{const impact=f.weight*(f.p-.5)*100;return {...f,impact,side:impact>=0?"home":"away",direction:f.p>=.5?g.home.short:g.away.short,score:f.p*100};});
+}
+function breakdownRow(f){
+  const bar=Math.max(4,Math.min(100,f.score));
+  const impact=(f.impact>=0?"+":"−")+Math.abs(f.impact).toFixed(1)+" pp";
+  const cls=f.side==="away"?"away":"";
+  return `<div class="breakdown-row"><div class="breakdown-head"><div><div class="breakdown-name">${esc(f.name)}</div><div class="breakdown-weight">PESO ${Math.round(f.weight*100)}% · SEÑAL ${f.score.toFixed(1)}%</div></div><span class="breakdown-impact ${cls}">${esc(f.direction)} ${impact}</span></div><div class="breakdown-meta"><div class="breakdown-bar"><div class="breakdown-fill ${cls}" style="width:${bar}%"></div></div><div class="breakdown-pct">${f.score.toFixed(1)}%</div></div><div class="breakdown-desc">${esc(f.desc)} En este partido, la señal favorece a ${esc(f.direction)}.</div></div>`;
+}
+function breakdownSpecific(g,r){
+  const f=modelBreakdown(g,r);
+  const strongest=[...f].sort((a,b)=>Math.abs(b.impact)-Math.abs(a.impact))[0];
+  return `<section class="section"><div class="section-head"><div class="section-title">Model Breakdown</div><span class="eyebrow">6 señales · 100% del modelo</span></div><p class="breakdown-intro">Cada factor tiene un peso fijo dentro del modelo. El impacto en <strong>pp</strong> muestra cuánto desplaza la probabilidad desde el 50% de referencia para este partido.</p><div class="breakdown-list">${f.map(breakdownRow).join("")}</div><div class="breakdown-summary"><div class="breakdown-summary-card"><div class="label">Probabilidad final</div><div class="value">${pct(r.home)} ${esc(g.home.short)}</div></div><div class="breakdown-summary-card"><div class="label">Mayor influencia</div><div class="value">${esc(strongest.name)}</div></div></div><p class="notice" style="margin-bottom:0">La descomposición explica el modelo; no representa una garantía de resultado.</p></section>`;
+}
 function render(payload){
   const g=payload.game,r=payload.result;
   const hs=r.hs||{},as=r.as||{},hh=r.homeHome||{},ar=r.awayRoad||{};
@@ -104,6 +126,7 @@ function render(payload){
       '<div class="prob"><div class="label">'+esc(g.away.short)+'</div><div class="value">'+pct(r.away)+'</div><div class="bar"><div class="fill" style="width:'+Math.max(0,Math.min(100,Number(r.away)||0))+'%"></div></div></div>'+
     '</div>'+
   '</section>'+
+  breakdownSpecific(g,r)+
   '<section class="section"><div class="section-head"><div class="section-title">Proyección</div><span class="eyebrow">Model output</span></div><div class="grid">'+
     metric(g.home.short,homeScore)+metric(g.away.short,awayScore)+metric("Total proyectado",Number(r.pace||0).toFixed(1))+metric("Muestra histórica",r.sample||0)+
   '</div></section>'+
