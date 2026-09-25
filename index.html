@@ -1143,7 +1143,7 @@ button.secondary{
   .news-image{width:96px;height:68px}
 }
 
-</style>
+.game-open-label{display:flex;justify-content:space-between;align-items:center;margin-top:10px;padding-top:9px;border-top:1px solid rgba(126,151,184,.12);color:#8eead7;font-size:9px;font-weight:900;letter-spacing:.4px}.game-open-label span{color:#62e7ff}.upcoming-prob b{color:#8eead7;font-size:9px}</style>
 </head>
 
 <body>
@@ -2602,10 +2602,7 @@ function render(){
               ${esc(game.home.short)}
             </div>
           </div>
-          <div class="upcoming-prob">
-            <span>PRIME SCORE</span>
-            <b>${game.wyntrHomeProbability ? pct(game.wyntrHomeProbability*100) : "—"} / ${game.wyntrAwayProbability ? pct(game.wyntrAwayProbability*100) : "—"}</b>
-          </div>
+          <div class="upcoming-prob"><span>PRIME SCORE</span><b>ABRIR FICHA →</b></div>
         </button>
       `).join("")}
     </div>` : "";
@@ -2632,7 +2629,7 @@ function render(){
             ${game.home.logo ? `<img class="game-logo" src="${esc(game.home.logo)}" alt="">` : ""}
           </span>
         </div>
-        <div class="muted" style="margin-top:7px;font-size:11px">${esc(game.status)}</div>
+        <div class="game-open-label">Ver ficha de partido <span>→</span></div>
       </button>
     `).join("")}
   `;
@@ -3724,96 +3721,49 @@ function renderAnalysis(game,result){
 
 async function selectGame(id){
 
-  selected =
-    games.find(
-      game =>
-        game.id===id
-    );
+  selected=games.find(game=>String(game.id)===String(id));
+  if(!selected)return;
 
-  document
-    .querySelectorAll(".game.selected")
-    .forEach(
-      el =>
-        el.classList.remove("selected")
-    );
+  const button=document.querySelector(
+    `.game[data-id="${CSS.escape(String(id))}"]`
+  );
+  if(button)button.classList.add("selected");
 
-  const selectedButton =
-    document.querySelector(
-      `.game[data-id="${CSS.escape(String(id))}"]`
-    );
-
-  if(selectedButton){
-    selectedButton.classList.add("selected");
+  const analysis=$("analysis");
+  if(analysis){
+    analysis.innerHTML=`
+      <div class="loading">
+        Preparando la ficha de ${esc(selected.away.short)} vs ${esc(selected.home.short)}…
+      </div>
+    `;
   }
-
-  if(!selected){
-
-    return;
-
-  }
-
-  $("analysis").innerHTML = `
-
-    <div class="loading">
-
-      Construyendo histórico
-      y modelos...
-
-    </div>
-
-  `;
 
   try{
+    const result=await analyzeGame(selected);
 
-    const result =
-      await analyzeGame(
-        selected
-      );
-
-    renderAnalysis(
-      selected,
-      result
+    localStorage.setItem(
+      "prime_score_match_"+String(selected.id),
+      JSON.stringify({
+        savedAt:Date.now(),
+        game:selected,
+        result
+      })
     );
 
-    // Llevar automáticamente al usuario a la ficha del partido.
-    requestAnimationFrame(() => {
-      const analysisSection = $("analysis-section");
-      if (analysisSection) {
-        analysisSection.scrollIntoView({
-          behavior: "smooth",
-          block: "start"
-        });
-      }
-    });
-
-    startOddsRefresh(
-      selected
-    );
+    window.location.href="/partido.html?id="+encodeURIComponent(String(selected.id));
 
   }catch(error){
-
-    console.error(
-      error
-    );
-
-    $("analysis").innerHTML = `
-
-      <div class="empty error">
-
-        No fue posible construir
-        el análisis.
-
-        <br><br>
-
-        Revisa la conexión
-        e inténtalo nuevamente.
-
-      </div>
-
-    `;
-
+    console.error("PRIME SCORE match page:",error);
+    if(analysis){
+      analysis.innerHTML=`
+        <div class="empty error">
+          No fue posible preparar la ficha del partido.
+          <br><br>
+          Revisa la conexión e inténtalo nuevamente.
+        </div>
+      `;
+    }
   }
-
 }
 
 
