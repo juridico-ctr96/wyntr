@@ -76,7 +76,35 @@ const app=document.getElementById("app");
 const esc=x=>String(x??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m]));
 const pct=x=>Number.isFinite(Number(x))?Number(x).toFixed(1)+"%":"—";
 const fmtDate=x=>{const d=new Date(x);return Number.isFinite(d.getTime())?d.toLocaleString("es-CO",{weekday:"short",day:"2-digit",month:"short",hour:"2-digit",minute:"2-digit"}):"Horario pendiente"};
-function getStored(id){try{return JSON.parse(localStorage.getItem("prime_score_match_"+id)||"null")}catch{return null}}
+function getStored(id){
+  try{
+    const stored=localStorage.getItem("prime_score_match_"+id);
+    if(stored){
+      const payload=JSON.parse(stored);
+      if(payload?.game && String(payload.game.id)===String(id)) return payload;
+    }
+  }catch(error){
+    console.warn("Prime Score localStorage:",error);
+  }
+
+  try{
+    const transfer=String(window.name||"");
+    if(transfer.startsWith("PRIME_SCORE_MATCH:")){
+      const payload=JSON.parse(transfer.slice("PRIME_SCORE_MATCH:".length));
+      if(payload?.game && String(payload.game.id)===String(id)){
+        try{
+          localStorage.setItem("prime_score_match_"+id,JSON.stringify(payload));
+        }catch{}
+        window.name="";
+        return payload;
+      }
+    }
+  }catch(error){
+    console.warn("Prime Score navigation state:",error);
+  }
+
+  return null;
+}
 function teamLogo(t){return t?.logo||""}
 function metric(label,value){return '<div class="metric"><div class="label">'+esc(label)+'</div><div class="value">'+esc(value)+'</div></div>'}
 function signal(title,text,value){const v=Math.max(8,Math.min(100,Number(value)||8));return '<div class="signal"><div class="signal-top"><span>'+esc(title)+'</span><span>'+Math.round(v)+'%</span></div><div class="signal-desc">'+esc(text)+'</div><div class="track"><span style="width:'+v+'%"></span></div></div>'}
