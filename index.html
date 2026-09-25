@@ -4221,12 +4221,16 @@ function tennisTime(match){
   return d.toLocaleString("es-CO",{day:"2-digit",month:"short",hour:"2-digit",minute:"2-digit"});
 }
 
-function tennisSetMarkup(player){
-  return (player?.sets || []).map(s =>
-    `<span class="tennis-set ${s.winner ? "win" : ""}">${s.value ?? "—"}</span>`
-  ).join("");
+function tennisScoreMarkup(match, side){
+  const sets = Array.isArray(match?.games) && match.games[side]
+    ? match.games[side]
+    : [];
+  const setText = sets.map(v => "<span class=\"tennis-set\">" + esc(v) + "</span>").join("");
+  const setWins = Array.isArray(match?.sets) ? Number(match.sets[side] || 0) : 0;
+  const point = Array.isArray(match?.points) ? match.points[side] : null;
+  const pointText = point != null && point !== "" ? "<span class=\"tennis-point\">" + esc(point) + "</span>" : "";
+  return setText + pointText + (setWins ? "<span class=\"tennis-sets-total\">" + esc(setWins) + "</span>" : "");
 }
-
 function renderTennis(){
   const root = $("tennisMatches");
   if(!root) return;
@@ -4249,13 +4253,13 @@ function renderTennis(){
           <div class="tennis-player">
             ${a.flag ? `<img class="tennis-flag" src="${esc(a.flag)}" alt="">` : ""}
             <div class="tennis-player-name">${esc(a.name)}</div>
-            <div class="tennis-score">${tennisSetMarkup(a)}</div>
+            <div class="tennis-score">${tennisScoreMarkup(match,0)}</div>
           </div>
           <div class="tennis-vs">VS</div>
           <div class="tennis-player">
             ${b.flag ? `<img class="tennis-flag" src="${esc(b.flag)}" alt="">` : ""}
             <div class="tennis-player-name">${esc(b.name)}</div>
-            <div class="tennis-score">${tennisSetMarkup(b)}</div>
+            <div class="tennis-score">${tennisScoreMarkup(match,1)}</div>
           </div>
         </div>
         <div class="tennis-meta">
@@ -4296,7 +4300,7 @@ document.querySelectorAll("[data-tennis-tour]").forEach(button=>{
 });
 
 loadTennis();
-setInterval(loadTennis,15*60*1000);
+setInterval(loadTennis,20*60*1000);
 
 
 /* =========================================================
