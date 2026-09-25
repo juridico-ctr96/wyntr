@@ -5,19 +5,21 @@ function getKey() {
 }
 
 function normalizePlayer(player, fallback = {}) {
+  const p = player || {};
   return {
-    id: player?.id ?? fallback.id ?? null,
-    name: player?.name || player?.full_name || fallback.name || "Jugador",
-    shortName: player?.short_name || player?.shortName || player?.name || fallback.name || "Jugador",
-    country: player?.country || "",
-    ranking: Number.isFinite(Number(player?.ranking)) ? Number(player.ranking) : null,
-    rankingPoints: Number.isFinite(Number(player?.ranking_points)) ? Number(player.ranking_points) : null
+    id: p.id ?? fallback.id ?? null,
+    name: p.name || p.full_name || fallback.name || "Jugador",
+    shortName: p.short_name || p.shortName || p.name || fallback.name || "Jugador",
+    country: p.country || p.country_code || "",
+    ranking: Number.isFinite(Number(p.ranking)) ? Number(p.ranking) : null,
+    rankingPoints: Number.isFinite(Number(p.ranking_points)) ? Number(p.ranking_points) : null,
+    flag: p.flag || null
   };
 }
 
 function normalizeMatch(row) {
-  const p1 = normalizePlayer(row?.players?.p1);
-  const p2 = normalizePlayer(row?.players?.p2);
+  const p1 = normalizePlayer(row?.players?.p1 || row?.players?.[0] || row?.player1 || row?.p1);
+  const p2 = normalizePlayer(row?.players?.p2 || row?.players?.[1] || row?.player2 || row?.p2);
   const score = row?.score || {};
 
   return {
@@ -88,17 +90,16 @@ export default async function handler(req, res) {
   }
 
   try {
-    const [live, upcoming, completed] = await Promise.allSettled([
-      fetchMatches(key, { status: "live", draw: "singles", limit: 100 }),
-      fetchMatches(key, { status: "upcoming", draw: "singles", limit: 100 }),
-      fetchMatches(key, { status: "completed", draw: "singles", limit: 30 })
+    const [live, upcoming] = await Promise.allSettled([
+      fetchMatches(key, { status: "live", limit: 100 }),
+      fetchMatches(key, { status: "upcoming", limit: 100 })
     ]);
 
     const read = result => result.status === "fulfilled"
       ? (Array.isArray(result.value?.data) ? result.value.data : [])
       : [];
 
-    const errors = [live, upcoming, completed]
+    const errors = [live, upcoming]
       .filter(result => result.status === "rejected")
       .map(result => ({
         status: result.reason?.status || 500,
@@ -107,8 +108,7 @@ export default async function handler(req, res) {
 
     const items = [
       ...read(live),
-      ...read(upcoming),
-      ...read(completed)
+      ...read(upcoming)
     ]
       .map(normalizeMatch)
       .filter(match => match.id && match.players.length === 2);
