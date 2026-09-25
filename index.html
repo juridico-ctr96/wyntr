@@ -1188,6 +1188,13 @@ button.secondary{
 .dashboard-eyebrow{font-size:9px;letter-spacing:1.8px;text-transform:uppercase;color:#18d7b0;font-weight:950}
 .dashboard-title{font-size:clamp(25px,5vw,38px);font-weight:950;letter-spacing:-1.5px;margin:5px 0 0}
 .dashboard-date{font-size:10px;color:#74839a;white-space:nowrap}
+.auto-refresh-status{display:flex;align-items:center;justify-content:flex-end;gap:5px;margin-top:5px;color:#5f7188;font-size:8px;white-space:nowrap}
+.auto-refresh-dot{width:5px;height:5px;border-radius:50%;background:#22e0b2;box-shadow:0 0 8px rgba(34,224,178,.7);animation:psAutoPulse 2s infinite}
+@keyframes psAutoPulse{0%,100%{opacity:1}50%{opacity:.35}}
+.auto-refresh-status.refreshing{color:#8eead7}
+.auto-refresh-status.refreshing .auto-refresh-dot{background:#62e7ff;box-shadow:0 0 9px rgba(98,231,255,.8)}
+.auto-refresh-status.error{color:#ff9da8}
+.auto-refresh-status.error .auto-refresh-dot{background:#ff6475;box-shadow:none;animation:none}
 .dashboard-sport-grid{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-bottom:16px}
 .dashboard-sport{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:13px 14px;border:1px solid #26364c;border-radius:15px;background:#0d1726;color:#fff;text-decoration:none;cursor:pointer}
 .dashboard-sport:hover{border-color:#63e8ff;transform:translateY(-1px)}
@@ -1259,7 +1266,10 @@ button.secondary{
         <div class="dashboard-eyebrow">PRIME SCORE · HOME</div>
         <div class="dashboard-title">Partidos de hoy</div>
       </div>
-      <div id="dashboardDate" class="dashboard-date">HOY</div>
+      <div>
+  <div id="dashboardDate" class="dashboard-date">HOY</div>
+  <div id="autoRefreshStatus" class="auto-refresh-status"><span class="auto-refresh-dot"></span><span>Actualización automática activa</span></div>
+</div>
     </div>
 
     <div class="dashboard-sport-grid">
@@ -4835,8 +4845,9 @@ document.querySelectorAll("[data-tennis-tour]").forEach(button=>{
   });
 });
 
-loadTennis();
-setInterval(loadTennis,20*60*1000);
+loadTennis().finally(()=>{
+  lastTennisRefresh=Date.now();
+});
 
 
 /* =========================================================
@@ -5078,11 +5089,89 @@ function renderHomeDashboard(){
 }
 
 /* =========================================================
+   PRIME SCORE · ACTUALIZACIÓN AUTOMÁTICA INTELIGENTE
+   ========================================================= */
+
+let autoRefreshTimer=null;
+let autoRefreshBusy=false;
+let lastCalendarRefresh=0;
+let lastTennisRefresh=0;
+
+function setAutoRefreshStatus(text,state=""){
+  const el=$("autoRefreshStatus");
+  if(!el)return;
+  el.className="auto-refresh-status"+(state?" "+state:"");
+  el.innerHTML=`<span class="auto-refresh-dot"></span><span>${esc(text)}</span>`;
+}
+
+function scheduleAutoRefresh(delay){
+  clearTimeout(autoRefreshTimer);
+  autoRefreshTimer=setTimeout(runSmartRefresh,Math.max(15000,delay));
+}
+
+async function runSmartRefresh(force=false){
+  if(autoRefreshBusy)return;
+  if(document.hidden){
+    scheduleAutoRefresh(5*60*1000);
+    return;
+  }
+
+  autoRefreshBusy=true;
+  setAutoRefreshStatus("Actualizando datos…","refreshing");
+
+  try{
+    const now=Date.now();
+
+    // NBA: refresco frecuente. El calendario tiene caché server-side,
+    // por lo que el navegador puede consultar sin golpear directamente
+    // las fuentes upstream en cada visita.
+    if(force || now-lastCalendarRefresh>=5*60*1000){
+      await loadCalendar(true);
+      lastCalendarRefresh=Date.now();
+    }
+
+    // Tennis: el proveedor gratuito limita las llamadas diarias.
+    // 20 min mantiene datos razonablemente frescos sin consumir
+    // innecesariamente la cuota gratuita.
+    if(force || now-lastTennisRefresh>=20*60*1000){
+      await loadTennis();
+      lastTennisRefresh=Date.now();
+    }
+
+    setAutoRefreshStatus(
+      "Datos actualizados · "+new Date().toLocaleTimeString("es-CO",{hour:"2-digit",minute:"2-digit"})
+    );
+  }catch(error){
+    console.warn("PRIME SCORE auto refresh:",error);
+    setAutoRefreshStatus("Actualización pendiente · reintentando","error");
+  }finally{
+    autoRefreshBusy=false;
+    scheduleAutoRefresh(5*60*1000);
+  }
+}
+
+document.addEventListener("visibilitychange",()=>{
+  if(document.hidden){
+    clearTimeout(autoRefreshTimer);
+    return;
+  }
+  // Al volver a la app comprobamos si los datos están obsoletos.
+  runSmartRefresh(false);
+});
+
+window.addEventListener("online",()=>runSmartRefresh(true));
+
+/* =========================================================
    ARRANQUE
    ========================================================= */
 
 initAppRoute();
-loadCalendar();
+loadCalendar().finally(()=>{
+  lastCalendarRefresh=Date.now();
+  // A partir de aquí el dashboard se mantiene actualizado automáticamente.
+  scheduleAutoRefresh(5*60*1000);
+});
+
 
 if ("serviceWorker" in navigator) {
   window.addEventListener("load", () => {
