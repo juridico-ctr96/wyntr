@@ -16,36 +16,35 @@ function normalizePlayer(player, fallback = {}) {
 }
 
 function normalizeMatch(row) {
-  const p1 = normalizePlayer(row?.players?.p1 || row?.player1 || row?.p1);
-  const p2 = normalizePlayer(row?.players?.p2 || row?.player2 || row?.p2);
-
-  const sets = Array.isArray(row?.sets) ? row.sets.map(Number) : [];
-  const games = Array.isArray(row?.games) ? row.games : [];
-  const points = Array.isArray(row?.points) ? row.points : [];
+  const p1 = normalizePlayer(row?.players?.p1);
+  const p2 = normalizePlayer(row?.players?.p2);
+  const score = row?.score || {};
 
   return {
     id: String(row?.id ?? ""),
     tour: String(row?.tour || "").toUpperCase(),
-    draw: row?.draw || "singles",
-    tournament: row?.tournament || row?.tournament_name || "Tennis",
+    draw: row?.draw || null,
+    tournament: row?.tournament || "Tennis",
     tournamentId: row?.tournament_id ?? null,
+    tier: row?.tier || null,
     surface: row?.surface || null,
     round: row?.round || "",
-    date: row?.start_time || row?.start_date || row?.date || row?.scheduled_at || null,
+    roundCode: row?.round_code || null,
+    date: row?.scheduled_time || row?.start_time || row?.start_date || row?.date || null,
     status: row?.status || "",
-    statusDetail: row?.status_detail || row?.event_status || "",
+    statusDetail: row?.event_status || "",
     players: [p1, p2],
-    sets,
-    games,
-    points,
-    server: row?.server ?? null,
-    isTiebreak: Boolean(row?.is_tiebreak),
-    winner: row?.winner || null,
+    sets: Array.isArray(score?.sets) ? score.sets : (Array.isArray(row?.sets) ? row.sets : []),
+    games: Array.isArray(score?.games) ? score.games : (Array.isArray(row?.games) ? row.games : []),
+    points: Array.isArray(score?.points) ? score.points : (Array.isArray(row?.points) ? row.points : []),
+    server: score?.server ?? row?.server ?? null,
+    isTiebreak: Boolean(score?.is_tiebreak ?? row?.is_tiebreak),
+    winner: row?.winner ?? null,
+    outcome: row?.outcome || null,
     hasAnalysis: Boolean(row?.has_analysis),
     hasMarket: Boolean(row?.has_market)
   };
 }
-
 async function fetchMatches(key, params) {
   const url = new URL(BASE + "/matches");
   for (const [name, value] of Object.entries(params)) {
