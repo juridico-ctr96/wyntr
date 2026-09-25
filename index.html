@@ -836,7 +836,7 @@ body{background:
 .tennis-final{color:#9aa7b8;font-weight:850}
 .tennis-upcoming{color:#63e8ff;font-weight:850}
 .tennis-empty{padding:24px 10px;text-align:center;color:#7f8da2;font-size:11px}
-.tennis-intel{margin-top:12px;padding:13px;border:1px solid #22334a;border-radius:14px;background:#0d1725}
+.tennis-intel{margin-top:12px;padding:13px;border:1px solid #22334a;border-radius:14px;background:#0d1725}.tennis-analysis{display:none;margin-top:12px;padding:15px;border:1px solid #263a52;border-radius:16px;background:linear-gradient(145deg,#0e1928,#0a111d)}.tennis-analysis.active{display:block}.tennis-analysis-head{display:flex;justify-content:space-between;gap:12px;align-items:flex-start}.tennis-analysis-title{font-size:16px;font-weight:950}.tennis-analysis-sub{font-size:9px;color:#7f8da2;margin-top:4px}.tennis-close{border:1px solid #2b4059;background:#101b2b;color:#aebbd0;border-radius:999px;padding:7px 10px;font-size:9px;font-weight:900}.tennis-prob-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px}.tennis-prob{padding:12px;border-radius:13px;background:#101b2b;border:1px solid #263a52}.tennis-prob-label{font-size:9px;color:#8190a5;font-weight:850;text-transform:uppercase;letter-spacing:.7px}.tennis-prob-value{font-size:24px;font-weight:950;margin-top:3px}.tennis-prob-bar{height:5px;border-radius:99px;background:#1c2a3d;overflow:hidden;margin-top:7px}.tennis-prob-fill{height:100%;background:linear-gradient(90deg,#18d7b0,#63e8ff)}.tennis-stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:7px;margin-top:10px}.tennis-stat{padding:10px 8px;border-radius:11px;background:#0b1421;border:1px solid #1f3045}.tennis-stat-label{font-size:8px;color:#718096;text-transform:uppercase}.tennis-stat-value{font-size:12px;font-weight:900;margin-top:3px}.tennis-analysis-note{margin-top:10px;font-size:9px;line-height:1.45;color:#7f8da2}@media(max-width:650px){.tennis-stats-grid{grid-template-columns:1fr 1fr}.tennis-analysis-head{align-items:flex-start}}
 .tennis-intel strong{font-size:11px}
 .tennis-intel p{margin:5px 0 0;color:#8290a4;font-size:10px;line-height:1.5}
 @media(max-width:650px){.tennis-head{align-items:start}.tennis-title{font-size:19px}.tennis-players{grid-template-columns:1fr 36px 1fr}.tennis-player-name{font-size:11px}}
@@ -943,6 +943,7 @@ body{background:
   <div id="tennisMatches" class="tennis-grid">
     <div class="tennis-empty">Cargando partidos de tenis…</div>
   </div>
+  <div id="tennisAnalysis" class="tennis-analysis" aria-live="polite"></div>
   <div class="tennis-intel">
     <strong>Prime Score Tennis · Fase 1</strong>
     <p>Feed ATP/WTA conectado a Live Tennis API. Próxima capa: Elo por superficie, forma, head-to-head, cuotas y calibración histórica.</p>
@@ -4207,6 +4208,7 @@ window.addEventListener(
    ========================================================= */
 const TENNIS_API = "/api/live-tennis";
 let tennisItems = [];
+let selectedTennisId = null;
 let tennisTourFilter = "all";
 
 function tennisStatusLabel(match){
@@ -4268,6 +4270,36 @@ function renderTennis(){
         </div>
       </article>`;
   }).join("");
+
+  root.querySelectorAll(".tennis-match").forEach(card=>{
+    card.addEventListener("click",()=>selectTennisMatch(card.dataset.tennisId));
+  });
+}
+
+function tennisPct(value){ return Math.round(Math.max(0,Math.min(1,value))*100)+"%"; }
+function tennisRatingFromRank(rank){ const r=Number(rank); return Number.isFinite(r)&&r>0 ? 1800-400*Math.log10(r) : null; }
+function tennisProbability(p1,p2){
+  const r1=tennisRatingFromRank(p1?.ranking), r2=tennisRatingFromRank(p2?.ranking);
+  const pts1=Number(p1?.rankingPoints), pts2=Number(p2?.rankingPoints);
+  let probability=.5, basis="Sin ranking suficiente";
+  if(r1!==null&&r2!==null){ const rankProb=1/(1+Math.pow(10,(r2-r1)/400)); if(Number.isFinite(pts1)&&Number.isFinite(pts2)&&pts1>0&&pts2>0){ probability=.75*rankProb+.25*(pts1/(pts1+pts2)); basis="Ranking oficial + puntos"; } else { probability=rankProb; basis="Ranking oficial"; } }
+  else if(Number.isFinite(pts1)&&Number.isFinite(pts2)&&pts1>0&&pts2>0){ probability=pts1/(pts1+pts2); basis="Puntos de ranking"; }
+  return {p1:Math.max(.05,Math.min(.95,probability)),basis};
+}
+function tennisStatValue(stats,keys){ for(const key of keys){ const value=stats?.[key]; if(value!==undefined&&value!==null&&value!=="") return String(value); } return "N/D"; }
+async function selectTennisMatch(id){
+  const match=tennisItems.find(item=>String(item.id)===String(id)), panel=$("tennisAnalysis"); if(!match||!panel)return;
+  selectedTennisId=String(id); panel.classList.add("active"); panel.innerHTML="<div class=\"tennis-empty\">Cargando inteligencia del partido…</div>"; panel.scrollIntoView({behavior:"smooth",block:"nearest"});
+  const results=await Promise.allSettled(match.players.map(player=>fetch(TENNIS_API+"?playerId="+encodeURIComponent(player.id),{cache:"no-store",headers:{Accept:"application/json"}}).then(response=>{if(!response.ok)throw new Error("HTTP "+response.status);return response.json();}));
+  const p1=results[0].status==="fulfilled"?(results[0].value.player||match.players[0]):match.players[0], p2=results[1].status==="fulfilled"?(results[1].value.player||match.players[1]):match.players[1];
+  const probability=tennisProbability(p1,p2), q1=probability.p1, q2=1-q1, stats1=p1?.stats?.season||p1?.stats?.ratings||p1?.stats||{}, stats2=p2?.stats?.season||p2?.stats?.ratings||p2?.stats||{};
+  const quality=(p1?.ranking&&p2?.ranking)?"Alta":(p1?.rankingPoints&&p2?.rankingPoints?"Media":"Limitada");
+  panel.innerHTML="<div class=\"tennis-analysis-head\"><div><div class=\"tennis-analysis-title\">"+esc(p1.name)+" <span style=\"color:#53627a\">vs</span> "+esc(p2.name)+"</div><div class=\"tennis-analysis-sub\">"+esc(match.tournament)+" · "+esc(match.surface||"Superficie N/D")+" · "+esc(match.round||"Ronda N/D")+"</div></div><button type=\"button\" class=\"tennis-close\" id=\"closeTennisAnalysis\">Cerrar</button></div>"
+  +"<div class=\"tennis-prob-grid\"><div class=\"tennis-prob\"><div class=\"tennis-prob-label\">"+esc(p1.name)+"</div><div class=\"tennis-prob-value\">"+tennisPct(q1)+"</div><div class=\"tennis-prob-bar\"><div class=\"tennis-prob-fill\" style=\"width:"+(q1*100)+"%\"></div></div></div><div class=\"tennis-prob\"><div class=\"tennis-prob-label\">"+esc(p2.name)+"</div><div class=\"tennis-prob-value\">"+tennisPct(q2)+"</div><div class=\"tennis-prob-bar\"><div class=\"tennis-prob-fill\" style=\"width:"+(q2*100)+"%\"></div></div></div></div>"
+  +"<div class=\"tennis-stats-grid\"><div class=\"tennis-stat\"><div class=\"tennis-stat-label\">Ranking</div><div class=\"tennis-stat-value\">"+(p1.ranking||"N/D")+" / "+(p2.ranking||"N/D")+"</div></div><div class=\"tennis-stat\"><div class=\"tennis-stat-label\">Puntos</div><div class=\"tennis-stat-value\">"+(p1.rankingPoints||"N/D")+" / "+(p2.rankingPoints||"N/D")+"</div></div><div class=\"tennis-stat\"><div class=\"tennis-stat-label\">Mano</div><div class=\"tennis-stat-value\">"+esc(p1.hand||"N/D")+" / "+esc(p2.hand||"N/D")+"</div></div><div class=\"tennis-stat\"><div class=\"tennis-stat-label\">Datos</div><div class=\"tennis-stat-value\">"+quality+"</div></div></div>"
+  +"<div class=\"tennis-stats-grid\"><div class=\"tennis-stat\"><div class=\"tennis-stat-label\">"+esc(p1.name)+" · temporada</div><div class=\"tennis-stat-value\">"+tennisStatValue(stats1,["win_rate","wins","matches"])+"</div></div><div class=\"tennis-stat\"><div class=\"tennis-stat-label\">"+esc(p2.name)+" · temporada</div><div class=\"tennis-stat-value\">"+tennisStatValue(stats2,["win_rate","wins","matches"])+"</div></div><div class=\"tennis-stat\"><div class=\"tennis-stat-label\">Sets</div><div class=\"tennis-stat-value\">"+tennisScoreMarkup(match,0)+" / "+tennisScoreMarkup(match,1)+"</div></div><div class=\"tennis-stat\"><div class=\"tennis-stat-label\">Estado</div><div class=\"tennis-stat-value\">"+esc(tennisStatusLabel(match))+"</div></div></div>"
+  +"<div class=\"tennis-analysis-note\">Prime Score Tennis · probabilidad base calculada con los datos disponibles del jugador ("+esc(probability.basis)+"). Esta primera versión todavía no incorpora Elo por superficie, H2H, forma histórica ni calibración; esas capas se añadirán al motor Tennis.</div>";
+  $("closeTennisAnalysis")?.addEventListener("click",()=>{panel.classList.remove("active");selectedTennisId=null;});
 }
 
 async function loadTennis(){
