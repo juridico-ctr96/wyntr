@@ -678,6 +678,7 @@ body{background:
 .container{width:min(1180px,94%);padding-bottom:86px}
 .header{padding:10px 0 12px}
 .logo{font-size:26px;letter-spacing:2px;color:#fff;line-height:1}
+.brand-home{display:flex;align-items:center;gap:9px;padding:0;background:transparent;color:#fff;border:0;border-radius:0;cursor:pointer;text-align:left}.brand-home:hover{background:transparent;color:#fff}.brand-home:focus-visible{outline:2px solid var(--wyntr-cyan);outline-offset:5px}
 .subtitle{font-size:9px;letter-spacing:1.8px;text-transform:uppercase;color:#74839a}
 .app-nav{margin-top:10px}
 .app-nav a{background:rgba(16,26,43,.78);border-color:#1d2a3d;padding:7px 10px}
@@ -1181,7 +1182,7 @@ button.secondary{
 .dashboard-empty{padding:22px;text-align:center;border:1px dashed #26364c;border-radius:16px;color:#7f8da2;font-size:11px}
 .dashboard-actions{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;margin-top:11px}
 .dashboard-action-card{padding:12px;border:1px solid #26364c;border-radius:14px;background:#0c1522;color:#fff;text-align:left;cursor:pointer}
-.dashboard-action-card strong{display:block;font-size:11px}.dashboard-action-card span{display:block;color:#718096;font-size:9px;margin-top:4px}
+.dashboard-action-card strong{display:block;font-size:11px}.dashboard-action-card span{display:block;color:#718096;font-size:9px;margin-top:4px}.dashboard-action-icon{font-size:18px!important;color:#63e8ff!important;margin:0 0 7px!important}
 .dashboard-action-card:hover{border-color:#63e8ff}
 .secondary-section{display:none!important}
 .secondary-section.is-open{display:block!important}
@@ -1193,7 +1194,7 @@ button.secondary{
   .today-matchup{grid-template-columns:1fr 28px 1fr;margin-top:10px}
   .today-team img{width:34px;height:34px}
   .dashboard-actions{grid-template-columns:1fr 1fr}
-  .dashboard-action-card:last-child{grid-column:1/-1}
+  .dashboard-action-card:last-child{grid-column:auto}
 }
 </style>
 </head>
@@ -1205,7 +1206,7 @@ button.secondary{
 <header class="header">
   <div class="header-inner">
     <div class="brand-block">
-      <div class="logo"><img class="brand-logo" src="/icons/prime-score.svg" alt="Prime Score"> <span>PRIME SCORE</span></div>
+      <button class="logo brand-home" type="button" data-home aria-label="Ir al inicio"><img class="brand-logo" src="/icons/prime-score.svg" alt="Prime Score"> <span>PRIME SCORE</span></button>
       <div class="subtitle">SPORTS INTELLIGENCE · NBA + TENNIS · FREE ACCESS</div>
     </div>
   </div>
@@ -1256,13 +1257,22 @@ button.secondary{
 
     <div class="dashboard-actions">
       <button class="dashboard-action-card" type="button" data-open="games-section">
-        <strong>Todos los partidos</strong><span>Explorar NBA</span>
+        <span class="dashboard-action-icon">🏀</span><strong>NBA</strong><span>Partidos y fichas</span>
       </button>
       <button class="dashboard-action-card" type="button" data-open="tennis-section">
-        <strong>ATP · WTA</strong><span>Ver tenis</span>
+        <span class="dashboard-action-icon">🎾</span><strong>Tennis</strong><span>ATP · WTA</span>
+      </button>
+      <button class="dashboard-action-card" type="button" data-open="analysis-section">
+        <span class="dashboard-action-icon">◈</span><strong>Intelligence</strong><span>Modelo y señales</span>
+      </button>
+      <button class="dashboard-action-card" type="button" data-open="market-section">
+        <span class="dashboard-action-icon">↗</span><strong>Market</strong><span>Cuotas y movimiento</span>
+      </button>
+      <button class="dashboard-action-card" type="button" data-open="engine-section">
+        <span class="dashboard-action-icon">⚙</span><strong>Engine</strong><span>Cómo funciona</span>
       </button>
       <button class="dashboard-action-card" type="button" data-open="calendar">
-        <strong>Calendario</strong><span>Filtros e histórico</span>
+        <span class="dashboard-action-icon">▦</span><strong>Calendario</strong><span>Filtros completos</span>
       </button>
     </div>
     <div id="dashboardNote" class="dashboard-open-note">El calendario completo queda como sección secundaria.</div>
@@ -4831,6 +4841,12 @@ function openDashboardSection(id){
     })[id]) el.classList.add("active");
   });
 }
+document.querySelectorAll("[data-home]").forEach(el=>el.addEventListener("click",()=>{
+  document.querySelectorAll(".secondary-section").forEach(section=>section.classList.remove("is-open"));
+  document.querySelectorAll("[data-nav]").forEach(item=>item.classList.remove("active"));
+  window.scrollTo({top:0,behavior:"smooth"});
+}));
+
 document.querySelectorAll("[data-open]").forEach(el=>{
   el.addEventListener("click",event=>{
     event.preventDefault();
