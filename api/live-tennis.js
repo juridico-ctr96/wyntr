@@ -193,9 +193,13 @@ export default async function handler(req, res) {
     // Dos llamadas consolidadas: el proveedor permite pedir todos los tours
     // en /matches y luego filtramos ATP/WTA en nuestro servidor. Esto evita
     // consumir cuatro llamadas por cada actualización del usuario.
+    // Live scores come from /matches?status=live. Scheduled matches are
+    // served by /fixtures, which is the provider's canonical FREE endpoint
+    // for upcoming matches. Using /fixtures here also avoids returning an
+    // empty upcoming slate on providers/keys that expose scheduling there.
     const [liveAll, upcomingAll] = await Promise.allSettled([
       fetchMatches(key, { status: "live", limit: 100 }),
-      fetchMatches(key, { status: "upcoming", limit: 100 })
+      fetchFixtures(key, { limit: 100 })
     ]);
 
     const read = result => result.status === "fulfilled"
@@ -223,7 +227,7 @@ export default async function handler(req, res) {
     });
 
     const upcomingItems = read(upcomingAll).map(row => {
-      const match = normalizeMatch(row);
+      const match = normalizeFixture(row);
       match.status = normalizeStatus(match.status);
       return match;
     });
