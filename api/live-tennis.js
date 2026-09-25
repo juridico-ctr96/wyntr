@@ -47,6 +47,59 @@ function normalizeMatch(row) {
     hasMarket: Boolean(row?.has_market)
   };
 }
+async function fetchFixtures(key, params) {
+  const url = new URL(BASE + "/fixtures");
+  for (const [name, value] of Object.entries(params)) {
+    if (value !== undefined && value !== null && value !== "") url.searchParams.set(name, String(value));
+  }
+  const response = await fetch(url, {
+    headers: { "X-API-Key": key, "Accept": "application/json", "User-Agent": "Prime-Score/0.4.1" }
+  });
+  const body = await response.json().catch(() => ({}));
+  if (!response.ok) {
+    const error = new Error(body?.message || body?.error || ("Live Tennis API HTTP " + response.status));
+    error.status = response.status;
+    error.body = body;
+    throw error;
+  }
+  return body;
+}
+
+function normalizeFixture(row) {
+  const p1 = normalizePlayer({
+    id: row?.player1_id,
+    name: row?.player1_name
+  });
+  const p2 = normalizePlayer({
+    id: row?.player2_id,
+    name: row?.player2_name
+  });
+  return {
+    id: String(row?.id ?? ""),
+    tour: String(row?.tour || "").toUpperCase(),
+    draw: row?.draw || null,
+    tournament: row?.tournament || "Tennis",
+    tournamentId: row?.tournament_id ?? null,
+    tier: row?.tier || null,
+    surface: row?.surface || null,
+    round: row?.round || "",
+    roundCode: row?.round_code || null,
+    date: row?.start_time || row?.scheduled_time || row?.event_date || null,
+    status: row?.status || "upcoming",
+    statusDetail: row?.event_status || "",
+    players: [p1, p2],
+    sets: [],
+    games: [],
+    points: [],
+    server: null,
+    isTiebreak: false,
+    winner: null,
+    outcome: null,
+    hasAnalysis: false,
+    hasMarket: false
+  };
+}
+
 async function fetchPlayer(key, playerId) {
   const url = new URL(BASE + "/players/" + encodeURIComponent(playerId));
   const response = await fetch(url, {
@@ -91,7 +144,7 @@ async function fetchMatches(key, params) {
 export default async function handler(req, res) {
   const key = getKey();
 
-  res.setHeader("Cache-Control", "s-maxage=60, stale-while-revalidate=180");
+  res.setHeader("Cache-Control", "s-maxage=30, stale-while-revalidate=120");
 
   if (!key) {
     return res.status(503).json({
@@ -113,28 +166,42 @@ export default async function handler(req, res) {
   }
 
   try {
-    const [live, upcoming] = await Promise.allSettled([
-      fetchMatches(key, { status: "live", limit: 100 }),
-      fetchMatches(key, { status: "upcoming", limit: 100 })
+    const [liveAtp, liveWta, fixturesAtp, fixturesWta] = await Promise.allSettled([
+      fetchMatches(key, { status: "live", tour: "atp", limit: 100 }),
+      fetchMatches(key, { status: "live", tour: "wta", limit: 100 }),
+      fetchFixtures(key, { tour: "atp", limit: 100 }),
+      fetchFixtures(key, { tour: "wta", limit: 100 })
     ]);
 
     const read = result => result.status === "fulfilled"
       ? (Array.isArray(result.value?.data) ? result.value.data : [])
       : [];
 
-    const errors = [live, upcoming]
+    const errors = [liveAtp, liveWta, fixturesAtp, fixturesWta]
       .filter(result => result.status === "rejected")
       .map(result => ({
         status: result.reason?.status || 500,
         message: result.reason?.message || "Error consultando tenis"
       }));
 
+    const liveItems = [
+      ...read(liveAtp),
+      ...read(liveWta)
+    ].map(normalizeMatch);
+
+    const fixtureItems = [
+      ...read(fixturesAtp),
+      ...read(fixturesWta)
+    ].map(normalizeFixture);
+
     const items = [
-      ...read(live),
-      ...read(upcoming)
-    ]
-      .map(normalizeMatch)
-      .filter(match => match.id && match.players.length === 2);
+      ...liveItems,
+      ...fixtureItems
+    ].filter(match => {
+      const tour = String(match.tour || "").toUpperCase();
+      return match.id && (tour === "ATP" || tour === "WTA") &&
+        Array.isArray(match.players) && match.players.length === 2;
+    });
 
     const unique = Array.from(new Map(items.map(match => [match.id, match])).values());
     unique.sort((a, b) => new Date(a.date || 0) - new Date(b.date || 0));
