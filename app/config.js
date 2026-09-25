@@ -1,6 +1,6 @@
 window.WYNTR_CONFIG = Object.freeze({
   appName: "PRIME SCORE",
-  version: "0.3.0",
+  version: "0.3.1",
   sport: "nba",
   api: {
     games: "/api/balldontlie",
