@@ -4231,7 +4231,8 @@ function renderTennis(){
   const root = $("tennisMatches");
   if(!root) return;
   let list = tennisItems.filter(m => tennisTourFilter === "all" || m.tour === tennisTourFilter);
-  list = list.filter(m => m.grouping.toLowerCase().includes("singles"));
+  // La fuente ya limita cada match a dos competidores; evitamos depender del nombre del grouping de ESPN.
+  list = list.filter(m => Array.isArray(m.players) && m.players.length === 2);
   if(!list.length){
     root.innerHTML = '<div class="tennis-empty">No hay partidos ATP/WTA disponibles en esta ventana.</div>';
     return;
