@@ -3590,27 +3590,6 @@ async function analyzeGame(game){
       features.homeElo-
       features.awayElo+
       55
-    )/400
-  );
-
-  const scoreProbability=scoreDifferenceProbability(
-    features.expectedHome,
-    features.expectedAway
-  );
-
-  const formProbability=clamp(
-    .5+
-    (
-      features.homeStats.w10-
-      features.awayStats.w10
-    )*.55+
-    (
-      features.homeHomeStats.w10-
-      features.awayRoadStats.w10
-    )*.25,
-    .15,.85
-  );
-
   const productionProbability=clamp(
     .5+
     (
