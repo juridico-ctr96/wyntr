@@ -5495,8 +5495,22 @@ window.addEventListener("online",()=>runSmartRefresh(true));
 
 bindNavigationFeedback();
 initAppRoute();
-loadCalendar().finally(()=>{
+loadCalendar().finally(async ()=>{
   lastCalendarRefresh=Date.now();
+  // Deep-link: /?match=ID abre directamente la ficha NBA después de cargar el calendario.
+  try{
+    const requestedMatch=new URLSearchParams(window.location.search).get("match");
+    if(requestedMatch){
+      const target=games.find(game=>String(game.id)===String(requestedMatch));
+      if(target){
+        await selectGame(target.id);
+      }else{
+        console.warn("Prime Score: partido solicitado no encontrado en calendario",requestedMatch);
+      }
+    }
+  }catch(error){
+    console.warn("Prime Score deep-link match:",error);
+  }
   // A partir de aquí el dashboard se mantiene actualizado automáticamente.
   scheduleAutoRefresh(5*60*1000);
 });
