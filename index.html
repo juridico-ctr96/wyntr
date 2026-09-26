@@ -5005,6 +5005,7 @@ loadTennis().finally(()=>{
    ========================================================= */
 
 const NBA_NEWS = "/api/nba-news";
+const TENNIS_NEWS = "/api/tennis-news";
 let newsItems = [];
 let newsIndex = 0;
 let newsTimer = null;
@@ -5037,7 +5038,7 @@ function renderNewsSlide(){
     <a class="news-slide" href="${item.url}" target="_blank" rel="noopener noreferrer">
       ${item.image ? `<img class="news-image" src="${item.image}" alt="" loading="lazy">` : '<div class="news-image"></div>'}
       <div class="news-copy">
-        <div class="news-kicker">Última hora · ${item.source || "ESPN"}</div>
+        <div class="news-kicker">${item.sport === "tennis" ? "🎾 TENNIS" : "🏀 NBA"} · ${item.source || "Prime News"}</div>
         <div class="news-title">${escapeHtml(item.title)}</div>
         <div class="news-meta">${time}</div>
       </div>
@@ -5071,15 +5072,16 @@ function startNewsRotation(){
 
 async function loadNews(){
   try{
-    const response = await fetch(NBA_NEWS, {
-      cache:"no-store",
-      headers:{Accept:"application/json"}
-    });
-
-    if(!response.ok) throw new Error("HTTP " + response.status);
-
-    const data = await response.json();
-    newsItems = Array.isArray(data.items) ? data.items : [];
+    const [nbaResponse, tennisResponse] = await Promise.all([
+      fetch(NBA_NEWS, {cache:"no-store",headers:{Accept:"application/json"}}),
+      fetch(TENNIS_NEWS, {cache:"no-store",headers:{Accept:"application/json"}})
+    ]);
+    const nbaData = nbaResponse.ok ? await nbaResponse.json() : {items:[]};
+    const tennisData = tennisResponse.ok ? await tennisResponse.json() : {items:[]};
+    newsItems = [
+      ...(Array.isArray(nbaData.items) ? nbaData.items.map(item=>({...item,sport:"nba"})) : []),
+      ...(Array.isArray(tennisData.items) ? tennisData.items.map(item=>({...item,sport:"tennis"})) : [])
+    ].sort((a,b)=>new Date(b.published||0)-new Date(a.published||0)).slice(0,24);
     newsIndex = 0;
     renderNewsSlide();
     startNewsRotation();
@@ -5093,7 +5095,7 @@ async function loadNews(){
         });
     }
   }catch(error){
-    console.warn("PRIME SCORE NBA news:", error);
+    console.warn("PRIME SCORE news:", error);
     if($("newsRefreshStatus")) $("newsRefreshStatus").textContent = "Sin conexión";
   }
 }
