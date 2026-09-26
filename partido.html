@@ -273,7 +273,13 @@ function render(payload){
   const id=new URLSearchParams(location.search).get("id");
   if(!id){app.innerHTML='<div class="loading error">No se especificó un partido.</div>';return}
   const payload=getStored(id);
-  if(!payload){app.innerHTML='<div class="loading error">La ficha de este partido ya no está en la sesión.<br><br><a class="back" href="/">Volver al inicio</a></div>';return}
+  if(!payload){
+    // Compatibilidad con enlaces antiguos/directos: devolver el ID al flujo
+    // principal para que el analizador reconstruya y persista la ficha.
+    app.innerHTML='<div class="loading">Recuperando ficha de Prime Score…</div>';
+    window.location.replace("/?match="+encodeURIComponent(id)+"#analysis");
+    return;
+  }
   render(payload);
 })();
 </script>
