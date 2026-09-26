@@ -1195,8 +1195,12 @@ button.secondary{
 .auto-refresh-status.refreshing .auto-refresh-dot{background:#62e7ff;box-shadow:0 0 9px rgba(98,231,255,.8)}
 .auto-refresh-status.error{color:#ff9da8}
 .auto-refresh-status.error .auto-refresh-dot{background:#ff6475;box-shadow:none;animation:none}
-.dashboard-sport-grid{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-bottom:16px}
-.dashboard-sport{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:13px 14px;border:1px solid #26364c;border-radius:15px;background:#0d1726;color:#fff;text-decoration:none;cursor:pointer}
+.dashboard-sport-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:9px;margin-bottom:16px;width:100%;min-width:0}
+.dashboard-sport{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:13px 12px;border:1px solid #26364c;border-radius:15px;background:#0d1726;color:#fff;text-decoration:none;cursor:pointer;min-width:0;width:100%;max-width:100%;overflow:hidden}
+.dashboard-sport-main{min-width:0;overflow:hidden}
+.dashboard-sport-main>div:last-child{min-width:0}
+.dashboard-sport strong,.dashboard-sport span{overflow:hidden;text-overflow:ellipsis}
+.dashboard-sport span{white-space:normal}
 .dashboard-sport:hover{border-color:#63e8ff;transform:translateY(-1px)}
 .dashboard-sport-main{display:flex;align-items:center;gap:10px}
 .dashboard-sport-icon{width:34px;height:34px;border-radius:11px;display:grid;place-items:center;background:#142235;font-size:17px}
@@ -1300,9 +1304,10 @@ body{
   background:linear-gradient(180deg,rgba(24,215,176,.14),rgba(99,232,255,.05));
   border:1px solid rgba(24,215,176,.18);
 }
-.tennis-section{border-radius:18px}
-.tennis-head{align-items:center}
-.tennis-title{font-size:19px}
+.tennis-section{border-radius:18px;width:100%;max-width:100%;min-width:0;overflow:hidden}
+.tennis-head{align-items:center;min-width:0}
+.tennis-title{font-size:19px;min-width:0}
+.tennis-grid,.tennis-tabs,.tennis-analysis,.tennis-intel{max-width:100%;min-width:0}
 .tennis-tab{padding:8px 11px}
 .tennis-match{
   border-radius:16px;
