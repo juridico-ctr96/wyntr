@@ -1502,6 +1502,7 @@ body{
   <div id="tennisMatches" class="tennis-grid">
     <div class="tennis-empty">Cargando partidos de tenis…</div>
   </div>
+  <a href="/predictions.html" style="display:inline-block;margin:8px 0 12px;color:#63e8ff;font-size:11px;font-weight:900;text-decoration:none">📊 VER PREDICTION LEDGER</a>
   <div id="tennisAnalysis" class="tennis-analysis" aria-live="polite"></div>
   <div class="tennis-intel">
     <strong>Prime Score Tennis · GRATIS</strong>
@@ -3606,6 +3607,31 @@ function availabilityProbability(i){
   return clamp(.5+(i.away-i.home)*.06,.35,.65);
 }
 
+async function primePublishPrediction(game,result,sport="nba"){
+  try{
+    if(!game||!result)return;
+    const homeProbability=Number(result.home), awayProbability=Number(result.away);
+    if(!Number.isFinite(homeProbability)||!Number.isFinite(awayProbability))return;
+    const version=sport==="tennis"?"tennis-v1.0":"nba-ensemble-v1.0";
+    const raw=[sport,game.id,game.date,version,homeProbability.toFixed(3),awayProbability.toFixed(3)].join("|");
+    const hashBuffer=await crypto.subtle.digest("SHA-256",new TextEncoder().encode(raw));
+    const prediction_hash=Array.from(new Uint8Array(hashBuffer)).map(b=>b.toString(16).padStart(2,"0")).join("");
+    await fetch("/api/predictions",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({
+      sport,event_id:String(game.id),league:sport==="nba"?"NBA":(game.tour||"ATP/WTA"),
+      home_name:game.home?.name||game.players?.[0]?.name||"Jugador 1",
+      away_name:game.away?.name||game.players?.[1]?.name||"Jugador 2",
+      scheduled_at:game.date||null,model_version:version,
+      home_probability:homeProbability,away_probability:awayProbability,
+      projected_home_score:result.projectedHomeScore??null,
+      projected_away_score:result.projectedAwayScore??null,
+      confidence:result.confidenceScore??null,
+      data_coverage:result.sample?Math.min(100,Number(result.sample)/50*100):null,
+      features:{gb:result.gb,elo:result.elo,scoreDistribution:result.scoreDistribution,form:result.form,production:result.production,availability:result.availability},
+      prediction_hash
+    })});
+  }catch(error){console.warn("Prime Prediction Ledger:",error);}
+}
+
 async function analyzeGame(game){
 
   const days=n($("range").value,360);
@@ -3777,6 +3803,7 @@ async function analyzeGame(game){
   game.wyntrHomeProbability=finalProbability;
   game.wyntrAwayProbability=1-finalProbability;
   window.wyntrCurrentAnalysis=result;
+  primePublishPrediction(game,result,"nba");
 
   return result;
 
@@ -4921,7 +4948,8 @@ async function selectTennisMatch(id){
     players=players.map((player,index)=>results[index]?.status==="fulfilled"?(results[index].value.player||player):player);
   }
   const p1=players[0]||match.players[0], p2=players[1]||match.players[1];
-  const probability=tennisProbability(p1,p2), q1=probability.p1, q2=1-q1, stats1=p1?.stats?.season||p1?.stats?.ratings||p1?.stats||{}, stats2=p2?.stats?.season||p2?.stats?.ratings||p2?.stats||{};
+  const probability=tennisProbability(p1,p2), q1=probability.p1, q2=1-q1,
+    ledgerResult={home:q1*100,away:q2*100,confidenceScore:quality==="Alta"?75:quality==="Media"?58:40}; stats1=p1?.stats?.season||p1?.stats?.ratings||p1?.stats||{}, stats2=p2?.stats?.season||p2?.stats?.ratings||p2?.stats||{};
   const quality=(p1?.ranking&&p2?.ranking)?"Alta":(p1?.rankingPoints&&p2?.rankingPoints?"Media":"Limitada");
   panel.innerHTML="<div class=\"tennis-analysis-head\"><div><div class=\"tennis-analysis-title\">"+esc(p1.name)+" <span style=\"color:#53627a\">vs</span> "+esc(p2.name)+"</div><div class=\"tennis-analysis-sub\">"+esc(match.tournament)+" · "+esc(match.surface||"Superficie N/D")+" · "+esc(match.round||"Ronda N/D")+"</div></div><button type=\"button\" class=\"tennis-close\" id=\"closeTennisAnalysis\">Cerrar</button></div>"
   +"<div class=\"tennis-prob-grid\"><div class=\"tennis-prob\"><div class=\"tennis-prob-label\">"+esc(p1.name)+"</div><div class=\"tennis-prob-value\">"+tennisPct(q1)+"</div><div class=\"tennis-prob-bar\"><div class=\"tennis-prob-fill\" style=\"width:"+(q1*100)+"%\"></div></div></div><div class=\"tennis-prob\"><div class=\"tennis-prob-label\">"+esc(p2.name)+"</div><div class=\"tennis-prob-value\">"+tennisPct(q2)+"</div><div class=\"tennis-prob-bar\"><div class=\"tennis-prob-fill\" style=\"width:"+(q2*100)+"%\"></div></div></div></div>"
