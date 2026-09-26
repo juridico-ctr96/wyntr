@@ -13,7 +13,12 @@ function normalizePlayer(player, fallback = {}) {
     country: p.country || p.country_code || "",
     ranking: Number.isFinite(Number(p.ranking)) ? Number(p.ranking) : null,
     rankingPoints: Number.isFinite(Number(p.ranking_points)) ? Number(p.ranking_points) : null,
-    flag: p.flag || null
+    flag: p.flag || null,
+    hand: p.hand || null,
+    backhand: p.backhand ?? null,
+    rankingMovement: p.ranking_movement || p.rankingMovement || null,
+    dataCompleteness: p.data_completeness || p.dataCompleteness || null,
+    stats: p.stats || null
   };
 }
 
@@ -127,6 +132,23 @@ async function fetchPlayer(key, playerId) {
   }
   return body?.data || body;
 }
+
+async function fetchH2H(key, p1, p2) {
+  const url = new URL(BASE + "/h2h");
+  url.searchParams.set("p1", String(p1 || ""));
+  url.searchParams.set("p2", String(p2 || ""));
+  const response = await fetch(url, {
+    headers: { "X-API-Key": key, "Accept": "application/json", "User-Agent": "Prime-Score/0.4.2" }
+  });
+  const body = await response.json().catch(() => ({}));
+  if (!response.ok) {
+    const error = new Error(body?.message || body?.error || ("Live Tennis API H2H HTTP " + response.status));
+    error.status = response.status;
+    error.body = body;
+    throw error;
+  }
+  return body;
+}
 async function fetchMatches(key, params) {
   const url = new URL(BASE + "/matches");
   for (const [name, value] of Object.entries(params)) {
@@ -167,6 +189,29 @@ export default async function handler(req, res) {
       configured: false,
       error: "Falta LIVE_TENNIS_API_KEY en Vercel."
     });
+  }
+
+  const h2hP1 = req?.query?.h2hP1;
+  const h2hP2 = req?.query?.h2hP2;
+  if (h2hP1 && h2hP2) {
+    try {
+      const h2h = await fetchH2H(key, h2hP1, h2hP2);
+      return res.status(200).json({
+        sport: "tennis",
+        source: "Live Tennis API",
+        configured: true,
+        updatedAt: new Date().toISOString(),
+        h2h
+      });
+    } catch (error) {
+      return res.status(error?.status || 502).json({
+        sport: "tennis",
+        source: "Live Tennis API",
+        configured: true,
+        h2h: null,
+        error: error?.message || "No se pudo consultar H2H"
+      });
+    }
   }
 
   const matchId = req?.query?.matchId;
