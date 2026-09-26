@@ -135,7 +135,8 @@
   }
 
   setTimeout(boot,2500);
-  window.addEventListener("online",()=>setTimeout(boot,300));\n
+  window.addEventListener("online",()=>setTimeout(boot,300));
+
   // Hard-wire the two critical mobile actions so stale/duplicate route
   // handlers cannot swallow the click.
   document.addEventListener("click", event => {
@@ -165,4 +166,5 @@
       }
     }
   }, true);
-\n})();
+
+})();
