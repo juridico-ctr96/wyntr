@@ -3590,6 +3590,27 @@ async function analyzeGame(game){
       features.homeElo-
       features.awayElo+
       55
+    )/400
+  );
+
+  const scoreProbability=scoreDifferenceProbability(
+    features.expectedHome,
+    features.expectedAway
+  );
+
+  const formProbability=clamp(
+    .5+
+    (
+      features.homeStats.w10-
+      features.awayStats.w10
+    )*.55+
+    (
+      features.homeHomeStats.w10-
+      features.awayRoadStats.w10
+    )*.25,
+    .15,.85
+  );
+
   const productionProbability=clamp(
     .5+
     (
@@ -5458,27 +5479,6 @@ function renderHomeDashboard(){
           </div>
         </button>`;
       }).join("");
-      root.querySelectorAll("[data-tennis-dashboard-id]").forEach(btn=>{
-        btn.addEventListener("click",()=>selectTennisMatch(btn.dataset.tennisDashboardId));
-      });
-      return;
-    }
-    root.innerHTML=tennisHighlights.map((m,index)=>`
-        <button class="today-game ${index===0?"featured":""}" type="button" data-tennis-dashboard-id="${esc(m.id)}">
-          <div class="today-game-head">
-            <span>🎾 ${esc(m.tour||"TENNIS")} · ${esc(m.tournament||m.eventName||"Partido")}</span>
-            <span class="today-live">${m.status==="live"?"EN VIVO":"PRÓXIMO"}</span>
-          </div>
-          <div class="today-matchup">
-            <div class="today-team">${esc(m.player1?.name||m.home?.name||"Jugador 1")}</div>
-            <div class="today-vs">VS</div>
-            <div class="today-team">${esc(m.player2?.name||m.away?.name||"Jugador 2")}</div>
-          </div>
-          <div class="today-card-bottom">
-            <span>Prime Tennis Intelligence</span>
-            <b>ABRIR FICHA →</b>
-          </div>
-        </button>`).join("");
       root.querySelectorAll("[data-tennis-dashboard-id]").forEach(btn=>{
         btn.addEventListener("click",()=>selectTennisMatch(btn.dataset.tennisDashboardId));
       });
