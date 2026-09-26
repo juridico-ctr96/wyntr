@@ -1,9 +1,10 @@
-const CACHE = "prime-score-shell-v37";
+const CACHE = "prime-score-shell-v38";
 const SHELL = [
   "/",
   "/index.html",
   "/partido.html",
   "/nba.html",
+  "/tennis.html",
   "/manifest.webmanifest",
   "/offline.html",
   "/app/config.js",
