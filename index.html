@@ -905,7 +905,7 @@ body{background:
 .tennis-h2h{display:grid;grid-template-columns:1fr 1fr 1fr;gap:7px;margin-top:9px}
 .tennis-h2h-card{padding:9px;border-radius:11px;background:#0a1421;border:1px solid #1f3045;text-align:center}
 .tennis-h2h-card span{display:block;color:#718096;font-size:7px;text-transform:uppercase}
-.tennis-h2h-card b{display:block;font-size:12px;margin-top:3px}
+.tennis-h2h-card b{display:block;font-size:12px;margin-top:3px}.tennis-metrics-panel{margin-top:10px;padding:10px;border:1px solid #1f3045;border-radius:13px;background:#0a1421}.tennis-metrics-title{font-size:8px;letter-spacing:1px;color:#22e0b2;font-weight:950;margin-bottom:8px}.tennis-metrics-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:7px}.tennis-metric-pair{padding:8px;border-radius:10px;background:#0d1825;border:1px solid rgba(126,151,184,.12)}.tennis-metric-pair span{display:block;color:#718096;font-size:7px;text-transform:uppercase;letter-spacing:.3px}.tennis-metric-pair b{display:block;font-size:10px;margin-top:3px}@media(max-width:650px){.tennis-metrics-grid{grid-template-columns:1fr 1fr}}
 @media(max-width:650px){.tennis-engine-score{grid-template-columns:1fr 70px 1fr}.tennis-engine-pct{font-size:24px}.tennis-engine-grid{grid-template-columns:1fr 1fr}.tennis-signal-row{grid-template-columns:84px 1fr 38px}}
 
 
@@ -4981,103 +4981,19 @@ function tennisDeepNumber(obj, keys, depth=0){
   }
   return null;
 }
-function tennisRatingFromRank(rank){ const r=Number(rank); return Number.isFinite(r)&&r>0 ? 1800-400*Math.log10(r) : null; }
-function tennisSurfaceKey(surface){
-  const s=String(surface||"").toLowerCase();
-  if(s.includes("clay")||s.includes("tierra")||s.includes("arcilla"))return "clay";
-  if(s.includes("grass")||s.includes("hierba"))return "grass";
-  if(s.includes("hard")||s.includes("dura"))return "hard";
-  return null;
-}
-function tennisSurfaceWinRate(stats,surface){
-  const key=tennisSurfaceKey(surface); if(!key)return null;
-  const containers=[stats?.surface,stats?.surfaces,stats?.surface_stats,stats?.surfaceStats,stats?.by_surface,stats?.bySurface,stats];
-  const aliases={hard:["hard","Hard"],clay:["clay","Clay"],grass:["grass","Grass"]}[key]||[];
-  for(const container of containers){
-    if(!container||typeof container!=="object")continue;
-    for(const alias of aliases){
-      const block=container[alias];
-      if(!block)continue;
-      const direct=tennisDeepNumber(block,["win_rate","winRate","winning_percentage","winPct"]);
-      if(direct!==null) return direct>1?direct/100:direct;
-      const wins=tennisDeepNumber(block,["wins","won","matches_won"]);
-      const losses=tennisDeepNumber(block,["losses","lost","matches_lost"]);
-      if(wins!==null&&losses!==null&&(wins+losses)>0)return wins/(wins+losses);
-    }
-  }
-  return null;
-}
-function tennisFormRate(stats){
-  const ytdW=tennisDeepNumber(stats,["ytdWon","ytd_won","year_to_date_wins"]);
-  const ytdL=tennisDeepNumber(stats,["ytdLost","ytd_lost","year_to_date_losses"]);
-  if(ytdW!==null&&ytdL!==null&&(ytdW+ytdL)>0)return ytdW/(ytdW+ytdL);
-  const winRate=tennisDeepNumber(stats,["win_rate","winRate","winning_percentage"]);
-  if(winRate!==null)return winRate>1?winRate/100:winRate;
-  const wins=tennisDeepNumber(stats,["wins","won"]);
-  const losses=tennisDeepNumber(stats,["losses","lost"]);
-  if(wins!==null&&losses!==null&&(wins+losses)>0)return wins/(wins+losses);
-  return null;
-}
-function tennisServeReturnScore(stats){
-  const serve=tennisDeepNumber(stats,["firstServePercentage","first_serve_percentage","firstServePct","holdPercentage","hold_pct","service_games_won_pct","service_games_won"]);
-  const ret=tennisDeepNumber(stats,["returnPointsWon","return_points_won","breakPointConversion","break_point_conversion","breakPointsWonPct"]);
-  const normalize=v=>v===null?null:(v>1?v/100:v);
-  const a=normalize(serve), b=normalize(ret);
-  if(a===null&&b===null)return null;
-  if(a!==null&&b!==null)return (a+b)/2;
-  return a??b;
-}
-function tennisProbability(p1,p2,context={}){
-  const stats1=p1?.stats||{}, stats2=p2?.stats||{};
-  const surface=tennisSurfaceKey(context.surface);
-  const components=[];
-  const add=(name,weight,a,b,source)=>{ if(Number.isFinite(a)&&Number.isFinite(b)){components.push({name,weight,a,b,source});}};
-  const r1=tennisRatingFromRank(p1?.ranking), r2=tennisRatingFromRank(p2?.ranking);
-  if(r1!==null&&r2!==null){
-    const x=1/(1+Math.pow(10,(r2-r1)/400)); add("ELO proxy",25,x,1-x,"ranking");
-  }
-  const pts1=tennisNum(p1?.rankingPoints),pts2=tennisNum(p2?.rankingPoints);
-  if(pts1>0&&pts2>0){const x=pts1/(pts1+pts2);add("Puntos",15,x,1-x,"ranking_points");}
-  const sw1=tennisSurfaceWinRate(stats1,context.surface),sw2=tennisSurfaceWinRate(stats2,context.surface);
-  if(sw1!==null&&sw2!==null){const x=sw1/(sw1+sw2);add("Superficie",20,x,1-x,"surface");}
-  const f1=tennisFormRate(stats1),f2=tennisFormRate(stats2);
-  if(f1!==null&&f2!==null){const x=f1/(f1+f2||1);add("Forma",15,x,1-x,"form");}
-  const sr1=tennisServeReturnScore(stats1),sr2=tennisServeReturnScore(stats2);
-  if(sr1!==null&&sr2!==null){const x=sr1/(sr1+sr2||1);add("Servicio/retorno",10,x,1-x,"serve_return");}
-  const h=context.h2h||null;
-  const total1=tennisNum(h?.totals?.p1Wins??h?.totals?.player1Wins??h?.totals?.player1_wins);
-  const total2=tennisNum(h?.totals?.p2Wins??h?.totals?.player2Wins??h?.totals?.player2_wins);
-  if(total1!==null&&total2!==null&&(total1+total2)>0){const x=total1/(total1+total2);add("H2H",10,x,1-x,"h2h");}
-  if(!components.length)return {p1:.5,components:[],coverage:0,confidence:20};
-  const totalWeight=components.reduce((s,c)=>s+c.weight,0);
-  let q1=components.reduce((s,c)=>s+c.a*c.weight,0)/totalWeight;
-  q1=Math.max(.05,Math.min(.95,q1));
-  const agreement=1-(components.reduce((s,c)=>s+Math.abs(c.a-q1)*c.weight,0)/totalWeight);
-  const coverage=Math.round(Math.min(1,totalWeight/100)*100);
-  const confidence=Math.round(Math.max(25,Math.min(96,coverage*.65+agreement*35)));
-  return {p1:q1,components,coverage,confidence};
-}
-function tennisH2HValues(h2h,surface){
-  if(!h2h)return {p1:null,p2:null,surfaceP1:null,surfaceP2:null,meetings:null};
-  const totals=h2h.totals||{};
-  const p1=tennisNum(totals.p1Wins??totals.player1Wins??totals.player1_wins);
-  const p2=tennisNum(totals.p2Wins??totals.player2Wins??totals.player2_wins);
-  const by=h2h.by_surface||{};
-  let bucket=null;
-  const key=tennisSurfaceKey(surface);
-  if(key){
-    for(const [k,v] of Object.entries(by)){if(tennisSurfaceKey(k)===key){bucket=v;break;}}
-  }
-  const s1=tennisNum(bucket?.p1Wins??bucket?.player1Wins??bucket?.player1_wins??bucket?.wins1);
-  const s2=tennisNum(bucket?.p2Wins??bucket?.player2Wins??bucket?.player2_wins??bucket?.wins2);
-  const meetings=p1!==null&&p2!==null?p1+p2:null;
-  return {p1,p2,surfaceP1:s1,surfaceP2:s2,meetings};
-}
-function tennisSignalMarkup(component,q1){
-  const pct=component.a*100;
-  const impact=Math.abs(component.a-component.b)*100;
-  return '<div class="tennis-signal-row"><span class="tennis-signal-name">'+esc(component.name)+'</span><div class="tennis-signal-track"><span style="width:'+Math.round(pct)+'%"></span></div><span class="tennis-signal-value">'+Math.round(pct)+'%</span></div>';
-}
+function tennisRatingFromRank(rank){const r=Number(rank);return Number.isFinite(r)&&r>0?1800-400*Math.log10(r):null;}
+function tennisSurfaceKey(surface){const s=String(surface||"").toLowerCase();if(s.includes("clay")||s.includes("tierra")||s.includes("arcilla"))return"clay";if(s.includes("grass")||s.includes("hierba"))return"grass";if(s.includes("hard")||s.includes("dura"))return"hard";return null;}
+function tennisDeepNumber(obj,keys,depth=0){if(!obj||depth>5)return null;if(Array.isArray(obj)){for(const item of obj){const v=tennisDeepNumber(item,keys,depth+1);if(v!==null)return v;}return null;}if(typeof obj!=="object")return null;for(const key of keys){const v=tennisNum(obj[key]);if(v!==null)return v;}for(const value of Object.values(obj)){const v=tennisDeepNumber(value,keys,depth+1);if(v!==null)return v;}return null;}
+function tennisNormalizeRate(v){const n=tennisNum(v);if(n===null)return null;return n>1?n/100:n;}
+function tennisSurfaceBlock(stats,surface){const key=tennisSurfaceKey(surface);if(!key||!stats)return null;const containers=[stats.surface,stats.surfaces,stats.surface_stats,stats.surfaceStats,stats.by_surface,stats.bySurface,stats];const aliases={hard:["hard","Hard"],clay:["clay","Clay"],grass:["grass","Grass"]}[key]||[];for(const container of containers){if(!container||typeof container!=="object")continue;for(const alias of aliases){if(container[alias]&&typeof container[alias]==="object")return container[alias];}}return null;}
+function tennisSurfaceWinRate(stats,surface){const block=tennisSurfaceBlock(stats,surface);if(!block)return null;const direct=tennisNormalizeRate(tennisDeepNumber(block,["win_rate","winRate","winning_percentage","winPct"]));if(direct!==null)return direct;const wins=tennisDeepNumber(block,["wins","won","matches_won"]);const losses=tennisDeepNumber(block,["losses","lost","matches_lost"]);if(wins!==null&&losses!==null&&(wins+losses)>0)return wins/(wins+losses);return null;}
+function tennisFormMetrics(stats){const root=stats?.season||stats?.ratings||stats||{};const wins=tennisDeepNumber(root,["ytdWon","ytd_won","year_to_date_wins"]);const losses=tennisDeepNumber(root,["ytdLost","ytd_lost","year_to_date_losses"]);let seasonRate=null;if(wins!==null&&losses!==null&&(wins+losses)>0)seasonRate=wins/(wins+losses);else seasonRate=tennisNormalizeRate(tennisDeepNumber(root,["win_rate","winRate","winning_percentage"]));let recentRate=null;const recent=root.recent||root.recent_form||root.form||root.last_matches||root.lastMatches;if(recent){if(Array.isArray(recent)){const rows=recent.slice(0,10);const rw=rows.filter(x=>x?.winner===true||x?.won===true||x?.result==="W"||x?.outcome==="win").length;const known=rows.filter(x=>x?.winner===true||x?.winner===false||x?.won===true||x?.won===false||x?.result==="W"||x?.result==="L"||x?.outcome==="win"||x?.outcome==="loss").length;if(known>0)recentRate=rw/known;}else{const rw=tennisDeepNumber(recent,["wins","won","last10_wins","last_10_wins"]);const rl=tennisDeepNumber(recent,["losses","lost","last10_losses","last_10_losses"]);if(rw!==null&&rl!==null&&(rw+rl)>0)recentRate=rw/(rw+rl);else recentRate=tennisNormalizeRate(tennisDeepNumber(recent,["win_rate","winRate","winning_percentage"]));}}return{season:seasonRate,recent:recentRate};}
+function tennisServeReturnMetrics(stats){const root=stats?.season||stats?.ratings||stats||{};const hold=tennisNormalizeRate(tennisDeepNumber(root,["hold_pct","holdPercentage","service_games_won_pct","service_games_won"]));const brk=tennisNormalizeRate(tennisDeepNumber(root,["break_pct","breakPercentage","break_points_converted_pct","breakPointConversion","break_points_won_pct"]));const spw=tennisNormalizeRate(tennisDeepNumber(root,["service_points_won_pct","servicePointsWonPct"]));const rpw=tennisNormalizeRate(tennisDeepNumber(root,["return_points_won_pct","returnPointsWonPct"]));const first=tennisNormalizeRate(tennisDeepNumber(root,["first_serve_points_won_pct","firstServePointsWonPct"]));const second=tennisNormalizeRate(tennisDeepNumber(root,["second_serve_points_won_pct","secondServePointsWonPct"]));const values=[hold,brk,spw,rpw,first,second].filter(v=>v!==null);return{hold,brk,spw,rpw,first,second,composite:values.length?values.reduce((a,b)=>a+b,0)/values.length:null};}
+function tennisStatSnapshot(player,surface){const stats=player?.stats||{};const form=tennisFormMetrics(stats),sr=tennisServeReturnMetrics(stats);return{form:form.recent??form.season,seasonForm:form.season,recentForm:form.recent,surface:tennisSurfaceWinRate(stats,surface),hold:sr.hold,break:sr.brk,servicePoints:sr.spw,returnPoints:sr.rpw,firstServe:sr.first,secondServe:sr.second,serveReturn:sr.composite,movement:player?.rankingMovement||null};}
+function tennisProbability(p1,p2,context={}){const s1=tennisStatSnapshot(p1,context.surface),s2=tennisStatSnapshot(p2,context.surface),components=[];const add=(name,weight,a,b,source)=>{if(Number.isFinite(a)&&Number.isFinite(b)&&a>=0&&b>=0)components.push({name,weight,a,b,source});};const r1=tennisRatingFromRank(p1?.ranking),r2=tennisRatingFromRank(p2?.ranking);if(r1!==null&&r2!==null){const x=1/(1+Math.pow(10,(r2-r1)/400));add("ELO proxy",22,x,1-x,"ranking");}const pts1=tennisNum(p1?.rankingPoints),pts2=tennisNum(p2?.rankingPoints);if(pts1>0&&pts2>0){const x=pts1/(pts1+pts2);add("Puntos ATP/WTA",13,x,1-x,"ranking_points");}if(s1.surface!==null&&s2.surface!==null){const x=s1.surface/(s1.surface+s2.surface||1);add("Superficie",18,x,1-x,"surface");}if(s1.recentForm!==null&&s2.recentForm!==null){const x=s1.recentForm/(s1.recentForm+s2.recentForm||1);add("Forma reciente",14,x,1-x,"recent_form");}else if(s1.seasonForm!==null&&s2.seasonForm!==null){const x=s1.seasonForm/(s1.seasonForm+s2.seasonForm||1);add("Forma temporada",10,x,1-x,"season_form");}if(s1.serveReturn!==null&&s2.serveReturn!==null){const x=s1.serveReturn/(s1.serveReturn+s2.serveReturn||1);add("Servicio/retorno",13,x,1-x,"serve_return");}if(s1.hold!==null&&s2.hold!==null){const x=s1.hold/(s1.hold+s2.hold||1);add("Hold %",5,x,1-x,"hold");}if(s1.break!==null&&s2.break!==null){const x=s1.break/(s1.break+s2.break||1);add("Break %",5,x,1-x,"break");}const h=context.h2h||null,total1=tennisNum(h?.totals?.p1Wins??h?.totals?.player1Wins??h?.totals?.player1_wins),total2=tennisNum(h?.totals?.p2Wins??h?.totals?.player2Wins??h?.totals?.player2_wins);if(total1!==null&&total2!==null&&(total1+total2)>0){const x=total1/(total1+total2);add("H2H total",6,x,1-x,"h2h");}const hv=tennisH2HValues(h,context.surface);if(hv.surfaceP1!==null&&hv.surfaceP2!==null&&(hv.surfaceP1+hv.surfaceP2)>0){const x=hv.surfaceP1/(hv.surfaceP1+hv.surfaceP2);add("H2H superficie",4,x,1-x,"h2h_surface");}if(!components.length)return{p1:.5,components:[],coverage:0,confidence:20,stats:[s1,s2]};const totalWeight=components.reduce((s,c)=>s+c.weight,0);let q1=components.reduce((s,c)=>s+c.a*c.weight,0)/totalWeight;q1=Math.max(.05,Math.min(.95,q1));const agreement=1-(components.reduce((s,c)=>s+Math.abs(c.a-q1)*c.weight,0)/totalWeight),coverage=Math.round(Math.min(1,totalWeight/100)*100),confidence=Math.round(Math.max(25,Math.min(96,coverage*.62+agreement*38)));return{p1:q1,components,coverage,confidence,stats:[s1,s2]};}
+function tennisH2HValues(h2h,surface){if(!h2h)return{p1:null,p2:null,surfaceP1:null,surfaceP2:null,meetings:null};const totals=h2h.totals||{},p1=tennisNum(totals.p1Wins??totals.player1Wins??totals.player1_wins),p2=tennisNum(totals.p2Wins??totals.player2Wins??totals.player2_wins),by=h2h.by_surface||{};let bucket=null;const key=tennisSurfaceKey(surface);if(key){for(const[k,v]of Object.entries(by)){if(tennisSurfaceKey(k)===key){bucket=v;break;}}}const s1=tennisNum(bucket?.p1Wins??bucket?.player1Wins??bucket?.player1_wins??bucket?.wins1),s2=tennisNum(bucket?.p2Wins??bucket?.player2Wins??bucket?.player2_wins??bucket?.wins2),meetings=p1!==null&&p2!==null?p1+p2:null;return{p1,p2,surfaceP1:s1,surfaceP2:s2,meetings};}
+function tennisFormatPct(v){return v===null||v===undefined?"N/D":Math.round(v*100)+"%";}
+function tennisSignalMarkup(component){const pct=component.a*100;return'<div class="tennis-signal-row"><span class="tennis-signal-name">'+esc(component.name)+'</span><div class="tennis-signal-track"><span style="width:'+Math.round(pct)+'%"></span></div><span class="tennis-signal-value">'+Math.round(pct)+'%</span></div>';}
 async function selectTennisMatch(id){
   const match=tennisItems.find(item=>String(item.id)===String(id)), panel=$("tennisAnalysis"); if(!match||!panel)return;
   selectedTennisId=String(id); panel.classList.add("active"); panel.innerHTML="<div class=\"tennis-empty\">Construyendo Prime Tennis Engine…</div>"; panel.scrollIntoView({behavior:"smooth",block:"nearest"});
@@ -5108,7 +5024,7 @@ async function selectTennisMatch(id){
   const stats1=p1?.stats?.season||p1?.stats?.ratings||p1?.stats||{}, stats2=p2?.stats?.season||p2?.stats?.ratings||p2?.stats||{};
   const quality=probability.coverage>=80?"Alta":probability.coverage>=50?"Media":"Limitada";
   const status=match.status==="live"?"EN VIVO":match.status==="completed"||match.status==="final"?"FINAL":"PREMATCH";
-  const version="tennis-ensemble-v2.0";
+  const version="tennis-ensemble-v3.0";
   const componentText=probability.components.length
     ? probability.components.map(component=>tennisSignalMarkup(component,q1)).join("")
     : '<div class="tennis-engine-note">No hay señales cuantitativas suficientes para producir una salida robusta.</div>';
@@ -5118,13 +5034,13 @@ async function selectTennisMatch(id){
     : '<div class="tennis-engine-note">H2H histórico no disponible con el nivel de acceso actual del proveedor.</div>';
   panel.innerHTML=
     '<div class="tennis-analysis-head"><div><div class="tennis-analysis-title">'+esc(p1.name)+' <span style="color:#53627a">vs</span> '+esc(p2.name)+'</div><div class="tennis-analysis-sub">'+esc(match.tour)+' · '+esc(match.tournament)+' · '+esc(surfaceLabel)+' · '+esc(match.round||"Ronda N/D")+'</div></div><button type="button" class="tennis-close" id="closeTennisAnalysis">Cerrar</button></div>'
-    +'<div class="tennis-engine"><div class="tennis-engine-head"><div><div class="tennis-engine-kicker">Prime Tennis Intelligence Engine</div><div class="tennis-engine-title">Ensemble v2.0</div><div class="tennis-engine-sub">Ranking + puntos + superficie + forma + servicio/retorno + H2H. Las señales ausentes no se inventan: el peso se redistribuye.</div></div><div class="tennis-engine-badge">'+esc(status)+'</div></div>'
+    +'<div class="tennis-engine"><div class="tennis-engine-head"><div><div class="tennis-engine-kicker">Prime Tennis Intelligence Engine</div><div class="tennis-engine-title">Ensemble v3.0</div><div class="tennis-engine-sub">Ranking + puntos + superficie + forma + hold/break + servicio/retorno + H2H. Las señales ausentes no se inventan: el peso se redistribuye.</div></div><div class="tennis-engine-badge">'+esc(status)+'</div></div>'
     +'<div class="tennis-engine-score"><div class="tennis-engine-side"><b>'+esc(p1.name)+'</b><div class="tennis-engine-pct">'+tennisPct(q1)+'</div></div><div class="tennis-engine-mid"><div class="tennis-engine-ring" style="--p:'+Math.round(probability.confidence)+'"><span>'+probability.confidence+'%</span></div><div class="tennis-engine-meter">CONFIDENCE</div></div><div class="tennis-engine-side"><b>'+esc(p2.name)+'</b><div class="tennis-engine-pct">'+tennisPct(q2)+'</div></div></div>'
-    +'<div class="tennis-engine-grid"><div class="tennis-engine-chip"><span>Data coverage</span><b>'+probability.coverage+'%</b></div><div class="tennis-engine-chip"><span>Ranking</span><b>'+(p1.ranking||"—")+' / '+(p2.ranking||"—")+'</b></div><div class="tennis-engine-chip"><span>Surface</span><b>'+esc(surfaceLabel)+'</b></div><div class="tennis-engine-chip"><span>Model</span><b>v2.0</b></div></div>'
+    +'<div class="tennis-engine-grid"><div class="tennis-engine-chip"><span>Data coverage</span><b>'+probability.coverage+'%</b></div><div class="tennis-engine-chip"><span>Ranking</span><b>'+(p1.ranking||"—")+' / '+(p2.ranking||"—")+'</b></div><div class="tennis-engine-chip"><span>Surface</span><b>'+esc(surfaceLabel)+'</b></div><div class="tennis-engine-chip"><span>Model</span><b>v3.0</b></div></div>'
     +'<div class="tennis-signal-list">'+componentText+'</div>'
     +h2hCards
     +'<div class="tennis-engine-note"><b>Lectura cuantitativa:</b> '+esc(p1.name)+' recibe '+tennisPct(q1)+' de la salida del ensemble frente a '+tennisPct(q2)+' para '+esc(p2.name)+'. La confianza refleja cobertura y acuerdo entre señales, no garantiza el resultado. '+(h2hError?'H2H: '+h2hError+". ":"")+'</div></div>'
-    +'<div class="tennis-stats-grid"><div class="tennis-stat"><div class="tennis-stat-label">Ranking</div><div class="tennis-stat-value">'+(p1.ranking||"N/D")+' / '+(p2.ranking||"N/D")+'</div></div><div class="tennis-stat"><div class="tennis-stat-label">Puntos</div><div class="tennis-stat-value">'+(p1.rankingPoints||"N/D")+' / '+(p2.rankingPoints||"N/D")+'</div></div><div class="tennis-stat"><div class="tennis-stat-label">Mano</div><div class="tennis-stat-value">'+esc(p1.hand||"N/D")+' / '+esc(p2.hand||"N/D")+'</div></div><div class="tennis-stat"><div class="tennis-stat-label">Calidad datos</div><div class="tennis-stat-value">'+quality+'</div></div></div>'
+    +'<div class="tennis-metrics-panel"><div class="tennis-metrics-title">PRIME MATCHUP METRICS</div><div class="tennis-metrics-grid"><div class="tennis-metric-pair"><span>Forma reciente</span><b>"+tennisFormatPct(probability.stats[0].recentForm)+" / "+tennisFormatPct(probability.stats[1].recentForm)+"</b></div><div class="tennis-metric-pair"><span>Forma temporada</span><b>"+tennisFormatPct(probability.stats[0].seasonForm)+" / "+tennisFormatPct(probability.stats[1].seasonForm)+"</b></div><div class="tennis-metric-pair"><span>Hold %</span><b>"+tennisFormatPct(probability.stats[0].hold)+" / "+tennisFormatPct(probability.stats[1].hold)+"</b></div><div class="tennis-metric-pair"><span>Break %</span><b>"+tennisFormatPct(probability.stats[0].break)+" / "+tennisFormatPct(probability.stats[1].break)+"</b></div><div class="tennis-metric-pair"><span>Service points</span><b>"+tennisFormatPct(probability.stats[0].servicePoints)+" / "+tennisFormatPct(probability.stats[1].servicePoints)+"</b></div><div class="tennis-metric-pair"><span>Return points</span><b>"+tennisFormatPct(probability.stats[0].returnPoints)+" / "+tennisFormatPct(probability.stats[1].returnPoints)+"</b></div></div></div><div class="tennis-stats-grid"><div class="tennis-stat"><div class="tennis-stat-label">Ranking</div><div class="tennis-stat-value">'+(p1.ranking||"N/D")+' / '+(p2.ranking||"N/D")+'</div></div><div class="tennis-stat"><div class="tennis-stat-label">Puntos</div><div class="tennis-stat-value">'+(p1.rankingPoints||"N/D")+' / '+(p2.rankingPoints||"N/D")+'</div></div><div class="tennis-stat"><div class="tennis-stat-label">Mano</div><div class="tennis-stat-value">'+esc(p1.hand||"N/D")+' / '+esc(p2.hand||"N/D")+'</div></div><div class="tennis-stat"><div class="tennis-stat-label">Calidad datos</div><div class="tennis-stat-value">'+quality+'</div></div></div>'
     +'<div class="tennis-analysis-note">Modelo '+version+'. La salida actual es un ensemble determinista basado en las señales disponibles del proveedor; todavía debe pasar por validación cronológica, Brier Score, Log Loss y calibración antes de considerarse un modelo validado en producción.</div>';
   try{
     primePublishPrediction(match,{
