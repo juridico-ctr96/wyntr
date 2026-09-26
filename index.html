@@ -2646,7 +2646,7 @@ function renderCalendarQuality(){
    ========================================================= */
 
 let calendarLoadPromise=null;
-const CALENDAR_CACHE_KEY="wyntr_calendar_cache_v3";
+const CALENDAR_CACHE_KEY="wyntr_calendar_cache_v4";
 const CALENDAR_CACHE_TTL=5*60*1000;
 
 function readCalendarCache(){
@@ -4896,14 +4896,32 @@ async function selectTennisMatch(id){
   const match=tennisItems.find(item=>String(item.id)===String(id)), panel=$("tennisAnalysis"); if(!match||!panel)return;
   selectedTennisId=String(id); panel.classList.add("active"); panel.innerHTML="<div class=\"tennis-empty\">Construyendo Prime Tennis Engine…</div>"; panel.scrollIntoView({behavior:"smooth",block:"nearest"});
   let enrichedMatch=match;
-  try{
-    const detailResponse=await fetch(TENNIS_API+"?matchId="+encodeURIComponent(match.id),{cache:"no-store",headers:{Accept:"application/json"}});
-    if(detailResponse.ok){const detail=await detailResponse.json();if(detail?.match?.players) enrichedMatch=detail.match;}
-  }catch{}
+  const isESPNFallback=String(match.id||"").startsWith("espn-");
+
+  // Los eventos ESPN ya vienen con jugadores y marcador suficientes para
+  // construir la ficha. No intentamos enviarlos a la API de Live Tennis,
+  // porque sus IDs pertenecen a ESPN y no al proveedor premium.
+  if(!isESPNFallback){
+    try{
+      const detailResponse=await fetch(TENNIS_API+"?matchId="+encodeURIComponent(match.id),{cache:"no-store",headers:{Accept:"application/json"}});
+      if(detailResponse.ok){
+        const detail=await detailResponse.json();
+        if(detail?.match?.players) enrichedMatch=detail.match;
+      }
+    }catch{}
+  }
+
   let players=enrichedMatch.players||match.players;
-  if((!players[0]?.stats&&players[0]?.id)||(!players[1]?.stats&&players[1]?.id)||(!players[0]?.ranking&&players[0]?.id)||(!players[1]?.ranking&&players[1]?.id)){
+
+  if(!isESPNFallback && (
+    (!players[0]?.stats&&players[0]?.id) ||
+    (!players[1]?.stats&&players[1]?.id) ||
+    (!players[0]?.ranking&&players[0]?.id) ||
+    (!players[1]?.ranking&&players[1]?.id)
+  )){
     const results=await Promise.allSettled(players.map(player=>player?.id
-      ? fetch(TENNIS_API+"?playerId="+encodeURIComponent(player.id),{cache:"no-store",headers:{Accept:"application/json"}}).then(response=>{if(!response.ok)throw new Error("HTTP "+response.status);return response.json();})
+      ? fetch(TENNIS_API+"?playerId="+encodeURIComponent(player.id),{cache:"no-store",headers:{Accept:"application/json"}})
+          .then(response=>{if(!response.ok)throw new Error("HTTP "+response.status);return response.json();})
       : Promise.reject(new Error("Sin player id"))));
     players=players.map((player,index)=>results[index]?.status==="fulfilled"?(results[index].value.player||player):player);
   }
@@ -5501,11 +5519,41 @@ loadCalendar().finally(async ()=>{
   try{
     const requestedMatch=new URLSearchParams(window.location.search).get("match");
     if(requestedMatch){
-      const target=games.find(game=>String(game.id)===String(requestedMatch));
+      let target=games.find(game=>String(game.id)===String(requestedMatch));
+
+      // Recuperación para fichas abiertas desde fuentes secundarias (nba.html).
+      // Esas fuentes pueden usar el mismo evento con un ID que todavía no esté
+      // en el calendario principal cargado en memoria.
+      if(!target){
+        try{
+          const response=await fetch("/api/fixture-calendar?t="+Date.now(),{
+            cache:"no-store",
+            headers:{Accept:"application/json"}
+          });
+          if(response.ok){
+            const payload=await response.json();
+            const rows=Array.isArray(payload)?payload:(payload?.games||payload?.items||[]);
+            const normalized=rows.map(normEvent).filter(Boolean);
+            target=normalized.find(game=>String(game.id)===String(requestedMatch));
+            if(target){
+              games=dedupe([...games,target]);
+              updateTeams();
+              render();
+            }
+          }
+        }catch(recoveryError){
+          console.warn("Prime Score deep-link recovery:",recoveryError);
+        }
+      }
+
       if(target){
         await selectGame(target.id);
       }else{
-        console.warn("Prime Score: partido solicitado no encontrado en calendario",requestedMatch);
+        console.warn("Prime Score: partido solicitado no encontrado",requestedMatch);
+        const analysis=$("analysis");
+        if(analysis){
+          analysis.innerHTML='<div class="empty error">No encontramos este partido en las fuentes actuales. Vuelve al calendario y abre una ficha disponible.</div>';
+        }
       }
     }
   }catch(error){
