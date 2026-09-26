@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
+<meta name="theme-color" content="#050912">
+<link rel="manifest" href="/manifest.webmanifest">
+<link rel="icon" href="/icons/prime-score.svg" type="image/svg+xml">
+<title>Tennis Intelligence — Prime Score</title>
+<style>
+*{box-sizing:border-box}html,body{margin:0;background:#050912;color:#f5f7fb;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif}
+body{min-height:100vh}.wrap{width:min(1120px,94%);margin:auto;padding:14px 0 90px}
+.top{position:sticky;top:0;z-index:20;background:rgba(5,9,18,.92);backdrop-filter:blur(18px);border-bottom:1px solid #26344a}
+.topin{width:min(1120px,94%);margin:auto;padding:12px 0;display:flex;align-items:center;justify-content:space-between;gap:10px}.brand{display:flex;align-items:center;gap:9px;text-decoration:none;color:#fff}.brand img{width:32px;height:32px}.brand b{letter-spacing:2.5px;font-size:13px}.brand small{display:block;color:#718096;font-size:8px;letter-spacing:1.3px}.back{color:#b9c3d0;text-decoration:none;border:1px solid #29364b;background:#101827;border-radius:999px;padding:8px 11px;font-size:10px;font-weight:800}
+.hero{margin-top:16px;padding:22px;border:1px solid rgba(99,232,255,.16);border-radius:22px;background:radial-gradient(circle at 10% 0%,rgba(99,232,255,.12),transparent 34%),radial-gradient(circle at 90% 0%,rgba(24,215,176,.09),transparent 32%),linear-gradient(145deg,#0d1726,#080f19)}.kicker{color:#18d7b0;font-size:9px;font-weight:950;letter-spacing:2px;text-transform:uppercase}.hero h1{font-size:clamp(30px,6vw,52px);line-height:.98;margin:8px 0}.hero p{color:#8290a4;font-size:12px;line-height:1.6;max-width:720px}.chips{display:flex;gap:7px;margin-top:15px;overflow:auto}.chip{border:1px solid #29364b;background:#101827;color:#aeb9c8;border-radius:999px;padding:8px 12px;font-size:10px;font-weight:850}.chip.active{border-color:#18d7b0;color:#fff;background:rgba(24,215,176,.1)}
+.section{margin-top:18px}.head{display:flex;justify-content:space-between;align-items:end;gap:10px;margin-bottom:10px}.head h2{font-size:18px;margin:0}.head span{color:#718096;font-size:10px}.grid{display:grid;gap:10px}.match{display:block;width:100%;text-align:left;border:1px solid #26364c;background:linear-gradient(145deg,#0e1725,#0b121e);border-radius:18px;padding:15px;color:#fff;cursor:pointer}.match:hover{border-color:#18d7b0}.meta{display:flex;justify-content:space-between;color:#718096;font-size:9px;font-weight:850;letter-spacing:.8px;text-transform:uppercase}.live{color:#18d7b0}.players{display:grid;grid-template-columns:1fr 55px 1fr;align-items:center;gap:8px;margin:18px 0}.player{text-align:center;font-size:14px;font-weight:900}.rank{display:block;color:#718096;font-size:9px;font-weight:700;margin-top:4px}.vs{text-align:center;color:#56657b;font-size:9px;font-weight:900}.foot{display:flex;justify-content:space-between;border-top:1px solid #202c3f;padding-top:10px;color:#718096;font-size:9px}.foot b{color:#63e8ff}.empty,.loading{text-align:center;color:#8290a4;border:1px dashed #29364b;border-radius:16px;padding:28px 15px;background:#0b121e}.analysis{display:none;margin-top:12px;padding:17px;border:1px solid #18d7b0;border-radius:18px;background:#0a121e}.analysis.open{display:block}.score{display:grid;grid-template-columns:1fr 80px 1fr;align-items:center;gap:8px;text-align:center}.score b{font-size:15px}.pct{font-size:28px;font-weight:950;color:#63e8ff;margin-top:5px}.ring{width:62px;height:62px;border-radius:50%;display:grid;place-items:center;margin:auto;background:conic-gradient(#18d7b0 var(--p),#1a2738 0)}.ring span{width:50px;height:50px;border-radius:50%;display:grid;place-items:center;background:#09111d;font-size:11px;font-weight:900}.metrics{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:14px}.metric{border:1px solid #25344a;border-radius:12px;padding:10px;background:#0d1624}.metric span{display:block;color:#718096;font-size:8px;text-transform:uppercase}.metric b{display:block;margin-top:4px;font-size:13px}.notice{color:#718096;font-size:9px;line-height:1.5}.bottom{position:fixed;left:50%;bottom:12px;transform:translateX(-50%);z-index:30;width:min(520px,92%);display:grid;grid-template-columns:repeat(3,1fr);gap:3px;padding:6px;border:1px solid #29364b;background:rgba(10,16,27,.92);backdrop-filter:blur(18px);border-radius:20px}.bottom a{text-decoration:none;color:#718096;text-align:center;padding:8px 4px;border-radius:14px;font-size:9px;font-weight:800}.bottom a.active{background:#14202f;color:#fff}
+@media(max-width:650px){.wrap{width:92%}.players{grid-template-columns:1fr 42px 1fr}.player{font-size:12px}.metrics{grid-template-columns:1fr 1fr}.score{grid-template-columns:1fr 62px 1fr}}
+</style>
+</head>
+<body>
+<header class="top"><div class="topin"><a class="back" href="/">← Inicio</a><a class="brand" href="/tennis.html"><img src="/icons/prime-score.svg" alt=""><div><b>PRIME SCORE</b><small>TENNIS INTELLIGENCE</small></div></a><a class="back" href="/nba.html">NBA →</a></div></header>
+<main class="wrap">
+<section class="hero"><div class="kicker">Prime Score · Tennis</div><h1>TENNIS<br>INTELLIGENCE.</h1><p>ATP y WTA en una ruta independiente. Calendario, estado, jugadores y lectura cuantitativa con el Engine v3.5 cuando las señales están disponibles.</p><div class="chips"><button class="chip active" data-tour="all">Todos</button><button class="chip" data-tour="ATP">ATP</button><button class="chip" data-tour="WTA">WTA</button></div></section>
+<section class="section"><div class="head"><h2>Board ATP / WTA</h2><span id="status">Conectando…</span></div><div id="matches" class="grid"><div class="loading">Cargando Tennis…</div></div></section>
+<section id="analysis" class="analysis"></section>
+<p class="notice">Las probabilidades son una salida estadística informativa. Cuando faltan ranking, forma o estadísticas de superficie, el sistema no inventa esos datos y reduce la cobertura.</p>
+</main>
+<nav class="bottom"><a href="/"><i>⌂</i>Inicio</a><a class="active" href="/tennis.html"><i>🎾</i>Tennis</a><a href="/nba.html"><i>🏀</i>NBA</a></nav>
+<script>
+const root=document.getElementById("matches"),statusEl=document.getElementById("status"),analysis=document.getElementById("analysis");let items=[],tour="all";
+const esc=v=>String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[c]));
+const pct=v=>Math.round(Number(v)*100)+"%";
+const rate=v=>v==null?"N/D":Math.round(Number(v)*100)+"%";
+function valid(m){return m&&Array.isArray(m.players)&&m.players.length>=2&&(m.tour==="ATP"||m.tour==="WTA")}
+function filtered(){return items.filter(valid).filter(m=>tour==="all"||m.tour===tour).sort((a,b)=>new Date(a.date||0)-new Date(b.date||0))}
+function render(){
+ const list=filtered();
+ statusEl.textContent=list.length+" partidos · fuente conectada";
+ if(!list.length){root.innerHTML='<div class="empty">No hay partidos ATP/WTA disponibles ahora. Reintenta en unos segundos.</div>';return}
+ root.innerHTML=list.slice(0,50).map((m,i)=>{
+  const a=m.players[0]||{},b=m.players[1]||{},d=new Date(m.date||0),state=m.status==="live"?"EN VIVO":m.status==="completed"||m.status==="final"?"FINAL":"PRÓXIMO";
+  return '<button class="match" data-id="'+esc(m.id)+'"><div class="meta"><span>'+esc(m.tour)+' · '+esc(m.tournament||"Tennis")+'</span><span class="'+(m.status==="live"?"live":"")+'">'+state+'</span></div><div class="players"><div class="player">'+esc(a.name)+'<span class="rank">'+(a.ranking?"Ranking #"+a.ranking:"Ranking N/D")+'</span></div><div class="vs">VS</div><div class="player">'+esc(b.name)+'<span class="rank">'+(b.ranking?"Ranking #"+b.ranking:"Ranking N/D")+'</span></div></div><div class="foot"><span>'+esc(Number.isNaN(d.getTime())?"Horario pendiente":d.toLocaleString("es-CO",{day:"2-digit",month:"short",hour:"2-digit",minute:"2-digit"}))+'</span><b>ABRIR FICHA →</b></div></button>';
+ }).join("");
+ root.querySelectorAll(".match").forEach(b=>b.onclick=()=>openMatch(b.dataset.id));
+}
+function probability(a,b){
+ const r1=Number(a?.ranking),r2=Number(b?.ranking),p1=Number(a?.rankingPoints),p2=Number(b?.rankingPoints);
+ const signals=[];
+ if(Number.isFinite(r1)&&Number.isFinite(r2)&&r1>0&&r2>0){const x=1/(1+Math.pow(10,(r1-r2)/400));signals.push(["Ranking",x,30])}
+ if(p1>0&&p2>0){const x=p1/(p1+p2);signals.push(["Puntos",x,25])}
+ const s1=a?.stats?.season||a?.stats||{},s2=b?.stats?.season||b?.stats||{};
+ const w1=Number(s1?.wins),l1=Number(s1?.losses),w2=Number(s2?.wins),l2=Number(s2?.losses);
+ if(Number.isFinite(w1)&&Number.isFinite(l1)&&Number.isFinite(w2)&&Number.isFinite(l2)&&(w1+l1>0)&&(w2+l2>0)){const x=(w1/(w1+l1))/((w1/(w1+l1))+(w2/(w2+l2)));signals.push(["Forma",x,20])}
+ if(!signals.length)return {p:.5,coverage:0};
+ const total=signals.reduce((s,x)=>s+x[2],0),p=signals.reduce((s,x)=>s+x[1]*x[2],0)/total;
+ return {p,coverage:total,signals};
+}
+async function openMatch(id){
+ const m=items.find(x=>String(x.id)===String(id));if(!m)return;
+ const a=m.players[0]||{},b=m.players[1]||{};
+ analysis.classList.add("open");analysis.innerHTML='<div class="loading">Construyendo Prime Tennis Engine v3.5…</div>';analysis.scrollIntoView({behavior:"smooth",block:"start"});
+ let match=m;
+ if(!String(id).startsWith("espn-")){
+  try{const r=await fetch("/api/live-tennis?matchId="+encodeURIComponent(id),{cache:"no-store"});if(r.ok){const d=await r.json();if(d?.match?.players)match=d.match}}catch{}
+ }
+ const p1=match.players?.[0]||a,p2=match.players?.[1]||b;
+ const model=probability(p1,p2),q1=model.p,q2=1-q1;
+ analysis.innerHTML='<div class="head"><h2>'+esc(p1.name)+' <span style="color:#53627a">vs</span> '+esc(p2.name)+'</h2><button class="chip" id="close">Cerrar</button></div><div class="score"><div><b>'+esc(p1.name)+'</b><div class="pct">'+pct(q1)+'</div></div><div><div class="ring" style="--p:'+Math.round(q1*100)+'%"><span>'+Math.round((model.coverage||0))+'%</span></div><small>DATA COVERAGE</small></div><div><b>'+esc(p2.name)+'</b><div class="pct">'+pct(q2)+'</div></div></div><div class="metrics"><div class="metric"><span>Tour</span><b>'+esc(match.tour)+'</b></div><div class="metric"><span>Ranking</span><b>'+esc(String(p1.ranking||"N/D"))+' / '+esc(String(p2.ranking||"N/D"))+'</b></div><div class="metric"><span>Puntos</span><b>'+esc(String(p1.rankingPoints||"N/D"))+' / '+esc(String(p2.rankingPoints||"N/D"))+'</b></div><div class="metric"><span>Superficie</span><b>'+esc(String(match.surface||"N/D"))+'</b></div></div><p class="notice">Engine v3.5: las señales disponibles se ponderan; si faltan datos no se inventan. Cobertura: '+Math.round(model.coverage||0)+'%. Esta salida no garantiza el resultado.</p>';
+ document.getElementById("close").onclick=()=>analysis.classList.remove("open");
+}
+async function load(){
+ try{statusEl.textContent="Actualizando…";const r=await fetch("/api/live-tennis?t="+Date.now(),{cache:"no-store",headers:{Accept:"application/json"}});if(!r.ok)throw Error("HTTP "+r.status);const d=await r.json();items=Array.isArray(d?.items)?d.items:[];render()}catch(e){statusEl.textContent="Sin conexión";root.innerHTML='<div class="empty">No se pudo cargar Tennis. Reintenta.</div>'}
+}
+document.querySelectorAll("[data-tour]").forEach(b=>b.onclick=()=>{tour=b.dataset.tour;document.querySelectorAll("[data-tour]").forEach(x=>x.classList.toggle("active",x===b));render()});
+load();setInterval(load,10*60*1000);
+</script>
+</body>
+</html>
