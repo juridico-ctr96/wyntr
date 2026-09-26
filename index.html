@@ -4025,7 +4025,10 @@ async function selectGame(id){
   }
 
   try{
-    const result=await analyzeGame(selected);
+    const result=await Promise.race([
+      analyzeGame(selected),
+      new Promise((_,reject)=>setTimeout(()=>reject(new Error("ANALYSIS_TIMEOUT")),15000))
+    ]);
 
     const payload={
       savedAt:Date.now(),
@@ -4055,16 +4058,22 @@ async function selectGame(id){
 
   }catch(error){
     console.error("PRIME SCORE match page:",error);
-    if(analysis){
-      analysis.innerHTML=`
-        <div class="empty error">
-          No fue posible preparar la ficha del partido.
-          <br><br>
-          Revisa la conexión e inténtalo nuevamente.
-        </div>
-      `;
-    }
+    // La ficha nunca debe quedar bloqueada por una fuente secundaria.
+    const fallback={
+      home:50, away:50, confidenceScore:0, gb:.5, elo:.5,
+      scoreDistribution:.5, form:.5, production:.5, availability:.5,
+      projectedHomeScore:null, projectedAwayScore:null, pace:0, sample:0, testSample:0,
+      brier:null, logLoss:null, hs:{}, as:{}, homeHome:{}, awayRoad:{},
+      h2h:[], h2hWins:{home:0,away:0},
+      injuryData:{available:false,records:[],reason:"Análisis avanzado temporalmente no disponible."}
+    };
+    const payload={savedAt:Date.now(),game:selected,result:fallback,fallback:true,error:String(error?.message||"ANALYSIS_ERROR")};
+    const serialized=JSON.stringify(payload);
+    try{localStorage.setItem("prime_score_match_"+String(selected.id),serialized)}catch{}
+    try{window.name="PRIME_SCORE_MATCH:"+serialized}catch{}
+    window.location.href="/partido.html?id="+encodeURIComponent(String(selected.id));
   }
+}
 }
 
 
