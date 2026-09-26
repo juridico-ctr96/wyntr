@@ -765,8 +765,8 @@ body{background:
 .live-badge{background:rgba(255,98,98,.12);color:#ff7777;border:1px solid rgba(255,98,98,.3)}
 .verified-badge{background:rgba(24,215,176,.1);color:var(--wyntr-green);border:1px solid rgba(24,215,176,.25)}
 .live-dot{width:6px;height:6px;border-radius:50%;background:#ff6262;box-shadow:0 0 10px #ff6262}
-.bottom-nav{position:fixed;left:50%;bottom:10px;transform:translateX(-50%);z-index:50;width:min(560px,calc(100% - 20px));display:grid;grid-template-columns:repeat(5,1fr);gap:4px;padding:7px;background:rgba(7,12,21,.92);border:1px solid #26344a;border-radius:18px;backdrop-filter:blur(18px);box-shadow:0 14px 40px rgba(0,0,0,.4)}
-.bottom-nav a{text-decoration:none;color:#77859a;text-align:center;font-size:8px;font-weight:900;padding:6px 2px;border-radius:11px}
+.bottom-nav{position:fixed;left:50%;bottom:max(10px,env(safe-area-inset-bottom));transform:translateX(-50%);z-index:1000;width:min(560px,calc(100% - 14px));display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:2px;padding:7px;background:rgba(7,12,21,.92);border:1px solid #26344a;border-radius:18px;backdrop-filter:blur(18px);box-shadow:0 14px 40px rgba(0,0,0,.4)}
+.bottom-nav a{text-decoration:none;color:#77859a;text-align:center;font-size:8px;font-weight:900;padding:7px 1px;border-radius:11px;min-width:0;touch-action:manipulation;-webkit-tap-highlight-color:transparent}
 .bottom-nav a span{display:block;font-size:15px;margin-bottom:2px}
 .bottom-nav a.active{color:#fff;background:#112532}
 .game-list-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
@@ -774,6 +774,9 @@ body{background:
 .game-list-header span{font-size:10px;color:#718096}
 @media(max-width:650px){
   .container{width:94%}
+  .bottom-nav{grid-template-columns:repeat(6,minmax(0,1fr));padding:6px 5px;gap:2px}
+  .bottom-nav a{font-size:7px;padding:6px 1px}
+  .bottom-nav a span{font-size:14px}
   .header{position:sticky}
   .nba-hero{min-height:365px}
   .nba-hero img{height:365px}
@@ -2683,12 +2686,12 @@ async function loadCalendar(force=false){
   }
   calendarLoadPromise=(async()=>{
     const status=$("calendarStatus");
-    status.textContent="Consultando partidos NBA...";
+    status.textContent="Buscando partidos NBA…";
     const now=new Date();
-    const endDate=new Date(now); endDate.setDate(endDate.getDate()+45);
+    const endDate=new Date(now); endDate.setDate(endDate.getDate()+30);
     const params=new URLSearchParams({start_date:now.toISOString().slice(0,10),end_date:endDate.toISOString().slice(0,10)});
     try{
-      const payload=await fetchJSON("/api/espn-nba?"+params.toString(),25000);
+      const payload=await fetchJSON("/api/espn-nba?"+params.toString(),12000);
       const normalized=normalizeESPNCalendarGames(payload);
       const quality=validateCalendarGames(normalized);
       if(!quality.valid.length)throw new Error("ESPN no devolvió partidos válidos.");
@@ -2700,7 +2703,7 @@ async function loadCalendar(force=false){
     }catch(espnError){console.warn("WYNTR ESPN calendar:",espnError);}
     try{
       status.textContent="ESPN no disponible. Consultando NBA.com...";
-      const payload=await fetchJSON(NBA_SCHEDULE,15000);
+      const payload=await fetchJSON(NBA_SCHEDULE,8000);
       const official=normalizeOfficialCalendarGames(payload,now.toISOString(),endDate.toISOString());
       if(!official.length)throw new Error("NBA.com no devolvió partidos.");
       games=dedupe(official);
@@ -2711,7 +2714,7 @@ async function loadCalendar(force=false){
     }catch(officialError){console.warn("WYNTR NBA.com calendar:",officialError);}
     try{
       status.textContent="NBA.com no disponible. Consultando calendario alternativo...";
-      const payload=await fetchJSON("/api/fixture-calendar",15000);
+      const payload=await fetchJSON("/api/fixture-calendar",8000);
       const normalized=normalizeFixtureCalendarGames(payload,now.toISOString(),endDate.toISOString());
       const quality=validateCalendarGames(normalized);
       if(!quality.valid.length)throw new Error("El calendario alternativo no devolvió partidos válidos.");
@@ -2723,7 +2726,7 @@ async function loadCalendar(force=false){
     }catch(fixtureError){console.warn("WYNTR fixture calendar:",fixtureError);}
     try{
       status.textContent="Consultando BALLDONTLIE...";
-      const data=await fetchBDLGames(params,2); const normalized=data.map(normEvent);
+      const data=await fetchBDLGames(params,1); const normalized=data.map(normEvent);
       const quality=validateCalendarGames(normalized); games=dedupe(quality.valid);
       state.dataQuality={total:quality.total,valid:quality.valid.length,rejected:quality.rejected};
       state.scheduleVerification={source:"BALLDONTLIE",current:games.length,official:games.length,matched:games.map(game=>({game})),mismatches:[],missing:[],exact:true};
@@ -2731,7 +2734,7 @@ async function loadCalendar(force=false){
       status.textContent=games.length?games.length+" partidos válidos · BALLDONTLIE.":"No hay partidos publicados en la ventana actual."; return games;
     }catch(error){
       console.error("WYNTR calendar all sources failed:",error); games=[]; state.scheduleVerification=null; render();
-      status.innerHTML="<span class=\"error\">No se pudo cargar el calendario.<br><small>"+esc(error?.message||"Error desconocido")+"</small></span><br><br>Pulsa \"Actualizar partidos\" para intentarlo nuevamente."; return [];
+      status.innerHTML="<span class=\"error\">No se pudo actualizar el calendario ahora.</span><br><br><button type=\"button\" class=\"secondary\" onclick=\"loadCalendar(true)\">Reintentar</button>"; return [];
     }
   })();
   try{return await calendarLoadPromise;}finally{calendarLoadPromise=null;}
@@ -5093,6 +5096,7 @@ newsRefreshTimer = setInterval(loadNews, 5 * 60 * 1000);
 const APP_ROUTES = {
   home: null,
   nba: "games-section",
+  ledger: "__external_ledger__",
   tennis: "tennis-section",
   calendar: "calendar",
   analysis: "analysis-section",
@@ -5146,6 +5150,10 @@ function navigateRoute(route){
     window.location.href="/news.html";
     return key;
   }
+  if(key==="ledger"){
+    window.location.href="/predictions.html";
+    return key;
+  }
   if(key==="home"){
     openDashboardSection(null,{updateHash:true,scroll:true});
     return key;
@@ -5191,6 +5199,15 @@ document.querySelectorAll("[data-home]").forEach(el=>{
     event.preventDefault();
     navigateRoute("home");
   });
+});
+
+/* Mobile bottom navigation is rendered after the main script, so use delegation. */
+document.addEventListener("click",event=>{
+  const el=event.target.closest(".bottom-nav a[data-route]");
+  if(!el)return;
+  event.preventDefault();
+  event.stopPropagation();
+  navigateRoute(el.dataset.route);
 });
 
 /* Keyboard activation is handled separately; click navigation is bound once above. */
