@@ -4922,7 +4922,7 @@ async function selectTennisMatch(id){
   const stats1=p1?.stats?.season||p1?.stats?.ratings||p1?.stats||{}, stats2=p2?.stats?.season||p2?.stats?.ratings||p2?.stats||{};
   const quality=probability.coverage>=80?"Alta":probability.coverage>=50?"Media":"Limitada";
   const status=match.status==="live"?"EN VIVO":match.status==="completed"||match.status==="final"?"FINAL":"PREMATCH";
-  const version="tennis-ensemble-v3.2";
+  const version="tennis-ensemble-v3.5";
   const componentText=probability.components.length
     ? probability.components.map(component=>tennisSignalMarkup(component,q1)).join("")
     : '<div class="tennis-engine-note">No hay señales cuantitativas suficientes para producir una salida robusta.</div>';
@@ -4939,7 +4939,7 @@ async function selectTennisMatch(id){
     : '<div class="tennis-engine-note">H2H histórico no disponible con el nivel de acceso actual del proveedor.</div>';
   panel.innerHTML=
     '<div class="tennis-analysis-head"><div><div class="tennis-analysis-title">'+esc(p1.name)+' <span style="color:#53627a">vs</span> '+esc(p2.name)+'</div><div class="tennis-analysis-sub">'+esc(match.tour)+' · '+esc(match.tournament)+' · '+esc(surfaceLabel)+' · '+esc(match.round||"Ronda N/D")+'</div></div><button type="button" class="tennis-close" id="closeTennisAnalysis">Cerrar</button></div>'
-    +'<div class="tennis-engine"><div class="tennis-engine-head"><div><div class="tennis-engine-kicker">Prime Tennis Intelligence Engine</div><div class="tennis-engine-title">Ensemble v3.2</div><div class="tennis-engine-sub">Ranking + puntos + superficie + forma + hold/break + servicio/retorno + H2H. Las señales ausentes no se inventan: el peso se redistribuye.</div></div><div class="tennis-engine-badge">'+esc(status)+'</div></div>'
+    +'<div class="tennis-engine"><div class="tennis-engine-head"><div><div class="tennis-engine-kicker">Prime Tennis Intelligence Engine</div><div class="tennis-engine-title">Ensemble v3.5</div><div class="tennis-engine-sub">Ranking + puntos + superficie + forma + hold/break + servicio/retorno + H2H. Las señales ausentes no se inventan: el peso se redistribuye.</div></div><div class="tennis-engine-badge">'+esc(status)+'</div></div>'
     +'<div class="tennis-engine-score"><div class="tennis-engine-side"><b>'+esc(p1.name)+'</b><div class="tennis-engine-pct">'+tennisPct(q1)+'</div></div><div class="tennis-engine-mid"><div class="tennis-engine-ring" style="--p:'+Math.round(probability.confidence)+'"><span>'+probability.confidence+'%</span></div><div class="tennis-engine-meter">CONFIDENCE</div></div><div class="tennis-engine-side"><b>'+esc(p2.name)+'</b><div class="tennis-engine-pct">'+tennisPct(q2)+'</div></div></div>'
     +'<div class="tennis-engine-grid"><div class="tennis-engine-chip"><span>Data coverage</span><b>'+probability.coverage+'%</b></div><div class="tennis-engine-chip"><span>Ranking</span><b>'+(p1.ranking||"—")+' / '+(p2.ranking||"—")+'</b></div><div class="tennis-engine-chip"><span>Surface</span><b>'+esc(surfaceLabel)+'</b></div><div class="tennis-engine-chip"><span>Model</span><b>v3.2</b></div></div>'
     +'<div class="tennis-signal-list">'+componentText+'</div>'
@@ -4964,27 +4964,102 @@ async function selectTennisMatch(id){
   $("closeTennisAnalysis")?.addEventListener("click",()=>{panel.classList.remove("active");selectedTennisId=null;});
 }
 
+async function fetchDirectESPNTennis(){
+  const dates=[];
+  const base=new Date();
+  for(let i=0;i<3;i++){
+    const d=new Date(base);
+    d.setDate(d.getDate()+i);
+    dates.push(d.toISOString().slice(0,10).replaceAll("-",""));
+  }
+  const tours=["atp","wta"];
+  const requests=tours.flatMap(tour=>dates.map(date=>
+    fetch("https://site.api.espn.com/apis/site/v2/sports/tennis/"+tour+"/scoreboard?dates="+date,{
+      cache:"no-store",
+      headers:{Accept:"application/json"}
+    }).then(async response=>{
+      if(!response.ok) throw new Error("ESPN Tennis "+tour+" HTTP "+response.status);
+      return {tour,data:await response.json()};
+    })
+  ));
+  const results=await Promise.allSettled(requests);
+  const items=[];
+  for(const result of results){
+    if(result.status!=="fulfilled") continue;
+    const tour=result.value.tour.toUpperCase();
+    for(const event of result.value.data?.events||[]){
+      const competition=event?.competitions?.[0];
+      const competitors=competition?.competitors||[];
+      const home=competitors.find(x=>x?.homeAway==="home")||competitors[0];
+      const away=competitors.find(x=>x?.homeAway==="away")||competitors[1];
+      if(!event?.id||!home?.athlete||!away?.athlete) continue;
+      const rawState=String(event?.status?.type?.state||"").toLowerCase();
+      const status=rawState==="in"?"live":rawState==="post"?"completed":"upcoming";
+      items.push({
+        id:"espn-"+tour+"-"+String(event.id),
+        tour,
+        tournament:competition?.type?.text||event?.name||"Tennis",
+        tier:null,
+        surface:null,
+        round:competition?.type?.abbreviation||"",
+        date:event?.date||null,
+        status,
+        statusDetail:event?.status?.type?.shortDetail||event?.status?.type?.description||"",
+        players:[
+          {id:home.athlete.id||null,name:home.athlete.displayName||home.athlete.fullName||"Jugador 1",shortName:home.athlete.shortName||home.athlete.displayName||"Jugador 1",country:"",ranking:null,rankingPoints:null,flag:null,hand:null,backhand:null,rankingMovement:null,dataCompleteness:null,stats:null},
+          {id:away.athlete.id||null,name:away.athlete.displayName||away.athlete.fullName||"Jugador 2",shortName:away.athlete.shortName||away.athlete.displayName||"Jugador 2",country:"",ranking:null,rankingPoints:null,flag:null,hand:null,backhand:null,rankingMovement:null,dataCompleteness:null,stats:null}
+        ],
+        sets:competitors.slice(0,2).map(x=>(x?.linescores||[]).map(s=>Number.isFinite(Number(s?.value))?Number(s.value):s?.displayValue)),
+        games:[],points:[],server:null,isTiebreak:false,winner:null,outcome:null,hasAnalysis:false,hasMarket:false
+      });
+    }
+  }
+  return Array.from(new Map(items.map(item=>[item.id,item])).values())
+    .filter(item=>item.tour==="ATP"||item.tour==="WTA")
+    .sort((a,b)=>new Date(a.date||0)-new Date(b.date||0));
+}
+
 async function loadTennis(){
   const status = $("tennisStatus");
   try{
-    if(status) status.textContent = "Actualizando…";
-    const response = await fetch(TENNIS_API,{cache:"no-store",headers:{Accept:"application/json"}});
-    if(!response.ok) throw new Error("HTTP " + response.status);
-    const data = await response.json();
-    tennisItems = Array.isArray(data.items) ? data.items : [];
+    if(status) status.textContent = "Actualizando ATP/WTA…";
+    let data=null;
+    try{
+      const response = await fetch(TENNIS_API+"?t="+Date.now(),{cache:"no-store",headers:{Accept:"application/json"}});
+      if(response.ok) data=await response.json();
+    }catch(error){
+      console.warn("Prime Tennis API:",error);
+    }
+
+    let items=Array.isArray(data?.items)?data.items:[];
+    let source=data?.source||"Live Tennis API";
+
+    if(!items.length){
+      items=await fetchDirectESPNTennis();
+      source="ESPN directo (respaldo)";
+    }
+
+    tennisItems=items;
     renderTennis();
     renderHomeDashboard();
+
     const tennisTourItems=tennisItems.filter(m=>m.tour==="ATP"||m.tour==="WTA");
     const live=tennisTourItems.filter(m=>m.status==="live").length;
     const upcoming=tennisTourItems.filter(m=>m.status==="upcoming").length;
     const final=tennisItems.filter(m=>m.status==="completed" || m.status==="final").length;
-    const source = data.source || "Live Tennis API";
-    if(status) status.textContent=live + " en vivo · " + upcoming + " próximos · " + final + " resultados · " + source;
-    if(!tennisTourItems.length && data?.configured!==false && status) status.textContent="Sin partidos ATP/WTA devueltos por el proveedor.";
+
+    if(status) status.textContent=live+" en vivo · "+upcoming+" próximos · "+final+" resultados · "+source;
+
+    if(!tennisTourItems.length && status){
+      status.textContent="Sin partidos ATP/WTA disponibles ahora.";
+    }
   }catch(error){
     console.warn("PRIME SCORE Tennis:",error);
-    if(status) status.textContent = error?.message || "No se pudo conectar";
-    if($("tennisMatches")) $("tennisMatches").innerHTML = '<div class="tennis-empty error">No se pudo cargar el calendario ATP/WTA. Revisa la conexión del proveedor.</div>';
+    tennisItems=[];
+    renderTennis();
+    renderHomeDashboard();
+    if(status) status.textContent="Tennis temporalmente sin conexión";
+    if($("tennisMatches")) $("tennisMatches").innerHTML='<div class="tennis-empty error">No se pudo cargar Tennis. Reintenta en unos segundos.</div>';
   }
 }
 
