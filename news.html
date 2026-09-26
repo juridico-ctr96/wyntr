@@ -5,25 +5,94 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>Prime News Intelligence</title>
 <style>
-:root{--bg:#050914;--card:#0b1220;--line:#1b2a3e;--text:#f4f7fb;--muted:#8fa0b7;--accent:#63e8ff;--green:#8ef0bd}
+:root{--bg:#050914;--card:#0b1220;--line:#1b2a3e;--text:#f4f7fb;--muted:#8fa0b7;--accent:#63e8ff;--green:#8ef0bd;--amber:#ffd27a;--red:#ff8799}
 *{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at 50% -10%,#13243b 0,#050914 48%);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;min-height:100vh}
-.wrap{width:min(1100px,100%);margin:auto;padding:18px 16px 50px}.top{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:18px}.brand{font-weight:950;letter-spacing:.12em;font-size:12px;color:var(--accent)}.back{color:var(--text);text-decoration:none;border:1px solid var(--line);background:#0a111d;padding:10px 13px;border-radius:12px;font-weight:800}
-h1{font-size:clamp(28px,6vw,48px);margin:8px 0}.sub{color:var(--muted);margin:0 0 24px}.status{display:flex;align-items:center;gap:8px;color:var(--green);font-size:12px;font-weight:800;margin-bottom:16px}.dot{width:8px;height:8px;border-radius:50%;background:var(--green);box-shadow:0 0 14px var(--green)}
-.grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}.card{display:block;color:inherit;text-decoration:none;background:linear-gradient(180deg,#0c1524,#09101b);border:1px solid var(--line);border-radius:16px;overflow:hidden;transition:transform .15s,border-color .15s}.card:hover{transform:translateY(-2px);border-color:#31506e}.img{width:100%;aspect-ratio:16/9;object-fit:cover;background:#101a29}.body{padding:14px}.tag{color:var(--accent);font-size:10px;font-weight:950;text-transform:uppercase;letter-spacing:.08em}.title{font-size:15px;font-weight:850;line-height:1.3;margin:7px 0 10px}.meta{font-size:11px;color:var(--muted)}.empty{padding:35px;text-align:center;border:1px dashed var(--line);border-radius:16px;color:var(--muted)}@media(max-width:760px){.grid{grid-template-columns:1fr}.wrap{padding-top:14px}.card{display:grid;grid-template-columns:125px 1fr}.img{height:100%;aspect-ratio:auto}.body{padding:12px}.title{font-size:13px}}
+.wrap{width:min(1160px,100%);margin:auto;padding:18px 16px 50px}.top{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:18px}.brand{font-weight:950;letter-spacing:.12em;font-size:12px;color:var(--accent)}.back{color:var(--text);text-decoration:none;border:1px solid var(--line);background:#0a111d;padding:10px 13px;border-radius:12px;font-weight:800}
+h1{font-size:clamp(28px,6vw,48px);margin:8px 0}.sub{color:var(--muted);margin:0 0 22px;max-width:800px}.status{display:flex;align-items:center;gap:8px;color:var(--green);font-size:12px;font-weight:800;margin-bottom:16px}.dot{width:8px;height:8px;border-radius:50%;background:var(--green);box-shadow:0 0 14px var(--green)}
+.tabs{display:flex;gap:8px;margin:0 0 18px;overflow:auto;padding-bottom:2px}.tab{white-space:nowrap;border:1px solid var(--line);background:#0a111d;color:var(--muted);padding:10px 14px;border-radius:12px;font-weight:850;cursor:pointer}.tab.active{color:var(--text);border-color:#31506e;background:#101b2b}
+.grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}.card{display:flex;flex-direction:column;color:inherit;text-decoration:none;background:linear-gradient(180deg,#0c1524,#09101b);border:1px solid var(--line);border-radius:16px;overflow:hidden;transition:transform .15s,border-color .15s}.card:hover{transform:translateY(-2px);border-color:#31506e}.img{width:100%;aspect-ratio:16/9;object-fit:cover;background:#101a29}.body{padding:14px}.topline{display:flex;gap:7px;align-items:center;flex-wrap:wrap}.tag,.impact{font-size:10px;font-weight:950;text-transform:uppercase;letter-spacing:.07em}.tag{color:var(--accent)}.impact{padding:4px 7px;border-radius:7px;background:#142031;color:var(--muted)}.impact.high{color:var(--red);background:#321620}.impact.medium{color:var(--amber);background:#302717}.impact.low{color:var(--green);background:#12261e}.title{font-size:15px;font-weight:850;line-height:1.3;margin:8px 0 9px}.meta{font-size:11px;color:var(--muted)}.intel{margin-top:11px;border-top:1px solid var(--line);padding-top:10px;font-size:11px;color:#c7d2e1;line-height:1.4}.entity{display:inline-block;margin:5px 5px 0 0;padding:4px 7px;border-radius:7px;background:#111d2d;color:#b8eefd;font-weight:800}.match{margin-top:8px;padding:8px;border-radius:9px;background:#0d1827;border:1px solid #20344d;color:#b8c8da}.empty{padding:35px;text-align:center;border:1px dashed var(--line);border-radius:16px;color:var(--muted);grid-column:1/-1}
+@media(max-width:900px){.grid{grid-template-columns:repeat(2,minmax(0,1fr))}}@media(max-width:650px){.grid{grid-template-columns:1fr}.wrap{padding-top:14px}.card{display:grid;grid-template-columns:125px 1fr}.img{height:100%;aspect-ratio:auto;min-height:130px}.body{padding:12px}.title{font-size:13px}.intel{font-size:10px}}
 </style>
 </head>
 <body>
 <main class="wrap">
 <header class="top"><div class="brand">PRIME SCORE · NEWS INTELLIGENCE</div><a class="back" href="/">← Prime Score</a></header>
 <h1>Prime News Intelligence</h1>
-<p class="sub">Noticias NBA seleccionadas y contextualizadas para seguir equipos, jugadores y partidos.</p>
-<div class="status"><span class="dot"></span><span id="status">Actualizando noticias…</span></div>
-<section id="news" class="grid"><div class="empty">Cargando noticias…</div></section>
+<p class="sub">Noticias NBA y Tenis convertidas en señales contextualizadas: entidad → impacto → partido → modelo.</p>
+<div class="status"><span class="dot"></span><span id="status">Conectando fuentes…</span></div>
+<div class="tabs" role="tablist">
+<button class="tab active" data-filter="all">Todos</button>
+<button class="tab" data-filter="nba">🏀 NBA</button>
+<button class="tab" data-filter="tennis">🎾 Tennis</button>
+<button class="tab" data-filter="high">⚠ Impacto alto</button>
+</div>
+<section id="news" class="grid"><div class="empty">Cargando inteligencia…</div></section>
 </main>
 <script>
 const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const time=d=>{if(!d)return "";const x=new Date(d);return isNaN(x)?"":x.toLocaleString("es-CO",{day:"2-digit",month:"short",hour:"2-digit",minute:"2-digit"});};
-async function load(){const box=document.querySelector("#news"),status=document.querySelector("#status");try{const r=await fetch("/api/nba-news",{cache:"no-store"});if(!r.ok)throw new Error("news");const data=await r.json();const items=Array.isArray(data.items)?data.items:[];if(!items.length){box.innerHTML='<div class="empty">No hay noticias disponibles en este momento.</div>';status.textContent="Sin noticias disponibles";return;}box.innerHTML=items.map(i=>'<a class="card" href="'+esc(i.url||"#")+'" target="_blank" rel="noopener noreferrer">'+(i.image?'<img class="img" src="'+esc(i.image)+'" alt="" loading="lazy">':'<div class="img"></div>')+'<div class="body"><div class="tag">Última hora · '+esc(i.source||"NBA")+'</div><div class="title">'+esc(i.title)+'</div><div class="meta">'+time(i.publishedAt||i.date)+'</div></div></a>').join("");status.textContent=items.length+" noticias · actualizado ahora";}catch(e){box.innerHTML='<div class="empty">No pudimos cargar las noticias. Intenta de nuevo.</div>';status.textContent="Sin conexión";}}
+let allItems=[], currentFilter="all", tennisMatches=[];
+
+function classifyNBA(item){
+  if(item.category)return item;
+  const t=(item.title||"").toLowerCase();
+  if(/injur|injured|out|questionable|surgery|illness|ankle|knee|shoulder|back|ruled out/.test(t)) return {...item,category:"injury",impact:"high",impactReason:"Posible efecto directo sobre disponibilidad o estado físico."};
+  if(/trade|traded|signs|signed|waive|acquire/.test(t)) return {...item,category:"roster",impact:"medium",impactReason:"Puede modificar disponibilidad o rotación."};
+  if(/rest|return|comeback|coach|lineup|starting/.test(t)) return {...item,category:"form",impact:"medium",impactReason:"Puede aportar contexto sobre rotación, forma o preparación."};
+  return {...item,category:"context",impact:"low",impactReason:"Contexto general; no implica cambio de modelo por sí solo."};
+}
+
+function linkedMatches(item){
+  if(item.sport!=="tennis" || !item.entities?.length) return [];
+  const names=item.entities.map(x=>x.toLowerCase());
+  return tennisMatches.filter(m=>(m.players||[]).some(p=>names.includes(String(p.name||"").toLowerCase()))).slice(0,2);
+}
+
+function render(){
+  const box=document.querySelector("#news");
+  let items=allItems.map(classifyNBA);
+  if(currentFilter==="nba")items=items.filter(x=>x.sport==="nba");
+  if(currentFilter==="tennis")items=items.filter(x=>x.sport==="tennis");
+  if(currentFilter==="high")items=items.filter(x=>x.impact==="high");
+  if(!items.length){box.innerHTML='<div class="empty">No hay noticias para este filtro.</div>';return;}
+  box.innerHTML=items.map(i=>{
+    const matches=linkedMatches(i);
+    const entities=(i.entities||[]).map(e=>'<span class="entity">'+esc(e)+'</span>').join("");
+    return '<a class="card" href="'+esc(i.url||"#")+'" target="_blank" rel="noopener noreferrer">'+
+      (i.image?'<img class="img" src="'+esc(i.image)+'" alt="" loading="lazy">':'<div class="img"></div>')+
+      '<div class="body"><div class="topline"><span class="tag">'+(i.sport==="tennis"?"🎾 "+esc(i.tour||"Tennis"):"🏀 NBA")+' · '+esc(i.source||"")+'</span>'+
+      '<span class="impact '+esc(i.impact||"low")+'">Impacto '+esc(i.impact||"low")+'</span></div>'+
+      '<div class="title">'+esc(i.title)+'</div><div class="meta">'+time(i.published)+'</div>'+
+      '<div class="intel"><strong>'+esc(i.category||"context")+'</strong> · '+esc(i.impactReason||"Contexto editorial.")+
+      (entities?'<div>'+entities+'</div>':"")+
+      (matches.length?matches.map(m=>'<div class="match">🎾 Partido relacionado: '+esc(m.players?.[0]?.name||"")+" vs "+esc(m.players?.[1]?.name||"")+'</div>').join(""):"")+
+      '</div></div></a>';
+  }).join("");
+}
+
+async function load(){
+  const status=document.querySelector("#status");
+  try{
+    const [nba,tennis]=await Promise.all([
+      fetch("/api/nba-news",{cache:"no-store"}).then(r=>r.ok?r.json():{items:[]}),
+      fetch("/api/tennis-news",{cache:"no-store"}).then(r=>r.ok?r.json():{items:[]})
+    ]);
+    allItems=[
+      ...(Array.isArray(nba.items)?nba.items:[]).map(x=>({...x,sport:"nba"})),
+      ...(Array.isArray(tennis.items)?tennis.items:[]).map(x=>({...x,sport:"tennis"}))
+    ].sort((a,b)=>new Date(b.published||0)-new Date(a.published||0));
+    try{
+      const live=await fetch("/api/live-tennis",{cache:"no-store"}).then(r=>r.ok?r.json():{items:[]});
+      tennisMatches=Array.isArray(live.items)?live.items:[];
+    }catch{}
+    render();
+    status.textContent=allItems.length+" noticias · NBA + ATP/WTA · actualizado ahora";
+  }catch(e){
+    status.textContent="Algunas fuentes no están disponibles";
+    render();
+  }
+}
+document.querySelectorAll(".tab").forEach(b=>b.addEventListener("click",()=>{currentFilter=b.dataset.filter;document.querySelectorAll(".tab").forEach(x=>x.classList.toggle("active",x===b));render();}));
 load();setInterval(load,5*60*1000);
 </script>
 </body>
