@@ -5356,8 +5356,7 @@ function navigateRoute(route){
     return key;
   }
   if(key==="tennis"){
-    window.location.href="/tennis.html";
-    return key;
+    return openDashboardSection("tennis-section",{updateHash:true,scroll:true});
   }
   if(key==="news"){
     window.location.href="/news.html";
