@@ -272,12 +272,44 @@ function render(payload){
 (async()=>{
   const id=new URLSearchParams(location.search).get("id");
   if(!id){app.innerHTML='<div class="loading error">No se especificó un partido.</div>';return}
-  const payload=getStored(id);
+  let payload=getStored(id);
   if(!payload){
-    // Compatibilidad con enlaces antiguos/directos: devolver el ID al flujo
-    // principal para que el analizador reconstruya y persista la ficha.
     app.innerHTML='<div class="loading">Recuperando ficha de Prime Score…</div>';
-    window.location.replace("/?match="+encodeURIComponent(id)+"#analysis");
+    try{
+      const response=await fetch("/api/fixture-calendar?t="+Date.now(),{cache:"no-store",headers:{Accept:"application/json"}});
+      if(!response.ok) throw new Error("HTTP "+response.status);
+      const data=await response.json();
+      const rows=Array.isArray(data)?data:(data?.games||data?.items||data?.events||[]);
+      const normName=v=>String(v?.name||v?.displayName||v?.shortName||v?.abbreviation||v||"Equipo");
+      const normTeam=v=>({name:normName(v),short:String(v?.abbreviation||v?.shortName||v?.name||"").slice(0,6)||"TEAM",abbr:String(v?.abbreviation||"").slice(0,6),logo:v?.logo||v?.logoUrl||""});
+      const found=rows.find(x=>String(x?.id??x?.eventId??x?.gameId??"")===String(id));
+      if(!found) throw new Error("PARTIDO_NOT_FOUND");
+      const homeRaw=found?.home||found?.homeTeam||found?.HomeTeam||found?.competitions?.[0]?.competitors?.find(c=>c.homeAway==="home")?.team;
+      const awayRaw=found?.away||found?.awayTeam||found?.AwayTeam||found?.competitions?.[0]?.competitors?.find(c=>c.homeAway==="away")?.team;
+      const game={
+        id:String(id),
+        date:found?.date||found?.startDate||found?.gameDate||new Date().toISOString(),
+        status:found?.status||found?.statusText||found?.shortDetail||"PRÓXIMO",
+        home:normTeam(homeRaw),
+        away:normTeam(awayRaw)
+      };
+      if(!game.home.name||!game.away.name) throw new Error("TEAMS_NOT_FOUND");
+      payload={
+        savedAt:Date.now(),
+        game,
+        result:{
+          home:50,away:50,confidenceScore:0,gb:.5,elo:.5,scoreDistribution:.5,form:.5,production:.5,availability:.5,
+          projectedHomeScore:null,projectedAwayScore:null,pace:0,sample:0,testSample:0,brier:null,logLoss:null,
+          hs:{w10:0,margin:0,total:0},as:{w10:0,margin:0,total:0},homeHome:{w10:0},awayRoad:{w10:0},
+          h2h:[],h2hWins:{home:0,away:0},injuryData:{available:false,records:[],reason:"Ficha directa: análisis histórico aún no cargado."}
+        },
+        fallback:true
+      };
+      render(payload);
+    }catch(error){
+      console.error("Prime Score direct ficha:",error);
+      app.innerHTML='<div class="loading error">No se pudo recuperar esta ficha. Vuelve al calendario y abre un partido disponible.</div>';
+    }
     return;
   }
   render(payload);
