@@ -149,6 +149,70 @@ async function fetchH2H(key, p1, p2) {
   }
   return body;
 }
+async function fetchESPNTennis(){
+  const dates=[];
+  const base=new Date();
+  for(let i=0;i<3;i++){
+    const d=new Date(base); d.setUTCDate(d.getUTCDate()+i);
+    dates.push(d.toISOString().slice(0,10).replaceAll("-",""));
+  }
+  const tours=["atp","wta"];
+  const requests=tours.flatMap(tour=>dates.map(date=>
+    fetch("https://site.api.espn.com/apis/site/v2/sports/tennis/"+tour+"/scoreboard?dates="+date,{
+      headers:{Accept:"application/json", "User-Agent":"Prime-Score/0.5.0"}
+    }).then(async response=>{
+      if(!response.ok) throw new Error("ESPN Tennis "+tour+" HTTP "+response.status);
+      return {tour,data:await response.json()};
+    })
+  ));
+  const results=await Promise.allSettled(requests);
+  const items=[];
+  for(const result of results){
+    if(result.status!=="fulfilled") continue;
+    const tour=result.value.tour.toUpperCase();
+    for(const event of result.value.data?.events||[]){
+      const competition=event?.competitions?.[0];
+      const competitors=competition?.competitors||[];
+      const home=competitors.find(x=>x?.homeAway==="home")||competitors[0];
+      const away=competitors.find(x=>x?.homeAway==="away")||competitors[1];
+      if(!event?.id||!home?.athlete||!away?.athlete) continue;
+      const status=event?.status?.type||{};
+      const state=String(status.state||"").toLowerCase();
+      const normalizedStatus=state==="in"?"live":state==="post"?"completed":"upcoming";
+      const sets=(competitors.length>=2)
+        ? competitors.map(x=>(x?.linescores||[]).map(s=>Number.isFinite(Number(s?.value))?Number(s.value):s?.displayValue)).slice(0,2)
+        : [];
+      items.push({
+        id:"espn-"+tour+"-"+String(event.id),
+        tour,
+        tournament:competition?.type?.text||event?.name||"Tennis",
+        tournamentId:null,
+        tier:null,
+        surface:null,
+        round:competition?.type?.abbreviation||"",
+        roundCode:null,
+        date:event?.date||null,
+        status:normalizedStatus,
+        statusDetail:status?.shortDetail||status?.description||"",
+        players:[
+          {id:home.athlete.id||null,name:home.athlete.displayName||home.athlete.fullName||"Jugador 1",shortName:home.athlete.shortName||home.athlete.displayName||"Jugador 1",country:"",ranking:null,rankingPoints:null,flag:null,hand:null,backhand:null,rankingMovement:null,dataCompleteness:null,stats:null},
+          {id:away.athlete.id||null,name:away.athlete.displayName||away.athlete.fullName||"Jugador 2",shortName:away.athlete.shortName||away.athlete.displayName||"Jugador 2",country:"",ranking:null,rankingPoints:null,flag:null,hand:null,backhand:null,rankingMovement:null,dataCompleteness:null,stats:null}
+        ],
+        sets,
+        games:[],
+        points:[],
+        server:null,
+        isTiebreak:false,
+        winner:null,
+        outcome:null,
+        hasAnalysis:false,
+        hasMarket:false
+      });
+    }
+  }
+  return Array.from(new Map(items.map(x=>[x.id,x])).values());
+}
+
 async function fetchMatches(key, params) {
   const url = new URL(BASE + "/matches");
   for (const [name, value] of Object.entries(params)) {
@@ -183,12 +247,24 @@ export default async function handler(req, res) {
   res.setHeader("Cache-Control", "s-maxage=300, stale-while-revalidate=1800");
 
   if (!key) {
-    return res.status(503).json({
-      sport: "tennis",
-      source: "Live Tennis API",
-      configured: false,
-      error: "Falta LIVE_TENNIS_API_KEY en Vercel."
-    });
+    try{
+      const items=await fetchESPNTennis();
+      return res.status(200).json({
+        sport:"tennis",
+        source:"ESPN fallback",
+        configured:false,
+        updatedAt:new Date().toISOString(),
+        counts:{
+          live:items.filter(m=>m.status==="live").length,
+          upcoming:items.filter(m=>m.status==="upcoming").length,
+          completed:items.filter(m=>m.status==="completed").length
+        },
+        items,
+        warning:"LIVE_TENNIS_API_KEY no configurada; usando fuente pública de respaldo."
+      });
+    }catch(error){
+      return res.status(502).json({sport:"tennis",source:"ESPN fallback",configured:false,error:error?.message||"No se pudo cargar Tennis."});
+    }
   }
 
   const h2hP1 = req?.query?.h2hP1;
@@ -290,12 +366,18 @@ export default async function handler(req, res) {
         Array.isArray(match.players) && match.players.length === 2;
     });
 
-    const unique = Array.from(new Map(items.map(match => [match.id, match])).values());
+    let unique = Array.from(new Map(items.map(match => [match.id, match])).values());
+    if(!unique.length){
+      try{
+        const fallback=await fetchESPNTennis();
+        unique=Array.from(new Map(fallback.map(match=>[match.id,match])).values());
+      }catch{}
+    }
     unique.sort((a, b) => new Date(a.date || 0) - new Date(b.date || 0));
 
     return res.status(200).json({
       sport: "tennis",
-      source: "Live Tennis API",
+      source: unique.some(m=>String(m.id).startsWith("espn-")) ? "Live Tennis API + ESPN fallback" : "Live Tennis API",
       configured: true,
       updatedAt: new Date().toISOString(),
       counts: {
