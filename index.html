@@ -2686,12 +2686,28 @@ async function loadCalendar(force=false){
   }
   calendarLoadPromise=(async()=>{
     const status=$("calendarStatus");
-    status.textContent="Buscando partidos NBA…";
+    status.textContent="Cargando destacados NBA…";
     const now=new Date();
-    const endDate=new Date(now); endDate.setDate(endDate.getDate()+30);
+    const endDate=new Date(now); endDate.setDate(endDate.getDate()+45);
     const params=new URLSearchParams({start_date:now.toISOString().slice(0,10),end_date:endDate.toISOString().slice(0,10)});
+
+    // NBA.com es la fuente principal: un solo feed de temporada, mucho más rápido para Inicio.
     try{
-      const payload=await fetchJSON("/api/espn-nba?"+params.toString(),12000);
+      const payload=await fetchJSON(NBA_SCHEDULE,8000);
+      const official=normalizeOfficialCalendarGames(payload,now.toISOString(),endDate.toISOString());
+      if(!official.length)throw new Error("NBA.com no devolvió partidos en la ventana.");
+      games=dedupe(official);
+      state.dataQuality={total:games.length,valid:games.length,rejected:0};
+      state.scheduleVerification={source:"NBA.com",current:games.length,official:games.length,matched:games.map(game=>({game})),mismatches:[],missing:[],exact:true};
+      updateTeams(); render(); renderCalendarQuality(); writeCalendarCache(games);
+      status.textContent=games.length+" partidos válidos · NBA.com.";
+      return games;
+    }catch(officialError){console.warn("WYNTR NBA.com calendar:",officialError);}
+
+    // ESPN queda como fallback para resultados y cambios recientes.
+    try{
+      status.textContent="NBA.com no disponible. Consultando ESPN…";
+      const payload=await fetchJSON("/api/espn-nba?"+params.toString(),10000);
       const normalized=normalizeESPNCalendarGames(payload);
       const quality=validateCalendarGames(normalized);
       if(!quality.valid.length)throw new Error("ESPN no devolvió partidos válidos.");
@@ -2699,21 +2715,12 @@ async function loadCalendar(force=false){
       state.dataQuality={total:quality.total,valid:quality.valid.length,rejected:quality.rejected};
       state.scheduleVerification={source:"ESPN",current:games.length,official:games.length,matched:games.map(game=>({game})),mismatches:[],missing:[],exact:true};
       updateTeams(); render(); renderCalendarQuality(); writeCalendarCache(games);
-      status.textContent=games.length+" partidos válidos · ESPN."; return games;
+      status.textContent=games.length+" partidos válidos · ESPN.";
+      return games;
     }catch(espnError){console.warn("WYNTR ESPN calendar:",espnError);}
+
     try{
-      status.textContent="ESPN no disponible. Consultando NBA.com...";
-      const payload=await fetchJSON(NBA_SCHEDULE,8000);
-      const official=normalizeOfficialCalendarGames(payload,now.toISOString(),endDate.toISOString());
-      if(!official.length)throw new Error("NBA.com no devolvió partidos.");
-      games=dedupe(official);
-      state.dataQuality={total:games.length,valid:games.length,rejected:0};
-      state.scheduleVerification={source:"NBA.com",current:games.length,official:games.length,matched:games.map(game=>({game})),mismatches:[],missing:[],exact:true};
-      updateTeams(); render(); renderCalendarQuality(); writeCalendarCache(games);
-      status.textContent=games.length+" partidos válidos · NBA.com."; return games;
-    }catch(officialError){console.warn("WYNTR NBA.com calendar:",officialError);}
-    try{
-      status.textContent="NBA.com no disponible. Consultando calendario alternativo...";
+      status.textContent="Consultando calendario alternativo…";
       const payload=await fetchJSON("/api/fixture-calendar",8000);
       const normalized=normalizeFixtureCalendarGames(payload,now.toISOString(),endDate.toISOString());
       const quality=validateCalendarGames(normalized);
@@ -2722,19 +2729,26 @@ async function loadCalendar(force=false){
       state.dataQuality={total:quality.total,valid:quality.valid.length,rejected:quality.rejected};
       state.scheduleVerification={source:"NBA fixture feed",current:games.length,official:games.length,matched:games.map(game=>({game})),mismatches:[],missing:[],exact:true};
       updateTeams(); render(); renderCalendarQuality(); writeCalendarCache(games);
-      status.textContent=games.length+" partidos válidos · calendario NBA actualizado."; return games;
+      status.textContent=games.length+" partidos válidos · calendario NBA actualizado.";
+      return games;
     }catch(fixtureError){console.warn("WYNTR fixture calendar:",fixtureError);}
+
     try{
-      status.textContent="Consultando BALLDONTLIE...";
-      const data=await fetchBDLGames(params,1); const normalized=data.map(normEvent);
-      const quality=validateCalendarGames(normalized); games=dedupe(quality.valid);
+      status.textContent="Consultando BALLDONTLIE…";
+      const data=await fetchBDLGames(params,1);
+      const normalized=data.map(normEvent);
+      const quality=validateCalendarGames(normalized);
+      games=dedupe(quality.valid);
       state.dataQuality={total:quality.total,valid:quality.valid.length,rejected:quality.rejected};
       state.scheduleVerification={source:"BALLDONTLIE",current:games.length,official:games.length,matched:games.map(game=>({game})),mismatches:[],missing:[],exact:true};
       updateTeams(); render(); renderCalendarQuality(); writeCalendarCache(games);
-      status.textContent=games.length?games.length+" partidos válidos · BALLDONTLIE.":"No hay partidos publicados en la ventana actual."; return games;
+      status.textContent=games.length?games.length+" partidos válidos · BALLDONTLIE.":"No hay partidos NBA publicados en la ventana actual.";
+      return games;
     }catch(error){
-      console.error("WYNTR calendar all sources failed:",error); games=[]; state.scheduleVerification=null; render();
-      status.innerHTML="<span class=\"error\">No se pudo actualizar el calendario ahora.</span><br><br><button type=\"button\" class=\"secondary\" onclick=\"loadCalendar(true)\">Reintentar</button>"; return [];
+      console.error("WYNTR calendar all sources failed:",error);
+      games=[]; state.scheduleVerification=null; render();
+      status.innerHTML="<span class=\"error\">No se pudo actualizar el calendario ahora.</span><br><br><button type=\"button\" class=\"secondary\" onclick=\"loadCalendar(true)\">Reintentar</button>";
+      return [];
     }
   })();
   try{return await calendarLoadPromise;}finally{calendarLoadPromise=null;}
@@ -5245,7 +5259,37 @@ function renderHomeDashboard(){
       : (upcoming[0] ? "SIGUIENTE JORNADA · "+new Date(upcoming[0].date).toLocaleDateString("es-CO",{day:"2-digit",month:"short"}).toUpperCase() : "SIN PARTIDOS PROGRAMADOS");
   }
   if(!list.length){
-    root.innerHTML='<div class="dashboard-empty"><strong>Temporada NBA en pausa</strong><br>No hay partidos NBA programados en este momento. El calendario completo sigue disponible abajo.</div>';
+    const tennisHighlights=(typeof tennisItems!=="undefined" && Array.isArray(tennisItems))
+      ? tennisItems.filter(m=>m && (m.status==="live" || m.status==="upcoming")).sort((a,b)=>{
+          const rank=m=>m.status==="live"?0:1;
+          return rank(a)-rank(b) || new Date(a.date||a.startTime||0)-new Date(b.date||b.startTime||0);
+        }).slice(0,3)
+      : [];
+    if(tennisHighlights.length){
+      if($("dashboardTitle")) $("dashboardTitle").textContent="Destacados";
+      if($("dashboardDate")) $("dashboardDate").textContent="PRIME SCORE · TENNIS";
+      root.innerHTML=tennisHighlights.map((m,index)=>`
+        <button class="today-game ${index===0?"featured":""}" type="button" data-tennis-dashboard-id="${esc(m.id)}">
+          <div class="today-game-head">
+            <span>🎾 ${esc(m.tour||"TENNIS")} · ${esc(m.tournament||m.eventName||"Partido")}</span>
+            <span class="today-live">${m.status==="live"?"EN VIVO":"PRÓXIMO"}</span>
+          </div>
+          <div class="today-matchup">
+            <div class="today-team">${esc(m.player1?.name||m.home?.name||"Jugador 1")}</div>
+            <div class="today-vs">VS</div>
+            <div class="today-team">${esc(m.player2?.name||m.away?.name||"Jugador 2")}</div>
+          </div>
+          <div class="today-card-bottom">
+            <span>Prime Tennis Intelligence</span>
+            <b>ABRIR FICHA →</b>
+          </div>
+        </button>`).join("");
+      root.querySelectorAll("[data-tennis-dashboard-id]").forEach(btn=>{
+        btn.addEventListener("click",()=>selectTennisMatch(btn.dataset.tennisDashboardId));
+      });
+      return;
+    }
+    root.innerHTML='<div class="dashboard-empty"><strong>Sin partidos destacados disponibles</strong><br>Actualiza el calendario o abre el módulo Calendario completo.</div>';
     return;
   }
   root.innerHTML=list.map((game,index)=>`
