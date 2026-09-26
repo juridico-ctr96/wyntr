@@ -1,4 +1,4 @@
-const CACHE = "prime-score-shell-v35";
+const CACHE = "prime-score-shell-v36";
 const SHELL = [
   "/",
   "/index.html",
