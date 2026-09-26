@@ -242,16 +242,17 @@ export default async function handler(req, res) {
     // served by /fixtures, which is the provider's canonical FREE endpoint
     // for upcoming matches. Using /fixtures here also avoids returning an
     // empty upcoming slate on providers/keys that expose scheduling there.
-    const [liveAll, upcomingAll] = await Promise.allSettled([
+    const [liveAll, atpFixtures, wtaFixtures] = await Promise.allSettled([
       fetchMatches(key, { status: "live", limit: 100 }),
-      fetchFixtures(key, { limit: 100 })
+      fetchFixtures(key, { tour: "atp", draw: "singles", limit: 100 }),
+      fetchFixtures(key, { tour: "wta", draw: "singles", limit: 100 })
     ]);
 
     const read = result => result.status === "fulfilled"
       ? (Array.isArray(result.value?.data) ? result.value.data : [])
       : [];
 
-    const errors = [liveAll, upcomingAll]
+    const errors = [liveAll, atpFixtures, wtaFixtures]
       .filter(result => result.status === "rejected")
       .map(result => ({
         status: result.reason?.status || 500,
@@ -271,7 +272,10 @@ export default async function handler(req, res) {
       return match;
     });
 
-    const upcomingItems = read(upcomingAll).map(row => {
+    const fixtureItems = [
+      ...read(atpFixtures),
+      ...read(wtaFixtures)
+    ].map(row => {
       const match = normalizeFixture(row);
       match.status = normalizeStatus(match.status);
       return match;
@@ -279,7 +283,7 @@ export default async function handler(req, res) {
 
     const items = [
       ...liveItems,
-      ...upcomingItems
+      ...fixtureItems
     ].filter(match => {
       const tour = String(match.tour || "").toUpperCase();
       return match.id && (tour === "ATP" || tour === "WTA") &&
