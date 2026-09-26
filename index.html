@@ -2646,7 +2646,7 @@ function renderCalendarQuality(){
    ========================================================= */
 
 let calendarLoadPromise=null;
-const CALENDAR_CACHE_KEY="wyntr_calendar_cache_v2";
+const CALENDAR_CACHE_KEY="wyntr_calendar_cache_v3";
 const CALENDAR_CACHE_TTL=5*60*1000;
 
 function readCalendarCache(){
@@ -4973,12 +4973,14 @@ async function loadTennis(){
     const data = await response.json();
     tennisItems = Array.isArray(data.items) ? data.items : [];
     renderTennis();
+    renderHomeDashboard();
     const tennisTourItems=tennisItems.filter(m=>m.tour==="ATP"||m.tour==="WTA");
     const live=tennisTourItems.filter(m=>m.status==="live").length;
     const upcoming=tennisTourItems.filter(m=>m.status==="upcoming").length;
     const final=tennisItems.filter(m=>m.status==="completed" || m.status==="final").length;
     const source = data.source || "Live Tennis API";
     if(status) status.textContent=live + " en vivo · " + upcoming + " próximos · " + final + " resultados · " + source;
+    if(!tennisTourItems.length && data?.configured!==false && status) status.textContent="Sin partidos ATP/WTA devueltos por el proveedor.";
   }catch(error){
     console.warn("PRIME SCORE Tennis:",error);
     if(status) status.textContent = error?.message || "No se pudo conectar";
@@ -5268,7 +5270,32 @@ function renderHomeDashboard(){
     if(tennisHighlights.length){
       if($("dashboardTitle")) $("dashboardTitle").textContent="Destacados";
       if($("dashboardDate")) $("dashboardDate").textContent="PRIME SCORE · TENNIS";
-      root.innerHTML=tennisHighlights.map((m,index)=>`
+      root.innerHTML=tennisHighlights.map((m,index)=>{
+        const a=m.players?.[0]||m.player1||m.home||{};
+        const b=m.players?.[1]||m.player2||m.away||{};
+        return `
+        <button class="today-game ${index===0?"featured":""}" type="button" data-tennis-dashboard-id="${esc(m.id)}">
+          <div class="today-game-head">
+            <span>🎾 ${esc(m.tour||"TENNIS")} · ${esc(m.tournament||m.eventName||"Partido")}</span>
+            <span class="today-live">${m.status==="live"?"EN VIVO":"PRÓXIMO"}</span>
+          </div>
+          <div class="today-matchup">
+            <div class="today-team">${esc(a.name||"Jugador 1")}</div>
+            <div class="today-vs">VS</div>
+            <div class="today-team">${esc(b.name||"Jugador 2")}</div>
+          </div>
+          <div class="today-card-bottom">
+            <span>Prime Tennis Intelligence</span>
+            <b>ABRIR FICHA →</b>
+          </div>
+        </button>`;
+      }).join("");
+      root.querySelectorAll("[data-tennis-dashboard-id]").forEach(btn=>{
+        btn.addEventListener("click",()=>selectTennisMatch(btn.dataset.tennisDashboardId));
+      });
+      return;
+    }
+    root.innerHTML=tennisHighlights.map((m,index)=>`
         <button class="today-game ${index===0?"featured":""}" type="button" data-tennis-dashboard-id="${esc(m.id)}">
           <div class="today-game-head">
             <span>🎾 ${esc(m.tour||"TENNIS")} · ${esc(m.tournament||m.eventName||"Partido")}</span>
