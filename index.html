@@ -3666,8 +3666,14 @@ async function primePublishPrediction(game,result,sport="nba"){
       projected_home_score:result.projectedHomeScore??null,
       projected_away_score:result.projectedAwayScore??null,
       confidence:result.confidenceScore??null,
-      data_coverage:result.sample?Math.min(100,Number(result.sample)/50*100):null,
-      features:{gb:result.gb,elo:result.elo,scoreDistribution:result.scoreDistribution,form:result.form,production:result.production,availability:result.availability},
+      data_coverage:Number.isFinite(Number(result.dataCoverage))
+        ? Math.max(0,Math.min(100,Number(result.dataCoverage)))
+        : (result.sample?Math.min(100,Number(result.sample)/50*100):null),
+      features:{
+        gb:result.gb,elo:result.elo,scoreDistribution:result.scoreDistribution,form:result.form,
+        production:result.production,availability:result.availability,
+        tennisEngine:result.tennisEngine||null
+      },
       prediction_hash
     })});
   }catch(error){console.warn("Prime Prediction Ledger:",error);}
@@ -5121,7 +5127,18 @@ async function selectTennisMatch(id){
     +'<div class="tennis-stats-grid"><div class="tennis-stat"><div class="tennis-stat-label">Ranking</div><div class="tennis-stat-value">'+(p1.ranking||"N/D")+' / '+(p2.ranking||"N/D")+'</div></div><div class="tennis-stat"><div class="tennis-stat-label">Puntos</div><div class="tennis-stat-value">'+(p1.rankingPoints||"N/D")+' / '+(p2.rankingPoints||"N/D")+'</div></div><div class="tennis-stat"><div class="tennis-stat-label">Mano</div><div class="tennis-stat-value">'+esc(p1.hand||"N/D")+' / '+esc(p2.hand||"N/D")+'</div></div><div class="tennis-stat"><div class="tennis-stat-label">Calidad datos</div><div class="tennis-stat-value">'+quality+'</div></div></div>'
     +'<div class="tennis-analysis-note">Modelo '+version+'. La salida actual es un ensemble determinista basado en las señales disponibles del proveedor; todavía debe pasar por validación cronológica, Brier Score, Log Loss y calibración antes de considerarse un modelo validado en producción.</div>';
   try{
-    primePublishPrediction(match,{home:q1*100,away:q2*100,confidenceScore:probability.confidence,dataCoverage:probability.coverage,modelVersion:version,features:{surface:match.surface,components:probability.components,h2h:h2hValues}}, "tennis");
+    primePublishPrediction(match,{
+    home:q1*100,
+    away:q2*100,
+    confidenceScore:probability.confidence,
+    dataCoverage:probability.coverage,
+    tennisEngine:{
+      version,
+      surface:match.surface||null,
+      components:probability.components,
+      h2h:h2hValues
+    }
+  }, "tennis");
   }catch{}
   $("closeTennisAnalysis")?.addEventListener("click",()=>{panel.classList.remove("active");selectedTennisId=null;});
 }
