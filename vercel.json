@@ -1,0 +1,5 @@
+{
+  "crons":[
+    {"path":"/api/settle-predictions","schedule":"*/15 * * * *"}
+  ]
+}
