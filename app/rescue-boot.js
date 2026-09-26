@@ -135,5 +135,34 @@
   }
 
   setTimeout(boot,2500);
-  window.addEventListener("online",()=>setTimeout(boot,300));
-})();
+  window.addEventListener("online",()=>setTimeout(boot,300));\n
+  // Hard-wire the two critical mobile actions so stale/duplicate route
+  // handlers cannot swallow the click.
+  document.addEventListener("click", event => {
+    const tennis = event.target.closest('[data-route="tennis"],[data-open="tennis-section"]');
+    if(tennis){
+      event.preventDefault();
+      event.stopImmediatePropagation();
+      if(typeof window.openDashboardSection==="function"){
+        window.openDashboardSection("tennis-section",{updateHash:true,scroll:true});
+      }else{
+        location.hash="tennis";
+      }
+      return;
+    }
+    const matchLink = event.target.closest('a[href*="/?match="],a[data-rescue-nba]');
+    if(matchLink){
+      const href=matchLink.getAttribute("href")||"";
+      const id=matchLink.dataset.rescueNba || (href.match(/[?&]match=([^&#]+)/)||[])[1];
+      if(id){
+        event.preventDefault();
+        event.stopImmediatePropagation();
+        if(typeof window.openPrimeScoreMatch==="function"){
+          window.openPrimeScoreMatch(decodeURIComponent(id));
+        }else{
+          location.href="/?match="+encodeURIComponent(decodeURIComponent(id))+"#analysis";
+        }
+      }
+    }
+  }, true);
+\n})();
