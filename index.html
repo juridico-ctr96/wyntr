@@ -3053,82 +3053,98 @@ async function loadHistory(
    ELO + ESTADÍSTICAS
    ========================================================= */
 
-function buildFeatures(history,homeId,awayId,cutoff){
-
-  const prior=history
-    .filter(g=>new Date(g.date)<cutoff)
-    .sort((a,b)=>new Date(b.date)-new Date(a.date));
-
-  const teamGames=id=>prior.filter(g=>g.home.id===id||g.away.id===id);
-
-  const ordered=[...prior].sort((a,b)=>new Date(a.date)-new Date(b.date));
-  const elo=new Map();
-  const rating=id=>elo.has(id)?elo.get(id):1500;
-
-  ordered.forEach(g=>{
-    const hr=rating(g.home.id), ar=rating(g.away.id);
-    const eh=1/(1+Math.pow(10,(ar-hr)/400));
-    const y=g.homeScore>g.awayScore?1:0;
-    const k=20;
-    elo.set(g.home.id,hr+k*(y-eh));
-    elo.set(g.away.id,ar+k*((1-y)-(1-eh)));
-  });
-
-  function stats(list,id){
-    const v=list.slice(0,20).map(g=>{
-      const h=g.home.id===id;
-      const pf=h?g.homeScore:g.awayScore;
-      const pa=h?g.awayScore:g.homeScore;
-      return {pf,pa,m:pf-pa,t:pf+pa,w:pf>pa};
-    });
-    const avg=k=>v.length?v.reduce((s,x)=>s+x[k],0)/v.length:0;
-    const wr=n=>{const x=v.slice(0,n);return x.length?x.filter(a=>a.w).length/x.length:.5};
-    const m=v.map(x=>x.m), mm=avg("m");
-    const sd=m.length?Math.sqrt(m.reduce((s,x)=>s+(x-mm)**2,0)/m.length):0;
-    return {n:v.length,w5:wr(5),w10:wr(10),w20:wr(20),pf:avg("pf"),pa:avg("pa"),margin:mm,total:avg("t"),marginStd:sd};
-  }
-
-  const hg=teamGames(homeId), ag=teamGames(awayId);
-  const hs=stats(hg,homeId), as=stats(ag,awayId);
-  const hh=stats(hg.filter(g=>g.home.id===homeId),homeId);
-  const ar=stats(ag.filter(g=>g.away.id===awayId),awayId);
-
-  const h2h=prior.filter(g=>
-    (g.home.id===homeId&&g.away.id===awayId)||
-    (g.home.id===awayId&&g.away.id===homeId)
-  ).slice(0,10);
-
-  const h2w=h2h.filter(g=>
-    (g.home.id===homeId&&g.homeScore>g.awayScore)||
-    (g.away.id===homeId&&g.awayScore>g.homeScore)
-  ).length;
-
-  const expectedHome=(hs.pf+as.pa)/2+3;
-  const expectedAway=(as.pf+hs.pa)/2;
-  const expectedMargin=expectedHome-expectedAway;
-
-  return {
-    features:[
-      rating(homeId)-rating(awayId),
-      hs.w10-as.w10,
-      hs.margin-as.margin,
-      hs.pf-as.pf,
-      hs.pa-as.pa,
-      hs.total-as.total,
-      hh.w10-ar.w10,
-      hh.margin-ar.margin,
-      h2h.length?h2w/h2h.length-.5:0,
-      expectedMargin,
-      expectedHome+expectedAway,
-      hs.marginStd-as.marginStd
-    ],
-    homeElo:rating(homeId),awayElo:rating(awayId),
-    homeStats:hs,awayStats:as,homeHomeStats:hh,awayRoadStats:ar,
-    h2h,h2hWins:h2w,expectedHome,expectedAway,expectedMargin,
-    expectedTotal:expectedHome+expectedAway,priorCount:prior.length
-  };
+function detectNBAContext(game){
+  const date=new Date(game?.date||Date.now());
+  const explicit=String(game?.seasonType||game?.season_type||game?.competitionType||"").toLowerCase();
+  if(/preseason|exhibition|exhibición/.test(explicit)) return "preseason";
+  if(/playoff|postseason/.test(explicit)) return "postseason";
+  if(/regular|week/.test(explicit)) return "regular";
+  const m=date.getUTCMonth()+1, d=date.getUTCDate();
+  if(m===10 && d>=1 && d<=19) return "preseason";
+  return "regular";
 }
 
+function weightedAverage(values){
+  if(!values.length)return 0;
+  const total=values.reduce((s,x)=>s+x.w,0);
+  return total?values.reduce((s,x)=>s+x.v*x.w,0)/total:0;
+}
+
+function buildFeatures(history,homeId,awayId,cutoff){
+  const prior=history.filter(g=>{
+    const d=new Date(g.date);
+    return Number.isFinite(d.getTime()) && d<cutoff && g.home?.id && g.away?.id &&
+      Number.isFinite(Number(g.homeScore)) && Number.isFinite(Number(g.awayScore));
+  }).sort((a,b)=>new Date(b.date)-new Date(a.date));
+  const teamGames=id=>prior.filter(g=>String(g.home.id)===String(id)||String(g.away.id)===String(id));
+  const ordered=[...prior].sort((a,b)=>new Date(a.date)-new Date(b.date));
+  const elo=new Map();
+  const rating=id=>elo.has(String(id))?elo.get(String(id)):1500;
+  ordered.forEach(g=>{
+    const h=String(g.home.id), a=String(g.away.id);
+    const hr=rating(h), ar=rating(a);
+    const expected=1/(1+Math.pow(10,(ar-hr)/400));
+    const actual=Number(g.homeScore)>Number(g.awayScore)?1:0;
+    const k=20;
+    elo.set(h,hr+k*(actual-expected));
+    elo.set(a,ar+k*((1-actual)-(1-expected)));
+  });
+  function stats(list,id){
+    const now=cutoff.getTime();
+    const games=list.slice(0,20).map(g=>{
+      const h=String(g.home.id)===String(id);
+      const pf=h?Number(g.homeScore):Number(g.awayScore);
+      const pa=h?Number(g.awayScore):Number(g.homeScore);
+      const date=new Date(g.date).getTime();
+      const ageDays=Math.max(0,(now-date)/86400000);
+      const w=Math.exp(-ageDays/120);
+      return {pf,pa,m:pf-pa,t:pf+pa,winner:pf>pa,w};
+    }).filter(x=>Number.isFinite(x.pf)&&Number.isFinite(x.pa));
+    const wr=n=>{const x=games.slice(0,n);return x.length?x.filter(a=>a.winner).length/x.length:.5;};
+    const avg=key=>weightedAverage(games.map(x=>({v:x[key],w:x.w})));
+    const margins=games.map(x=>x.m), mm=avg("m");
+    const sd=margins.length?Math.sqrt(margins.reduce((sum,x)=>sum+(x-mm)**2,0)/margins.length):12;
+    return {n:games.length,w5:wr(5),w10:wr(10),w20:wr(20),pf:avg("pf"),pa:avg("pa"),margin:mm,total:avg("t"),marginStd:sd};
+  }
+  const hg=teamGames(homeId), ag=teamGames(awayId);
+  const hs=stats(hg,homeId), as=stats(ag,awayId);
+  const hh=stats(hg.filter(g=>String(g.home.id)===String(homeId)),homeId);
+  const ar=stats(ag.filter(g=>String(g.away.id)===String(awayId)),awayId);
+  const h2h=prior.filter(g=>
+    (String(g.home.id)===String(homeId)&&String(g.away.id)===String(awayId))||
+    (String(g.home.id)===String(awayId)&&String(g.away.id)===String(homeId))
+  ).slice(0,10);
+  const h2w=h2h.filter(g=>
+    (String(g.home.id)===String(homeId)&&Number(g.homeScore)>Number(g.awayScore))||
+    (String(g.away.id)===String(homeId)&&Number(g.awayScore)>Number(g.homeScore))
+  ).length;
+  const allTeamScores=prior.flatMap(g=>[Number(g.homeScore),Number(g.awayScore)]).filter(Number.isFinite);
+  const leagueAvg=allTeamScores.length?weightedAverage(allTeamScores.map(v=>({v,w:1}))):115.6;
+  const shrink=(value,n,target=leagueAvg)=>{
+    if(!Number.isFinite(value)||!n)return target;
+    const reliability=clamp(n/20,0,1);
+    return value*reliability+target*(1-reliability);
+  };
+  const homeOff=shrink(hh.pf||hs.pf,hh.n||hs.n);
+  const awayDef=shrink(ar.pa||as.pa,ar.n||as.n);
+  const awayOff=shrink(ar.pf||as.pf,ar.n||as.n);
+  const homeDef=shrink(hh.pa||hs.pa,hh.n||hs.n);
+  const rawHomeExpected=leagueAvg*(homeOff/leagueAvg)*(awayDef/leagueAvg);
+  const rawAwayExpected=leagueAvg*(awayOff/leagueAvg)*(homeDef/leagueAvg);
+  const homeAdvantage=2.2;
+  const expectedHome=clamp(rawHomeExpected+homeAdvantage,95,135);
+  const expectedAway=clamp(rawAwayExpected,95,135);
+  const expectedTotal=expectedHome+expectedAway;
+  const expectedMargin=expectedHome-expectedAway;
+  const h2hSignal=h2h.length?h2w/h2h.length-.5:0;
+  const teamSample=Math.min(hs.n,as.n);
+  const relevantGames=new Set([...hg,...ag].map(g=>String(g.id||g.date+"|"+g.home.id+"|"+g.away.id))).size;
+  return {
+    features:[(rating(homeId)-rating(awayId))/100,hs.w10-as.w10,hs.margin-as.margin,hs.pf-as.pf,hs.pa-as.pa,hs.total-as.total,hh.w10-ar.w10,hh.margin-ar.margin,h2hSignal,expectedMargin,expectedTotal,hs.marginStd-as.marginStd],
+    homeElo:rating(homeId),awayElo:rating(awayId),homeStats:hs,awayStats:as,homeHomeStats:hh,awayRoadStats:ar,
+    h2h,h2hWins:h2w,expectedHome,expectedAway,expectedMargin,expectedTotal,priorCount:relevantGames,teamSample,leagueAvg,scoringStd:Math.max(10,Math.min(15,(hs.marginStd+as.marginStd)/2||12))
+  };
+}
 
 /* =========================================================
    SIGMOID/* =========================================================
@@ -3239,7 +3255,8 @@ function normalCDF(x){
 
 function scoreDifferenceProbability(
   lambdaHome,
-  lambdaAway
+  lambdaAway,
+  scoreStd=12
 ){
 
   const margin =
@@ -3252,7 +3269,7 @@ function scoreDifferenceProbability(
     como para reconciliar la proyección final.
   */
 
-  const scoreStd = 12;
+  const sd = Math.max(9,Math.min(16,Number(scoreStd)||12));
 
   return clamp(
     normalCDF(
@@ -3308,46 +3325,14 @@ function inverseNormalCDF(p){
   que el lado con mayor probabilidad también sea el
   lado con mayor marcador proyectado.
 */
-function reconcileProjectedScore(total, probability){
-
-  const scoreStd=12;
-  const totalScore=Math.round(
-    clamp(Number(total)||210,190,250)
-  );
-
-  const z=inverseNormalCDF(
-    clamp(Number(probability),.05,.95)
-  );
-
-  const margin=
-    z*
-    scoreStd*
-    Math.sqrt(2);
-
-  let home=Math.round(
-    (totalScore+margin)/2
-  );
-
-  home=clamp(
-    home,
-    90,
-    totalScore-90
-  );
-
-  const away=
-    totalScore-home;
-
-  return {
-    home,
-    away,
-    total:home+away,
-    margin:home-away,
-    probability:scoreDifferenceProbability(
-      home,
-      away
-    )
-  };
-
+function reconcileProjectedScore(total, probability, scoreStd=12){
+  const totalScore=Math.round(clamp(Number(total)||210,190,250));
+  const z=inverseNormalCDF(clamp(Number(probability),.05,.95));
+  const margin=z*Math.max(9,Math.min(16,Number(scoreStd)||12))*Math.sqrt(2);
+  let home=Math.round((totalScore+margin)/2);
+  home=clamp(home,90,totalScore-90);
+  const away=totalScore-home;
+  return {home,away,total:home+away,margin:home-away,probability:scoreDifferenceProbability(home,away,scoreStd)};
 }
 
 
@@ -3509,7 +3494,8 @@ async function loadInjuries(game){
 
 function availabilityProbability(i){
   if(!i?.available)return .5;
-  return clamp(.5+(i.away-i.home)*.06,.35,.65);
+  // Injury burden is intentionally weak because the feed does not expose player-level impact/usage.
+  return clamp(.5+(Number(i.away||0)-Number(i.home||0))*.025,.42,.58);
 }
 
 async function primePublishPrediction(game,result,sport="nba"){
@@ -3517,7 +3503,7 @@ async function primePublishPrediction(game,result,sport="nba"){
     if(!game||!result)return;
     const homeProbability=Number(result.home), awayProbability=Number(result.away);
     if(!Number.isFinite(homeProbability)||!Number.isFinite(awayProbability))return;
-    const version=sport==="tennis"?"tennis-ensemble-v2.0":"nba-ensemble-v1.0";
+    const version=sport==="tennis"?"tennis-ensemble-v2.0":"nba-ensemble-v2.0";
     const raw=[sport,game.id,game.date,version,homeProbability.toFixed(3),awayProbability.toFixed(3)].join("|");
     const hashBuffer=await crypto.subtle.digest("SHA-256",new TextEncoder().encode(raw));
     const prediction_hash=Array.from(new Uint8Array(hashBuffer)).map(b=>b.toString(16).padStart(2,"0")).join("");
@@ -3544,182 +3530,53 @@ async function primePublishPrediction(game,result,sport="nba"){
 }
 
 async function analyzeGame(game){
-
   const days=n($("range").value,360);
-
-  const [history,injuries]=await Promise.all([
-    loadHistory(days,[game.home.id,game.away.id]),
-    loadInjuries(game)
-  ]);
-
-  const features=buildFeatures(
-    history,
-    game.home.id,
-    game.away.id,
-    new Date(game.date)
-  );
-
-  const rows=[];
-
-  history.forEach(historical=>{
-
-    if(historical.homeScore<=0||historical.awayScore<=0)return;
-
-    const f=buildFeatures(
-      history,
-      historical.home.id,
-      historical.away.id,
-      new Date(historical.date)
-    );
-
-    rows.push({
-      x:f.features,
-      y:historical.homeScore>historical.awayScore?1:0
-    });
-
-  });
-
+  const context=detectNBAContext(game);
+  const cutoff=new Date(game.date);
+  const [history,injuries]=await Promise.all([loadHistory(days,[game.home.id,game.away.id]),loadInjuries(game)]);
+  const features=buildFeatures(history,game.home.id,game.away.id,cutoff);
+  const rows=history.filter(h=>h.homeScore>0&&h.awayScore>0).map(historical=>{
+    const f=buildFeatures(history,historical.home.id,historical.away.id,new Date(historical.date));
+    return {date:new Date(historical.date).getTime(),x:f.features,y:Number(historical.homeScore)>Number(historical.awayScore)?1:0};
+  }).filter(r=>Number.isFinite(r.date)&&Array.isArray(r.x)).sort((a,b)=>a.date-b.date);
   const gb=trainGradientBoosting(rows);
-
-  const gbProbability=gb
-    ?gb.calibrate(gb.predict(features.features))
-    :.5;
-
-  const eloProbability=sigmoid(
-    (
-      features.homeElo-
-      features.awayElo+
-      55
-    )/400
-  );
-
-  const scoreProbability=scoreDifferenceProbability(
-    features.expectedHome,
-    features.expectedAway
-  );
-
-  const formProbability=clamp(
-    .5+
-    (
-      features.homeStats.w10-
-      features.awayStats.w10
-    )*.55+
-    (
-      features.homeHomeStats.w10-
-      features.awayRoadStats.w10
-    )*.25,
-    .15,.85
-  );
-
-  const productionProbability=clamp(
-    .5+
-    (
-      features.homeStats.margin-
-      features.awayStats.margin
-    )/25+
-    (
-      features.homeHomeStats.margin-
-      features.awayRoadStats.margin
-    )/30,
-    .15,.85
-  );
-
+  const gbProbability=gb?gb.calibrate(gb.predict(features.features)):.5;
+  const eloProbability=sigmoid(((features.homeElo-features.awayElo)+55)*Math.LN10/400);
+  const scoreProbability=scoreDifferenceProbability(features.expectedHome,features.expectedAway,features.scoringStd);
+  const formProbability=clamp(.5+(features.homeStats.w10-features.awayStats.w10)*.45+(features.homeHomeStats.w10-features.awayRoadStats.w10)*.20,.15,.85);
+  const productionProbability=clamp(.5+(features.homeStats.margin-features.awayStats.margin)/28+(features.homeHomeStats.margin-features.awayRoadStats.margin)/35,.15,.85);
   const availability=availabilityProbability(injuries);
-
-  const finalProbability=clamp(
-    .40*gbProbability+
-    .20*eloProbability+
-    .15*scoreProbability+
-    .10*formProbability+
-    .10*productionProbability+
-    .05*availability,
-    .05,.95
-  );
-
+  const weights=context==="preseason"?{gb:.18,elo:.24,score:.26,form:.12,production:.10,availability:.10}:{gb:.35,elo:.25,score:.20,form:.10,production:.05,availability:.05};
+  const gbUsable=gb?.test>=20;
+  const activeWeights={...weights};
+  if(!gbUsable){const removed=activeWeights.gb;activeWeights.gb=0;const rest=1-removed;["elo","score","form","production","availability"].forEach(k=>activeWeights[k]=activeWeights[k]/rest);}
+  const finalProbability=clamp(activeWeights.gb*gbProbability+activeWeights.elo*eloProbability+activeWeights.score*scoreProbability+activeWeights.form*formProbability+activeWeights.production*productionProbability+activeWeights.availability*availability,.05,.95);
   const parts=[
-    gbProbability,
-    eloProbability,
-    scoreProbability,
-    formProbability,
-    productionProbability,
-    availability
+    {name:"Gradient Boosting",p:gbProbability,weight:activeWeights.gb,usable:gbUsable},
+    {name:"ELO",p:eloProbability,weight:activeWeights.elo,usable:true},
+    {name:"Distribución",p:scoreProbability,weight:activeWeights.score,usable:true},
+    {name:"Forma",p:formProbability,weight:activeWeights.form,usable:true},
+    {name:"Producción",p:productionProbability,weight:activeWeights.production,usable:true},
+    {name:"Disponibilidad",p:availability,weight:activeWeights.availability,usable:injuries?.available}
   ];
-
-  const disagreement=parts.reduce(
-    (s,p)=>s+Math.abs(p-finalProbability),
-    0
-  )/parts.length;
-
-  const sampleFactor=clamp(features.priorCount/50,0,1);
-  const agreementFactor=clamp(1-disagreement*3,0,1);
-  const validationFactor=gb?.brier!=null
-    ?clamp(1-gb.brier/.25,0,1)
-    :.5;
-
-  const confidenceScore=Math.round(
-    100*(
-      .45*agreementFactor+
-      .35*sampleFactor+
-      .20*validationFactor
-    )
-  );
-
+  const disagreement=parts.filter(x=>x.usable).reduce((sum,x)=>sum+Math.abs(x.p-finalProbability)*x.weight,0);
+  const sampleFactor=clamp(features.teamSample/20,0,1);
+  const agreementFactor=clamp(1-disagreement*2.4,0,1);
+  const validationFactor=gb?.brier!=null?clamp(1-gb.brier/.25,0,1):.45;
+  const contextFactor=context==="preseason"?.72:context==="postseason"?.90:1;
+  const confidenceScore=Math.round(100*contextFactor*(.40*agreementFactor+.35*sampleFactor+.25*validationFactor));
+  const total=clamp(features.expectedTotal,190,250);
+  const projected=reconcileProjectedScore(total,finalProbability,features.scoringStd);
   const result={
-    home:finalProbability*100,
-    away:(1-finalProbability)*100,
-    gb:gbProbability,
-    elo:eloProbability,
-    scoreDistribution:scoreProbability,
-    form:formProbability,
-    production:productionProbability,
-    availability,
-    confidence:confidenceScore>=75?"Alta":confidenceScore>=55?"Media":"Baja",
-    confidenceScore,
-    sample:features.priorCount,
-    accuracy:gb?.accuracy??null,
-    brier:gb?.brier??null,
-    logLoss:gb?.logLoss??null,
-    eloDiff:features.homeElo-features.awayElo,
-    hs:features.homeStats,
-    as:features.awayStats,
-    homeHome:features.homeHomeStats,
-    awayRoad:features.awayRoadStats,
-    h2h:features.h2h,
-    h2hWins:features.h2hWins,
-    injuryData:injuries,
-    totalScoringEnvironment:features.expectedTotal,
-    pace:features.expectedTotal,
-    margin:features.expectedMargin,
-    lambdaHome:clamp(features.expectedHome,95,140),
-    lambdaAway:clamp(features.expectedAway,90,135),
-
-    // Probabilidad y marcador comparten ahora la misma señal.
-    projectedScore:reconcileProjectedScore(
-      features.expectedTotal,
-      finalProbability
-    ),
-    projectedHomeScore:reconcileProjectedScore(
-      features.expectedTotal,
-      finalProbability
-    ).home,
-    projectedAwayScore:reconcileProjectedScore(
-      features.expectedTotal,
-      finalProbability
-    ).away,
-    scoreStd:12,
-    testSample:gb?.test||0
+    modelVersion:"nba-ensemble-v2.0",context,home:finalProbability*100,away:(1-finalProbability)*100,gb:gbProbability,elo:eloProbability,scoreDistribution:scoreProbability,form:formProbability,production:productionProbability,availability,weights:activeWeights,
+    confidence:confidenceScore>=75?"Alta":confidenceScore>=55?"Media":"Baja",confidenceScore,sample:features.teamSample,totalHistorical:features.priorCount,accuracy:gb?.accuracy??null,brier:gb?.brier??null,logLoss:gb?.logLoss??null,eloDiff:features.homeElo-features.awayElo,
+    hs:features.homeStats,as:features.awayStats,homeHome:features.homeHomeStats,awayRoad:features.awayRoadStats,h2h:features.h2h,h2hWins:features.h2hWins,injuryData:injuries,totalScoringEnvironment:features.expectedTotal,pace:features.expectedTotal,margin:features.expectedMargin,
+    lambdaHome:features.expectedHome,lambdaAway:features.expectedAway,projectedScore:projected,projectedHomeScore:projected.home,projectedAwayScore:projected.away,scoreStd:features.scoringStd,testSample:gb?.test||0,
+    dataCoverage:Math.round(clamp(.45*clamp(features.teamSample/20,0,1)+.35*clamp(features.priorCount/160,0,1)+.20*(injuries?.available?1:0),0,1)*100)
   };
-
-  state.analysis=result;
-  game.wyntrHomeProbability=finalProbability;
-  game.wyntrAwayProbability=1-finalProbability;
-  window.wyntrCurrentAnalysis=result;
-  primePublishPrediction(game,result,"nba");
-
+  state.analysis=result;game.wyntrHomeProbability=finalProbability;game.wyntrAwayProbability=1-finalProbability;window.wyntrCurrentAnalysis=result;primePublishPrediction(game,result,"nba");
   return result;
-
 }
-
 
 /* =========================================================
    RENDER ANÁLISIS/* =========================================================
@@ -3843,7 +3700,7 @@ function renderAnalysis(game,result){
   const maxSignal=Math.max(.01,...signals.map(x=>x.value));
   const keyPoints=signals.map(signal=>`
     <div class="signal-card">
-      <div class="signal-head"><span>${signal.title}</span><span>${Math.round(signal.value/maxSignal*100)}%</span></div>
+      <div class="signal-head"><span>${signal.title}</span><span>${Math.round(signal.value/maxSignal*100)}/100</span></div>
       <div class="signal-desc">${signal.text}</div>
       <div class="signal-track"><span style="width:${Math.max(8,signal.value/maxSignal*100)}%"></span></div>
     </div>
@@ -3911,7 +3768,7 @@ function renderAnalysis(game,result){
       <div class="card">
         <div class="section-title">Señales clave</div>
         <div class="signal-grid">${keyPoints}</div>
-        <div class="muted" style="margin-top:10px">Las barras muestran fuerza relativa de señales disponibles; no son probabilidades independientes.</div>
+        <div class="muted" style="margin-top:10px">Las barras son una escala de fuerza relativa de cada señal disponible. No representan probabilidades ni pesos del modelo.</div>
       </div>
 
       <div class="card">
@@ -3920,14 +3777,14 @@ function renderAnalysis(game,result){
           <div class="metric"><div class="metric-label">ELO diferencial</div><div class="metric-value">${result.eloDiff>=0?"+":""}${result.eloDiff.toFixed(0)}</div></div>
           <div class="metric"><div class="metric-label">H2H</div><div class="metric-value">${result.h2hWins}-${Math.max(0,result.h2h.length-result.h2hWins)}</div></div>
           <div class="metric"><div class="metric-label">Total proyectado</div><div class="metric-value">${result.pace.toFixed(1)}</div></div>
-          <div class="metric"><div class="metric-label">Muestra histórica</div><div class="metric-value">${result.sample}</div></div>
+          <div class="metric"><div class="metric-label">Muestra por equipo</div><div class="metric-value">${result.sample}</div><div class="muted">${result.totalHistorical} juegos relevantes</div></div>
         </div>
       </div>
     </div>
 
     <div class="match-panel" data-panel="analysis">
       <div class="card">
-        <div class="section-title">Distribución de puntos</div>
+        <div class="section-title">Distribución de puntos · ${esc(result.context||"regular")}</div>
         <div class="distribution-grid">
           ${normalCurveSvg(result.lambdaHome,result.scoreStd,game.home.short,"#ff9b4a")}
           ${normalCurveSvg(result.lambdaAway,result.scoreStd,game.away.short,"#63e8ff")}
@@ -3948,7 +3805,7 @@ function renderAnalysis(game,result){
       <div class="card">
         <div class="section-title">Calidad del modelo</div>
         <div class="grid">
-          <div class="metric"><div class="metric-label">Confianza</div><div class="metric-value">${result.confidenceScore}%</div></div>
+          <div class="metric"><div class="metric-label">Confianza · ${result.context}</div><div class="metric-value">${result.confidenceScore}%</div></div>
           <div class="metric"><div class="metric-label">Test</div><div class="metric-value">${result.testSample}</div></div>
           <div class="metric"><div class="metric-label">Brier</div><div class="metric-value">${result.brier===null?"N/D":result.brier.toFixed(3)}</div></div>
           <div class="metric"><div class="metric-label">Log loss</div><div class="metric-value">${result.logLoss===null?"N/D":result.logLoss.toFixed(3)}</div></div>
