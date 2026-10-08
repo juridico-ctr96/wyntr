@@ -2697,7 +2697,8 @@ async function loadCalendar(force=false){
       const official=normalizeOfficialCalendarGames(payload,now.toISOString(),endDate.toISOString());
       if(!official.length)throw new Error("NBA.com no devolvió partidos en la ventana.");
       games=dedupe(official);
-      state.dataQuality={total:games.length,valid:games.length,rejected:0};
+      await mergeHistoricalCalendar(Number($("range")?.value||360));
+      state.dataQuality={total:games.length,valid:games.length,rejected:0,history:games.filter(g=>g.completed).length};
       state.scheduleVerification={source:"NBA.com",current:games.length,official:games.length,matched:games.map(game=>({game})),mismatches:[],missing:[],exact:true};
       updateTeams(); render(); renderCalendarQuality(); writeCalendarCache(games);
       status.textContent=games.length+" partidos válidos · NBA.com.";
@@ -2712,7 +2713,8 @@ async function loadCalendar(force=false){
       const quality=validateCalendarGames(normalized);
       if(!quality.valid.length)throw new Error("ESPN no devolvió partidos válidos.");
       games=dedupe(quality.valid);
-      state.dataQuality={total:quality.total,valid:quality.valid.length,rejected:quality.rejected};
+      await mergeHistoricalCalendar(Number($("range")?.value||360));
+      state.dataQuality={total:games.length,valid:games.length,rejected:quality.rejected,history:games.filter(g=>g.completed).length};
       state.scheduleVerification={source:"ESPN",current:games.length,official:games.length,matched:games.map(game=>({game})),mismatches:[],missing:[],exact:true};
       updateTeams(); render(); renderCalendarQuality(); writeCalendarCache(games);
       status.textContent=games.length+" partidos válidos · ESPN.";
@@ -2726,7 +2728,8 @@ async function loadCalendar(force=false){
       const quality=validateCalendarGames(normalized);
       if(!quality.valid.length)throw new Error("El calendario alternativo no devolvió partidos válidos.");
       games=dedupe(quality.valid);
-      state.dataQuality={total:quality.total,valid:quality.valid.length,rejected:quality.rejected};
+      await mergeHistoricalCalendar(Number($("range")?.value||360));
+      state.dataQuality={total:games.length,valid:games.length,rejected:quality.rejected,history:games.filter(g=>g.completed).length};
       state.scheduleVerification={source:"NBA fixture feed",current:games.length,official:games.length,matched:games.map(game=>({game})),mismatches:[],missing:[],exact:true};
       updateTeams(); render(); renderCalendarQuality(); writeCalendarCache(games);
       status.textContent=games.length+" partidos válidos · calendario NBA actualizado.";
@@ -2739,7 +2742,8 @@ async function loadCalendar(force=false){
       const normalized=data.map(normEvent);
       const quality=validateCalendarGames(normalized);
       games=dedupe(quality.valid);
-      state.dataQuality={total:quality.total,valid:quality.valid.length,rejected:quality.rejected};
+      await mergeHistoricalCalendar(Number($("range")?.value||360));
+      state.dataQuality={total:games.length,valid:games.length,rejected:quality.rejected,history:games.filter(g=>g.completed).length};
       state.scheduleVerification={source:"BALLDONTLIE",current:games.length,official:games.length,matched:games.map(game=>({game})),mismatches:[],missing:[],exact:true};
       updateTeams(); render(); renderCalendarQuality(); writeCalendarCache(games);
       status.textContent=games.length?games.length+" partidos válidos · BALLDONTLIE.":"No hay partidos NBA publicados en la ventana actual.";
@@ -2864,7 +2868,7 @@ function render(){
   container.innerHTML = strip + `
     <div class="game-list-header">
       <strong>Todos los partidos</strong>
-      <span>${list.length} disponibles</span>
+      <span>${list.length} disponibles · ${list.filter(g=>g.completed).length} históricos</span>
     </div>
     ${list.map(game => `
       <button class="game ${selected?.id===game.id ? "selected" : ""}" data-id="${esc(game.id)}">
@@ -2877,7 +2881,7 @@ function render(){
             ${game.away.logo ? `<img class="game-logo" src="${esc(game.away.logo)}" alt="">` : ""}
             <span class="team">${esc(game.away.short)}</span>
           </span>
-          <span class="vs">VS</span>
+          <span class="vs">${game.completed && Number.isFinite(Number(game.awayScore)) && Number.isFinite(Number(game.homeScore)) ? String(game.awayScore)+" - "+String(game.homeScore) : "VS"}</span>
           <span class="game-team">
             <span class="team">${esc(game.home.short)}</span>
             ${game.home.logo ? `<img class="game-logo" src="${esc(game.home.logo)}" alt="">` : ""}
@@ -2899,6 +2903,63 @@ function render(){
 /* =========================================================
    HISTÓRICO
    ========================================================= */
+
+const HISTORICAL_CACHE_TTL=6*60*60*1000;
+
+function historicalCacheKey(days=360){
+  return "wyntr_calendar_history_v1_"+days;
+}
+
+async function loadHistoricalCalendar(days=360){
+  const key=historicalCacheKey(days);
+
+  try{
+    const cached=JSON.parse(localStorage.getItem(key)||"null");
+    if(cached?.time && Date.now()-cached.time<HISTORICAL_CACHE_TTL && Array.isArray(cached.games) && cached.games.length){
+      return cached.games;
+    }
+  }catch{}
+
+  const end=new Date();
+  const start=new Date(end);
+  start.setDate(start.getDate()-Number(days||360));
+
+  const params=new URLSearchParams({
+    start_date:start.toISOString().slice(0,10),
+    end_date:end.toISOString().slice(0,10)
+  });
+
+  try{
+    const raw=await fetchBDLGames(params,20);
+    const normalized=raw.map(normHistoryEvent).filter(g=>
+      g.home?.id&&g.away?.id&&g.completed&&
+      Number.isFinite(Number(g.homeScore))&&
+      Number.isFinite(Number(g.awayScore))
+    );
+    const history=dedupe(normalized);
+
+    if(history.length){
+      try{
+        localStorage.setItem(key,JSON.stringify({time:Date.now(),games:history}));
+      }catch{}
+    }
+    return history;
+  }catch(error){
+    console.warn("Prime Score histórico:",error);
+    return [];
+  }
+}
+
+async function mergeHistoricalCalendar(days=360){
+  const history=await loadHistoricalCalendar(days);
+  if(!history.length)return games;
+
+  const current=games.filter(g=>!g.completed);
+  games=dedupe([...history,...current]);
+  return games;
+}
+
+
 
 function cacheKey(
   days,
